@@ -1,0 +1,47 @@
+// lib/core/providers/core_providers.dart
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../services/auth_service.dart';
+import '../services/installation_id_service.dart';
+import 'auth_provider.dart';
+
+// ── SharedPreferences ────────────────────────────────────────────────────────
+// FutureProvider because getInstance() is async
+// Riverpod caches this — only ever one instance, created once
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>(
+  (ref) async => SharedPreferences.getInstance(),
+);
+
+final secureStorageProvider = Provider<FlutterSecureStorage>(
+  (ref) => const FlutterSecureStorage(),
+);
+
+// ── InstallationIdService ────────────────────────────────────────────────────
+// AsyncNotifier because it depends on an async provider
+// This replaces the ViewModel pattern you know from Android
+class InstallationIdNotifier extends AsyncNotifier<String> {
+  @override
+  Future<String> build() async {
+    // ref.watch inside AsyncNotifier = safe, lifecycle managed by Riverpod
+    // will wait for sharedPreferencesProvider to resolve before continuing
+    final prefs = await ref.watch(
+      sharedPreferencesProvider.future, // .future unwraps AsyncValue → Future
+    );
+
+    return InstallationIdService(prefs).getOrCreateInstallationId();
+  }
+}
+
+final installationIdProvider =
+    AsyncNotifierProvider<InstallationIdNotifier, String>(
+      InstallationIdNotifier.new,
+    );
+
+final authServiceProvider = Provider<AuthService>(
+  (ref) => AuthService(
+    ref.watch(installationIdService),
+    ref.watch(secureStorageProvider),
+  ),
+);
