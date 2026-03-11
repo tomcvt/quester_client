@@ -1,32 +1,25 @@
 // lib/core/providers/auth_provider.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core_providers.dart';
 
-
-final authProvider = AsyncNotifierProvider<
-
-/*
-// Mock auth state — later this reads from flutter_secure_storage
-// true = has token, false = no token
 class AuthNotifier extends AsyncNotifier<bool> {
   @override
   Future<bool> build() async {
-    // Simulate secure storage read
-    await Future.delayed(const Duration(seconds: 1));
-    return false; // mock: not logged in
+    // orchestrates, delegates to service
+    final token = await ref.watch(authServiceProvider).initialize();
+    return token != null;
   }
 
-  // Called after successful login — sets token in secure storage later
-  Future<void> login() async {
-    // optimistically set loading while we "save token"
+  Future<void> login(String username, String password) async {
     state = const AsyncValue.loading();
-    await Future.delayed(const Duration(milliseconds: 500)); // mock save
+    await ref.read(authServiceProvider).login(username, password);
     state = const AsyncValue.data(true);
   }
 
   Future<void> logout() async {
     state = const AsyncValue.loading();
-    await Future.delayed(const Duration(milliseconds: 300)); // mock clear
+    await ref.read(authServiceProvider).logout();
     state = const AsyncValue.data(false);
   }
 }
@@ -34,5 +27,3 @@ class AuthNotifier extends AsyncNotifier<bool> {
 final authProvider = AsyncNotifierProvider<AuthNotifier, bool>(
   AuthNotifier.new,
 );
-
-*/

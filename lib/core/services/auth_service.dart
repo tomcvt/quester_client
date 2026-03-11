@@ -1,23 +1,30 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'installation_id_service.dart';
+import '../utils/logger_util.dart';
 
 class AuthService {
   final InstallationIdService _installationIdService;
   final FlutterSecureStorage _secureStorage;
 
+  static const String _tokenKey = 'auth_token';
+
   AuthService(this._installationIdService, this._secureStorage);
 
-  Future<String> initialize() async {
-    // Simulate some initialization work, e.g. checking for existing token
+  Future<String?> initialize({String? installationId}) async {
+    final id =
+        installationId ??
+        await _installationIdService.getOrCreateInstallationId();
+    logger.i('Installation ID: $id');
+    return await _secureStorage.read(key: _tokenKey);
+  }
+
+  Future<void> login(String username, String password) async {
+    await Future.delayed(const Duration(seconds: 2)); // mock network
+    await _secureStorage.write(key: _tokenKey, value: 'mock_token_123');
+  }
+
+  Future<void> logout() async {
     await Future.delayed(const Duration(seconds: 1));
-
-    // Get or create installation ID (not strictly needed for auth, but simulates setup)
-    final installationId = await _installationIdService
-        .getOrCreateInstallationId();
-    print('Installation ID: $installationId');
-
-    // Check for existing token in secure storage
-    final token = await _secureStorage.read(key: 'auth_token');
-    return token ?? '123456'; // mock token for demo purposes
+    await _secureStorage.delete(key: _tokenKey);
   }
 }

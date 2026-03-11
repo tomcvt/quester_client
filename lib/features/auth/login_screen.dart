@@ -16,7 +16,9 @@ class LoginScreen extends ConsumerWidget {
         child: authState.isLoading
             ? const CircularProgressIndicator()
             : ElevatedButton(
-                onPressed: () => ref.read(authProvider.notifier).login(),
+                onPressed: () => ref
+                    .read(authProvider.notifier)
+                    .login("username", "password"),
                 child: const Text('Mock Login'),
               ),
       ),

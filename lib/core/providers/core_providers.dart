@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/auth_service.dart';
 import '../services/installation_id_service.dart';
-import 'auth_provider.dart';
 
 // ── SharedPreferences ────────────────────────────────────────────────────────
 // FutureProvider because getInstance() is async
@@ -39,9 +38,22 @@ final installationIdProvider =
       InstallationIdNotifier.new,
     );
 
+final installationIdServiceProvider = Provider<InstallationIdService>(
+  (ref) => InstallationIdService(
+    ref
+        .watch(sharedPreferencesProvider)
+        .maybeWhen(
+          data: (prefs) => prefs,
+          orElse: () => throw Exception('SharedPreferences not available'),
+        ),
+  ),
+);
+
 final authServiceProvider = Provider<AuthService>(
   (ref) => AuthService(
-    ref.watch(installationIdService),
+    ref.watch(
+      installationIdServiceProvider,
+    ), // pass the notifier to getOrCreateInstallationId()
     ref.watch(secureStorageProvider),
   ),
 );
