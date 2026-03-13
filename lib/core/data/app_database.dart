@@ -21,4 +21,6 @@ class AppDatabase extends _$AppDatabase {
     final file = File(path.join(dbFolder.path, 'app.db'));
     return AppDatabase(NativeDatabase(file));
   }
+
+  late final groupsDao = GroupsDao(this);
 }

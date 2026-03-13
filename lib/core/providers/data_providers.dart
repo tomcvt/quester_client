@@ -1,8 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/app_database.dart';
+
+import 'package:quester_client/core/data/groups_dao.dart';
+import 'package:quester_client/core/data/app_database.dart';
 
 final databaseProvider = FutureProvider<AppDatabase>((ref) async {
   return AppDatabase.open(); // Drift opens the file here
+});
+
+final groupsDaoProvider = Provider<GroupsDao>((ref) {
+  return ref
+      .watch(databaseProvider)
+      .requireValue
+      .groupsDao; // Access the DAO from the database
 });
 
 /*
