@@ -9,7 +9,7 @@ class AppInitializer {
   static late final String? token;
   static late final AppDatabase db;
 
-  static Future<void> init() async {
+  static Future<void> init(BuildConfig? buildConfig) async {
     final prefs = await SharedPreferences.getInstance();
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
@@ -18,6 +18,16 @@ class AppInitializer {
       installationIdService,
       FlutterSecureStorage(),
     ).initialize(installationId: installationId);
-    db = await AppDatabase.open();
+    db = await AppDatabase.open(buildConfig: buildConfig);
   }
 }
+
+class BuildConfig {
+  static const String apiBaseUrl = 'https://tomcvt.questerapp.com';
+  PersistenceMode persistenceMode = PersistenceMode.memory;
+  bool isDebug = true;
+
+  BuildConfig({required this.persistenceMode, required this.isDebug});
+}
+
+enum PersistenceMode { memory, sqlite }

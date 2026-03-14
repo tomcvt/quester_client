@@ -54,4 +54,9 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
           );
         }
       });
+
+  Future<Group?> groupFromId(int id) =>
+      (select(groups)..where((g) => g.id.equals(id))).getSingleOrNull();
+  Future<Group?> groupFromName(String name) =>
+      (select(groups)..where((g) => g.name.equals(name))).getSingleOrNull();
 }

@@ -2,19 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quester_client/core/data/app_database.dart';
+import 'package:quester_client/core/providers/data_providers.dart';
+import 'package:quester_client/core/providers/groups_providers.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 
-// ── PLACEHOLDER ──────────────────────────────────────────────────────────────
-// Later this becomes:
-//   final groupsProvider = StreamProvider<List<Group>>((ref) {
-//     return ref.watch(groupsDaoProvider).watchAllGroups();
-//   });
-//
-// For now, a fake sync provider so the screen compiles and renders.
-// The screen's .when() pattern works identically either way — that's the point.
-final groupsProvider = Provider<AsyncValue<List<String>>>((ref) {
-  return const AsyncValue.data(['Team Alpha', 'Study Group']);
+final userGroupsListProvider = StreamProvider<List<Group>>((ref) {
+  return ref.watch(groupsDaoProvider).watchAllGroups();
 });
-// ─────────────────────────────────────────────────────────────────────────────
 
 class UserGroupsScreen extends ConsumerWidget {
   const UserGroupsScreen({super.key});
@@ -24,7 +19,7 @@ class UserGroupsScreen extends ConsumerWidget {
     // ref.watch() — subscribes. When groupsProvider emits a new value,
     // this build() re-runs. Same mental model as collecting a StateFlow
     // in your Compose/XML layer.
-    final groupsAsync = ref.watch(groupsProvider);
+    final groupsAsync = ref.watch(userGroupsListProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Groups')),
@@ -37,18 +32,25 @@ class UserGroupsScreen extends ConsumerWidget {
       body: groupsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
-        data: (groups) => groups.isEmpty
-            ? const Center(child: Text('No groups yet. Join one!'))
-            : ListView.builder(
-                itemCount: groups.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: const Icon(Icons.group),
-                    title: Text(groups[index]),
-                    // TODO: onTap → navigate to group detail screen
-                  );
+        data: (groups) => ListView.builder(
+          itemCount: groups.length + 1, // +1 for the "Create Group" tile
+          itemBuilder: (context, index) {
+            if (index == groups.length) {
+              return ListTile(
+                leading: const Icon(Icons.group_add),
+                title: const Text('Create Group'),
+                onTap: () {
+                  _showAddGroupDialog(context, ref);
                 },
-              ),
+              );
+            }
+            return ListTile(
+              leading: const Icon(Icons.group),
+              title: Text(groups[index].name),
+              // TODO: onTap → navigate to group detail screen
+            );
+          },
+        ),
       ),
 
       // ── FAB ────────────────────────────────────────────────────────────────
@@ -71,6 +73,10 @@ class UserGroupsScreen extends ConsumerWidget {
       // barrierDismissible: true means tapping outside closes it (default)
       builder: (dialogContext) => _JoinGroupDialog(ref: ref),
     );
+  }
+
+  void _showAddGroupDialog(BuildContext context, WidgetRef ref) {
+    showDialog(context: context, builder: (dialogContext) => _AddGroupDialog());
   }
 }
 
@@ -169,5 +175,108 @@ class _JoinGroupDialogState extends State<_JoinGroupDialog> {
       // The dialog might have been dismissed while we awaited.
       Navigator.of(context).pop();
     }
+  }
+}
+
+// ── _AddGroupDialog ───────────────────────────────────────────────────────────
+
+class _AddGroupDialog extends ConsumerStatefulWidget {
+  const _AddGroupDialog(); // no ref parameter — that's the whole point
+
+  @override
+  ConsumerState<_AddGroupDialog> createState() => _AddGroupDialogState();
+}
+
+class _AddGroupDialogState extends ConsumerState<_AddGroupDialog> {
+  final _groupNameController = TextEditingController();
+  final _groupPasswordController = TextEditingController();
+  /*
+  @override
+  void initState() {
+    super.initState();
+    // ref.listen() belongs here — runs once when widget mounts
+    // same place you'd set up a collectLatest in onViewCreated in Android
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listen(addGroupProvider, (previous, next) {
+        next.whenOrNull(
+          error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          ),
+          data: (_) => Navigator.of(context).pop(),
+        );
+      });
+    });
+  }
+  */
+
+  @override
+  void dispose() {
+    _groupNameController.dispose();
+    _groupPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ref.watch() here — drives button state reactively
+    // no _isLoading bool needed anymore
+    ref.listen(addGroupProvider, (previous, next) {
+      next.whenOrNull(
+        error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            duration: const Duration(seconds: 10),
+          ),
+        ),
+        data: (_) => Navigator.of(context).pop(),
+      );
+    });
+
+    final state = ref.watch(addGroupProvider);
+
+    return AlertDialog(
+      title: const Text('Create Group'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _groupNameController,
+            decoration: const InputDecoration(labelText: 'Group Name'),
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _groupPasswordController,
+            decoration: const InputDecoration(labelText: 'Password'),
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        // state.isLoading drives this — no setState needed
+        state.isLoading
+            ? const CircularProgressIndicator()
+            : ElevatedButton(onPressed: _submit, child: const Text('Create')),
+      ],
+    );
+  }
+
+  void _submit() {
+    logger.d('_submit called');
+    final name = _groupNameController.text.trim();
+    final password = _groupPasswordController.text.trim();
+    if (name.isEmpty || password.isEmpty) return;
+
+    // fire and forget — the notifier owns the state,
+    // ref.listen() above reacts to the outcome
+    final group = ref
+        .read(addGroupProvider.notifier)
+        .createGroup(name, password);
+    logger.d('group: $group');
   }
 }
