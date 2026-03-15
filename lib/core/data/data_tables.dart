@@ -4,7 +4,31 @@ class Groups extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get publicId => text()();
   TextColumn get name => text()();
-  TextColumn get type => text()(); // you handle enum mapping manually
+  TextColumn get type => text().withDefault(
+    Constant(GroupType.work.value),
+  )(); // you handle enum mapping manually
+  TextColumn get visibility => text().withDefault(
+    Constant(GroupVisibility.private.value),
+  )(); // you handle enum mapping manually
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+enum GroupVisibility { public, private }
+
+extension GroupVisibilityX on GroupVisibility {
+  String get value => name; // enum.name = 'public', 'private'
+  String get apiValue => name.toUpperCase(); // 'PUBLIC', 'PRIVATE' for API
+  static GroupVisibility fromString(String s) =>
+      GroupVisibility.values.firstWhere((e) => e.name == s.toLowerCase());
+}
+
+enum GroupType { work, personal }
+
+extension GroupTypeX on GroupType {
+  String get value => name;
+  String get apiValue => name.toUpperCase();
+  static GroupType fromString(String s) =>
+      GroupType.values.firstWhere((e) => e.name == s.toLowerCase());
 }
 
 class Users extends Table {

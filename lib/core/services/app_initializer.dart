@@ -5,11 +5,20 @@ import 'auth_service.dart';
 import 'installation_id_service.dart';
 
 class AppInitializer {
+  static late final BuildConfig buildConfig;
   static late final String installationId;
   static late final String? token;
   static late final AppDatabase db;
 
-  static Future<void> init(BuildConfig? buildConfig) async {
+  static Future<void> init(BuildConfig? passedBuildConfig) async {
+    final config =
+        passedBuildConfig ??
+        BuildConfig(
+          persistenceMode: PersistenceMode.memory,
+          isDebug: true,
+          apiBaseUrl: 'http://localhost:8100/api',
+        );
+    buildConfig = config; // assign to static variable for global access
     final prefs = await SharedPreferences.getInstance();
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
@@ -23,11 +32,16 @@ class AppInitializer {
 }
 
 class BuildConfig {
-  static const String apiBaseUrl = 'https://tomcvt.questerapp.com';
+  //static const String apiBaseUrl = 'https://questerapp.tomcvt.com/api';
+  String apiBaseUrl = 'http://localhost:8100/api';
   PersistenceMode persistenceMode = PersistenceMode.memory;
   bool isDebug = true;
 
-  BuildConfig({required this.persistenceMode, required this.isDebug});
+  BuildConfig({
+    required this.persistenceMode,
+    required this.isDebug,
+    required this.apiBaseUrl,
+  });
 }
 
 enum PersistenceMode { memory, sqlite }

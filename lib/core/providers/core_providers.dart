@@ -1,6 +1,8 @@
 // lib/core/providers/core_providers.dart
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quester_client/core/http/api_client.dart';
+import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/auth_service.dart';
@@ -17,9 +19,8 @@ final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
 );
 
-// ── InstallationIdService ────────────────────────────────────────────────────
-// AsyncNotifier because it depends on an async provider
-// This replaces the ViewModel pattern you know from Android
+/*
+
 class InstallationIdNotifier extends AsyncNotifier<String> {
   @override
   Future<String> build() async {
@@ -33,10 +34,7 @@ class InstallationIdNotifier extends AsyncNotifier<String> {
   }
 }
 
-final installationIdProvider =
-    AsyncNotifierProvider<InstallationIdNotifier, String>(
-      InstallationIdNotifier.new,
-    );
+*/
 
 final installationIdServiceProvider = Provider<InstallationIdService>(
   (ref) => InstallationIdService(
@@ -57,3 +55,14 @@ final authServiceProvider = Provider<AuthService>(
     ref.watch(secureStorageProvider),
   ),
 );
+
+final installationIdProvider = Provider<String>((ref) {
+  throw UnimplementedError(
+    'installationIdProvider must be overridden in main()',
+  );
+});
+
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final installationId = ref.watch(installationIdProvider);
+  return ApiClient(AppInitializer.buildConfig.apiBaseUrl, installationId);
+});

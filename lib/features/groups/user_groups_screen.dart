@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
-import 'package:quester_client/core/providers/groups_providers.dart';
+import 'package:quester_client/core/providers/add_group_notifier.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
 
 final userGroupsListProvider = StreamProvider<List<Group>>((ref) {
@@ -19,6 +19,7 @@ class UserGroupsScreen extends ConsumerWidget {
     // ref.watch() — subscribes. When groupsProvider emits a new value,
     // this build() re-runs. Same mental model as collecting a StateFlow
     // in your Compose/XML layer.
+    ref.watch(addGroupProvider); // eager load for the add group state
     final groupsAsync = ref.watch(userGroupsListProvider);
 
     return Scaffold(
@@ -76,7 +77,10 @@ class UserGroupsScreen extends ConsumerWidget {
   }
 
   void _showAddGroupDialog(BuildContext context, WidgetRef ref) {
-    showDialog(context: context, builder: (dialogContext) => _AddGroupDialog());
+    showDialog(
+      context: context,
+      builder: (dialogContext) => const _AddGroupDialog(),
+    );
   }
 }
 
@@ -228,7 +232,11 @@ class _AddGroupDialogState extends ConsumerState<_AddGroupDialog> {
             duration: const Duration(seconds: 10),
           ),
         ),
-        data: (_) => Navigator.of(context).pop(),
+        data: (_) {
+          if (previous?.isLoading ?? false) {
+            Navigator.of(context).pop();
+          }
+        },
       );
     });
 
@@ -270,13 +278,8 @@ class _AddGroupDialogState extends ConsumerState<_AddGroupDialog> {
     logger.d('_submit called');
     final name = _groupNameController.text.trim();
     final password = _groupPasswordController.text.trim();
-    if (name.isEmpty || password.isEmpty) return;
-
-    // fire and forget — the notifier owns the state,
-    // ref.listen() above reacts to the outcome
-    final group = ref
-        .read(addGroupProvider.notifier)
-        .createGroup(name, password);
-    logger.d('group: $group');
+    //if (name.isEmpty || password.isEmpty) return;
+    final notifier = ref.read(addGroupProvider.notifier);
+    notifier.createGroup(name, password);
   }
 }

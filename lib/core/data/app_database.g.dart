@@ -48,10 +48,41 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
     aliasedName,
     false,
     type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: Constant(GroupType.work.value),
+  );
+  static const VerificationMeta _visibilityMeta = const VerificationMeta(
+    'visibility',
+  );
+  @override
+  late final GeneratedColumn<String> visibility = GeneratedColumn<String>(
+    'visibility',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: Constant(GroupVisibility.private.value),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, publicId, name, type];
+  List<GeneratedColumn> get $columns => [
+    id,
+    publicId,
+    name,
+    type,
+    visibility,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -88,8 +119,20 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
         _typeMeta,
         type.isAcceptableOrUnknown(data['type']!, _typeMeta),
       );
+    }
+    if (data.containsKey('visibility')) {
+      context.handle(
+        _visibilityMeta,
+        visibility.isAcceptableOrUnknown(data['visibility']!, _visibilityMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
-      context.missing(_typeMeta);
+      context.missing(_createdAtMeta);
     }
     return context;
   }
@@ -116,6 +159,14 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
         DriftSqlType.string,
         data['${effectivePrefix}type'],
       )!,
+      visibility: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}visibility'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
     );
   }
 
@@ -130,11 +181,15 @@ class Group extends DataClass implements Insertable<Group> {
   final String publicId;
   final String name;
   final String type;
+  final String visibility;
+  final DateTime createdAt;
   const Group({
     required this.id,
     required this.publicId,
     required this.name,
     required this.type,
+    required this.visibility,
+    required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -143,6 +198,8 @@ class Group extends DataClass implements Insertable<Group> {
     map['public_id'] = Variable<String>(publicId);
     map['name'] = Variable<String>(name);
     map['type'] = Variable<String>(type);
+    map['visibility'] = Variable<String>(visibility);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
@@ -152,6 +209,8 @@ class Group extends DataClass implements Insertable<Group> {
       publicId: Value(publicId),
       name: Value(name),
       type: Value(type),
+      visibility: Value(visibility),
+      createdAt: Value(createdAt),
     );
   }
 
@@ -165,6 +224,8 @@ class Group extends DataClass implements Insertable<Group> {
       publicId: serializer.fromJson<String>(json['publicId']),
       name: serializer.fromJson<String>(json['name']),
       type: serializer.fromJson<String>(json['type']),
+      visibility: serializer.fromJson<String>(json['visibility']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -175,22 +236,36 @@ class Group extends DataClass implements Insertable<Group> {
       'publicId': serializer.toJson<String>(publicId),
       'name': serializer.toJson<String>(name),
       'type': serializer.toJson<String>(type),
+      'visibility': serializer.toJson<String>(visibility),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  Group copyWith({int? id, String? publicId, String? name, String? type}) =>
-      Group(
-        id: id ?? this.id,
-        publicId: publicId ?? this.publicId,
-        name: name ?? this.name,
-        type: type ?? this.type,
-      );
+  Group copyWith({
+    int? id,
+    String? publicId,
+    String? name,
+    String? type,
+    String? visibility,
+    DateTime? createdAt,
+  }) => Group(
+    id: id ?? this.id,
+    publicId: publicId ?? this.publicId,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    visibility: visibility ?? this.visibility,
+    createdAt: createdAt ?? this.createdAt,
+  );
   Group copyWithCompanion(GroupsCompanion data) {
     return Group(
       id: data.id.present ? data.id.value : this.id,
       publicId: data.publicId.present ? data.publicId.value : this.publicId,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
+      visibility: data.visibility.present
+          ? data.visibility.value
+          : this.visibility,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
@@ -200,13 +275,16 @@ class Group extends DataClass implements Insertable<Group> {
           ..write('id: $id, ')
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
-          ..write('type: $type')
+          ..write('type: $type, ')
+          ..write('visibility: $visibility, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, publicId, name, type);
+  int get hashCode =>
+      Object.hash(id, publicId, name, type, visibility, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -214,7 +292,9 @@ class Group extends DataClass implements Insertable<Group> {
           other.id == this.id &&
           other.publicId == this.publicId &&
           other.name == this.name &&
-          other.type == this.type);
+          other.type == this.type &&
+          other.visibility == this.visibility &&
+          other.createdAt == this.createdAt);
 }
 
 class GroupsCompanion extends UpdateCompanion<Group> {
@@ -222,31 +302,41 @@ class GroupsCompanion extends UpdateCompanion<Group> {
   final Value<String> publicId;
   final Value<String> name;
   final Value<String> type;
+  final Value<String> visibility;
+  final Value<DateTime> createdAt;
   const GroupsCompanion({
     this.id = const Value.absent(),
     this.publicId = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
+    this.visibility = const Value.absent(),
+    this.createdAt = const Value.absent(),
   });
   GroupsCompanion.insert({
     this.id = const Value.absent(),
     required String publicId,
     required String name,
-    required String type,
+    this.type = const Value.absent(),
+    this.visibility = const Value.absent(),
+    required DateTime createdAt,
   }) : publicId = Value(publicId),
        name = Value(name),
-       type = Value(type);
+       createdAt = Value(createdAt);
   static Insertable<Group> custom({
     Expression<int>? id,
     Expression<String>? publicId,
     Expression<String>? name,
     Expression<String>? type,
+    Expression<String>? visibility,
+    Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (publicId != null) 'public_id': publicId,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
+      if (visibility != null) 'visibility': visibility,
+      if (createdAt != null) 'created_at': createdAt,
     });
   }
 
@@ -255,12 +345,16 @@ class GroupsCompanion extends UpdateCompanion<Group> {
     Value<String>? publicId,
     Value<String>? name,
     Value<String>? type,
+    Value<String>? visibility,
+    Value<DateTime>? createdAt,
   }) {
     return GroupsCompanion(
       id: id ?? this.id,
       publicId: publicId ?? this.publicId,
       name: name ?? this.name,
       type: type ?? this.type,
+      visibility: visibility ?? this.visibility,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -279,6 +373,12 @@ class GroupsCompanion extends UpdateCompanion<Group> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
+    if (visibility.present) {
+      map['visibility'] = Variable<String>(visibility.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
     return map;
   }
 
@@ -288,7 +388,9 @@ class GroupsCompanion extends UpdateCompanion<Group> {
           ..write('id: $id, ')
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
-          ..write('type: $type')
+          ..write('type: $type, ')
+          ..write('visibility: $visibility, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -764,6 +866,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $GroupsTable groups = $GroupsTable(this);
   late final $UsersTable users = $UsersTable(this);
   late final $GroupMembersTable groupMembers = $GroupMembersTable(this);
+  late final GroupsDao groupsDao = GroupsDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -780,7 +883,9 @@ typedef $$GroupsTableCreateCompanionBuilder =
       Value<int> id,
       required String publicId,
       required String name,
-      required String type,
+      Value<String> type,
+      Value<String> visibility,
+      required DateTime createdAt,
     });
 typedef $$GroupsTableUpdateCompanionBuilder =
     GroupsCompanion Function({
@@ -788,6 +893,8 @@ typedef $$GroupsTableUpdateCompanionBuilder =
       Value<String> publicId,
       Value<String> name,
       Value<String> type,
+      Value<String> visibility,
+      Value<DateTime> createdAt,
     });
 
 final class $$GroupsTableReferences
@@ -839,6 +946,16 @@ class $$GroupsTableFilterComposer
 
   ColumnFilters<String> get type => $composableBuilder(
     column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -896,6 +1013,16 @@ class $$GroupsTableOrderingComposer
     column: $table.type,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$GroupsTableAnnotationComposer
@@ -918,6 +1045,14 @@ class $$GroupsTableAnnotationComposer
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get visibility => $composableBuilder(
+    column: $table.visibility,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   Expression<T> groupMembersRefs<T extends Object>(
     Expression<T> Function($$GroupMembersTableAnnotationComposer a) f,
@@ -977,23 +1112,31 @@ class $$GroupsTableTableManager
                 Value<String> publicId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> type = const Value.absent(),
+                Value<String> visibility = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
               }) => GroupsCompanion(
                 id: id,
                 publicId: publicId,
                 name: name,
                 type: type,
+                visibility: visibility,
+                createdAt: createdAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String publicId,
                 required String name,
-                required String type,
+                Value<String> type = const Value.absent(),
+                Value<String> visibility = const Value.absent(),
+                required DateTime createdAt,
               }) => GroupsCompanion.insert(
                 id: id,
                 publicId: publicId,
                 name: name,
                 type: type,
+                visibility: visibility,
+                createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
               .map(
