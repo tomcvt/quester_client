@@ -37,12 +37,34 @@ class Users extends Table {
   TextColumn get name => text()();
 }
 
-// Junction table — Group <-> User many-to-many
-class GroupMembers extends Table {
-  IntColumn get groupId => integer().references(Groups, #id)();
-  IntColumn get userId => integer().references(Users, #id)();
+//-- GroupMembers
 
-  // Composite primary key — no autoincrement here
+enum MemberRole { owner, member }
+
+extension MemberRoleX on MemberRole {
+  String get value => name;
+  String get apiValue => name.toUpperCase();
+  static MemberRole fromString(String s) =>
+      MemberRole.values.firstWhere((e) => e.name == s.toLowerCase());
+}
+
+// GroupMembers stores denormalized user data (username) intentionally.
+// At MVP, members are only ever displayed in group context — no User table needed.
+// Extend to normalized Users table when:
+//   - profile screen exists
+//   - user appears in multiple independent contexts
+//   - username changes need to propagate consistently
+class GroupMembers extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(Groups, #id)();
+  TextColumn get userPublicId => text()();
+  TextColumn get username => text()();
+  TextColumn get role =>
+      textEnum<MemberRole>().withDefault(Constant(MemberRole.member.value))();
+  DateTimeColumn get updatedAt => dateTime()();
+
   @override
-  Set<Column> get primaryKey => {groupId, userId};
+  List<Set<Column>> get uniqueKeys => [
+    {groupId, userPublicId}, // prevent duplicate memberships
+  ];
 }

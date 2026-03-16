@@ -1,0 +1,22 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'group_members_dao.dart';
+
+// ignore_for_file: type=lint
+mixin _$GroupMembersDaoMixin on DatabaseAccessor<AppDatabase> {
+  $GroupsTable get groups => attachedDatabase.groups;
+  $GroupMembersTable get groupMembers => attachedDatabase.groupMembers;
+  $UsersTable get users => attachedDatabase.users;
+  GroupMembersDaoManager get managers => GroupMembersDaoManager(this);
+}
+
+class GroupMembersDaoManager {
+  final _$GroupMembersDaoMixin _db;
+  GroupMembersDaoManager(this._db);
+  $$GroupsTableTableManager get groups =>
+      $$GroupsTableTableManager(_db.attachedDatabase, _db.groups);
+  $$GroupMembersTableTableManager get groupMembers =>
+      $$GroupMembersTableTableManager(_db.attachedDatabase, _db.groupMembers);
+  $$UsersTableTableManager get users =>
+      $$UsersTableTableManager(_db.attachedDatabase, _db.users);
+}

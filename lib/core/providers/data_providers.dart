@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quester_client/core/data/group_members_dao.dart';
 
 import 'package:quester_client/core/data/groups_dao.dart';
 import 'package:quester_client/core/data/app_database.dart';
@@ -12,6 +13,13 @@ final groupsDaoProvider = Provider<GroupsDao>((ref) {
       .watch(databaseProvider)
       .requireValue
       .groupsDao; // Access the DAO from the database
+});
+
+final groupMembersDaoProvider = Provider<GroupMembersDao>((ref) {
+  return ref
+      .watch(databaseProvider)
+      .requireValue
+      .groupMembersDao; // Access the DAO from the database
 });
 
 /*

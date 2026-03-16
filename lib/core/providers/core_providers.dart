@@ -52,6 +52,7 @@ final authServiceProvider = Provider<AuthService>(
     ref.watch(
       installationIdServiceProvider,
     ), // pass the notifier to getOrCreateInstallationId()
+    ref.watch(apiClientProvider),
     ref.watch(secureStorageProvider),
   ),
 );

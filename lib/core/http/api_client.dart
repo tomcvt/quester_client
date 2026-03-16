@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:quester_client/core/dto/auth.dart';
 import 'package:quester_client/core/dto/groups.dart';
 
 class ApiClient {
@@ -6,16 +7,26 @@ class ApiClient {
 
   ApiClient(String baseUrl, String installationId)
     : _dio = Dio(BaseOptions(baseUrl: baseUrl)) {
-    // interceptor = OkHttp Interceptor
-    // adds installationId header to every request automatically
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          options.headers['X-Installation-Id'] = installationId;
+          options.headers['X-Installation-ID'] = installationId;
           handler.next(options);
         },
       ),
     );
+  }
+
+  Future<AuthenticationResponse> authenticate(String installationId) async {
+    final authRequest = AuthenticationRequest(installationId: installationId);
+    final response = await _dio.post(
+      '/auth/authenticate',
+      data: authRequest.toJson(),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to authenticate: ${response.statusMessage}');
+    }
+    return AuthenticationResponse.fromJson(response.data);
   }
 
   Future<GroupResponse> createGroup(String name, String password) async {
@@ -34,13 +45,26 @@ class ApiClient {
   }
 
   Future<GroupResponse> joinGroup(String name, String password) async {
+    final joinGroupRequest = JoinGroupRequest(name: name, password: password);
     final response = await _dio.post(
       '/groups/join',
-      data: {'name': name, 'password': password},
+      data: joinGroupRequest.toJson(),
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to join group: ${response.statusMessage}');
     }
     return GroupResponse.fromJson(response.data);
+  }
+
+  Future<GroupMembersSyncResponse> syncGroupMembers(
+    String groupPublicId,
+  ) async {
+    final response = await _dio.get('/groups/$groupPublicId/members');
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to sync group members: ${response.statusMessage}',
+      );
+    }
+    return GroupMembersSyncResponse.fromJson(response.data);
   }
 }

@@ -15,18 +15,18 @@ void main() async {
   String apiBaseUrl;
   if (kDebugMode) {
     if (kIsWeb) {
-      apiBaseUrl = 'http://localhost:8100/api';
+      apiBaseUrl = 'http://localhost:8100/api/v1/';
     } else if (defaultTargetPlatform == TargetPlatform.android) {
-      apiBaseUrl = 'http://10.0.2.2:8100/api';
+      apiBaseUrl = 'http://10.0.2.2:8100/api/v1/';
     } else {
-      apiBaseUrl = 'http://localhost:8100/api';
+      apiBaseUrl = 'http://localhost:8100/api/v1/';
       logger.w(
         'Running in debug mode on unsupported platform ${defaultTargetPlatform}, defaulting API base URL to localhost. This may not work if the backend is not accessible at this address.',
       );
     }
   } else {
     //apiBaseUrl = 'https://questerapp.tomcvt.com/api';
-    apiBaseUrl = 'http://localhost:8100/api';
+    apiBaseUrl = 'http://localhost:8100/api/v1/';
   }
 
   BuildConfig buildConfig = BuildConfig(

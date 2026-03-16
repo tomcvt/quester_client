@@ -17,6 +17,7 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
 
   // Join query — groups with their members
   // This is where Drift gets more verbose than Room
+  /*
   Stream<Map<Group, List<User>>> watchGroupsWithMembers() {
     final query = select(groups).join([
       leftOuterJoin(groupMembers, groupMembers.groupId.equalsExp(groups.id)),
@@ -36,7 +37,8 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
       return result;
     });
   }
-
+  */
+  /*
   Future<void> insertGroupWithMembers(
     GroupsCompanion group,
     List<UsersCompanion> members,
@@ -54,6 +56,7 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
           );
         }
       });
+      */
 
   Future<Group?> groupFromId(int id) =>
       (select(groups)..where((g) => g.id.equals(id))).getSingleOrNull();

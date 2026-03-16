@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:quester_client/core/data/app_database.dart';
+import 'package:quester_client/core/data/group_members_dao.dart';
 import 'package:quester_client/core/data/groups_dao.dart';
 import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/http/api_client.dart';
@@ -7,9 +8,10 @@ import 'package:quester_client/core/utils/logger_util.dart';
 
 class GroupsService {
   final GroupsDao _groupsDao;
+  final GroupMembersDao _groupMembersDao;
   final ApiClient _apiClient;
 
-  GroupsService(this._groupsDao, this._apiClient);
+  GroupsService(this._groupsDao, this._groupMembersDao, this._apiClient);
 
   Future<Group?> createGroup(String name, String password) async {
     final groupResponse = await _apiClient.createGroup(name, password);
@@ -32,6 +34,18 @@ class GroupsService {
     final id = await _groupsDao.insertGroup(newGroup);
     final createdGroup = await _groupsDao.groupFromId(id);
     logger.d('Group inserted into local DB: ${createdGroup.toString()}');
+    final fetchedMembers = await _apiClient.syncGroupMembers(
+      groupResponse.publicId,
+    );
+    logger.d('Fetched members from backend: ${fetchedMembers.toString()}');
+
+    await _groupMembersDao.insertMembers(
+      groupResponse.publicId,
+      fetchedMembers.members,
+    );
+    logger.d(
+      'Members inserted into local DB for group ${groupResponse.publicId}',
+    );
     return createdGroup;
   }
 }
