@@ -19,13 +19,20 @@ class AddGroupNotifier extends AsyncNotifier<Group?> {
     logger.d('createGroup called: $name');
     final groupsService = ref.read(groupsServiceProvider);
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final group = await groupsService.createGroup(name, password);
-      logger.d('Group: $group');
-      logger.d('Group creation state: $state');
-      logger.d('Group creation completed: ${state.value}');
-      return group;
-    });
+    state = await AsyncValue.guard(
+      () async {
+        final group = await groupsService.createGroup(name, password);
+        logger.d('Group: $group');
+        logger.d('Group creation state: $state');
+        logger.d('Group creation completed: ${state.value}');
+        return group;
+      },
+      // Optional error filter: catch all errors
+      (err) => false,
+    );
+    if (state.hasError) {
+      logger.e('Group creation failed', error: state.error);
+    }
     return state.value;
   }
 }

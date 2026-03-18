@@ -1,7 +1,12 @@
 import 'package:drift/drift.dart';
 
+/// Groups table schema
+///
+/// - publicId: UUID for group, globally unique
 class Groups extends Table {
   IntColumn get id => integer().autoIncrement()();
+
+  /// UUID for group, globally unique
   TextColumn get publicId => text()();
   TextColumn get name => text()();
   TextColumn get type => text().withDefault(

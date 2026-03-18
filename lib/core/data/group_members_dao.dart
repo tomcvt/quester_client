@@ -15,7 +15,7 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
     return query.watch();
   }
 
-  Future<void> insertMembers(
+  Future<void> insertMembersFromSync(
     String groupPublicId,
     List<GroupMemberSyncDTO> members,
   ) async {
@@ -43,5 +43,29 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
         }).toList(),
       );
     });
+  }
+
+  Future<GroupMember> insertMember(
+    int groupId,
+    String userPublicId,
+    String username,
+    MemberRole role,
+  ) async {
+    final member = GroupMembersCompanion(
+      groupId: Value(groupId),
+      userPublicId: Value(userPublicId),
+      username: Value(username),
+      role: Value(role),
+      updatedAt: Value(DateTime.now()),
+    );
+    final id = await into(groupMembers).insert(member);
+    return GroupMember(
+      id: id,
+      groupId: groupId,
+      userPublicId: userPublicId,
+      username: username,
+      role: role,
+      updatedAt: DateTime.now(),
+    );
   }
 }

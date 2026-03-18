@@ -4,6 +4,8 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/http/api_client.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
+import 'package:quester_client/dev/dev_data_seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
@@ -38,6 +40,10 @@ class AppInitializer {
     ).initialize(installationId: installationId);
     db = await AppDatabase.open(buildConfig: buildConfig);
     deviceId = await _getDeviceId();
+    if (config.isDebug) {
+      await DevDataSeeder.seed(db, installationId);
+      logger.d('Development data seeded');
+    }
   }
 
   static Future<String> _getDeviceId() async {
