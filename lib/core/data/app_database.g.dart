@@ -178,6 +178,8 @@ class $GroupsTable extends Groups with TableInfo<$GroupsTable, Group> {
 
 class Group extends DataClass implements Insertable<Group> {
   final int id;
+
+  /// UUID for group, globally unique
   final String publicId;
   final String name;
   final String type;

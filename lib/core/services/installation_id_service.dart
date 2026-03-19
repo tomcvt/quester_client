@@ -20,12 +20,12 @@ class InstallationIdService {
     var newId = const Uuid().v4();
 
     if (kDebugMode) {
-      if (Platform.isAndroid) {
-        newId = "00000000-0000-0000-0000-000000000001";
+      if (kIsWeb) {
+        newId = "00000000-0000-0000-0000-000000000003";
       } else if (Platform.isIOS) {
         newId = "00000000-0000-0000-0000-000000000002";
-      } else if (kIsWeb) {
-        newId = "00000000-0000-0000-0000-000000000003";
+      } else if (Platform.isAndroid) {
+        newId = "00000000-0000-0000-0000-000000000001";
       }
       newId = "00000000-0000-0000-0000-000000000009";
     }

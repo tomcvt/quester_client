@@ -6,6 +6,7 @@ import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/providers/add_group_notifier.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
+import 'package:go_router/go_router.dart';
 
 final userGroupsListProvider = StreamProvider<List<Group>>((ref) {
   return ref.watch(groupsDaoProvider).watchAllGroups();
@@ -48,6 +49,9 @@ class UserGroupsScreen extends ConsumerWidget {
             return ListTile(
               leading: const Icon(Icons.group),
               title: Text(groups[index].name),
+              onTap: () {
+                context.push('/groups/${groups[index].id}');
+              },
               // TODO: onTap → navigate to group detail screen
             );
           },

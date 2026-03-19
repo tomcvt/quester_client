@@ -39,14 +39,14 @@ class HomeScreen extends ConsumerWidget {
               title: const Text('Groups'),
               onTap: () {
                 Navigator.of(context).pop(); // close drawer first
-                // TODO: context.go('/groups') once GoRouter route exists
-                // For now navigate imperatively so it compiles:
+                context.push('/groups');
+                /*
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const UserGroupsScreen()),
                 );
+                */
               },
             ),
-
             // ── Profile ──────────────────────────────────────────────────────
             ListTile(
               leading: const Icon(Icons.person),

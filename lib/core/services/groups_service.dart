@@ -50,9 +50,9 @@ class GroupsService {
     return createdGroup;
   }
 
-  Future<Group?> createMockGroupWithUser(String name) async {
+  Future<Group?> createMockGroupWithUser(String groupName) async {
     final newGroup = GroupsCompanion(
-      name: Value(name),
+      name: Value(groupName),
       publicId: Value("10000000-0000-0000-0000-000000000000"),
       type: Value(GroupType.work.value),
       visibility: Value(GroupVisibility.private.value),

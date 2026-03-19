@@ -40,6 +40,7 @@ class AppInitializer {
     ).initialize(installationId: installationId);
     db = await AppDatabase.open(buildConfig: buildConfig);
     deviceId = await _getDeviceId();
+
     if (config.isDebug) {
       await DevDataSeeder.seed(db, installationId);
       logger.d('Development data seeded');

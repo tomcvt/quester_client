@@ -14,6 +14,8 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
   // Stream — this is your Flow<List<Group>> equivalent
   // Drift automatically re-emits when the table changes
   Stream<List<Group>> watchAllGroups() => select(groups).watch();
+  Stream<Group?> watchGroupFromId(int id) =>
+      (select(groups)..where((g) => g.id.equals(id))).watchSingleOrNull();
 
   // Join query — groups with their members
   // This is where Drift gets more verbose than Room
