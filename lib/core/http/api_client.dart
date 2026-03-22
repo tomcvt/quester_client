@@ -17,8 +17,14 @@ class ApiClient {
     );
   }
 
-  Future<AuthenticationResponse> authenticate(String installationId) async {
-    final authRequest = AuthenticationRequest(installationId: installationId);
+  Future<AuthenticationResponse> authenticate(
+    String installationId,
+    String? fcmToken,
+  ) async {
+    final authRequest = AuthenticationRequest(
+      installationId: installationId,
+      fcmToken: fcmToken,
+    );
     final response = await _dio.post(
       '/auth/authenticate',
       data: authRequest.toJson(),
@@ -27,6 +33,18 @@ class ApiClient {
       throw Exception('Failed to authenticate: ${response.statusMessage}');
     }
     return AuthenticationResponse.fromJson(response.data);
+  }
+
+  Future<bool> updateFcmToken(String installationId, String fcmToken) async {
+    final response = await _dio.post(
+      '/auth/update-fcm-token',
+      data: {'installationId': installationId, 'fcmToken': fcmToken},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update FCM token: ${response.statusMessage}');
+    }
+    return true; // Assuming success if we get a 200 response. Adjust if your API returns a different success indicator.
+    //return response.data['success'] ?? false;
   }
 
   Future<GroupResponse> createGroup(String name, String password) async {

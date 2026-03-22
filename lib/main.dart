@@ -1,5 +1,6 @@
 // lib/main.dart
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,12 +38,14 @@ void main() async {
 
   await AppInitializer.init(buildConfig);
   logger.d('DB: ${AppInitializer.db}');
+  await FirebaseMessaging.instance.requestPermission();
 
   runApp(
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(AsyncValue.data(AppInitializer.db)),
         installationIdProvider.overrideWithValue(AppInitializer.installationId),
+        //fcmTokenProvider.overrideWithValue(AppInitializer.fcmToken), TODO
       ],
       child: MyApp(),
     ),

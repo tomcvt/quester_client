@@ -17,7 +17,7 @@ class AuthService {
     this._secureStorage,
   );
 
-  Future<String?> initialize({String? installationId}) async {
+  Future<String?> initialize({String? installationId, String? fcmToken}) async {
     final id =
         installationId ??
         await _installationIdService.getOrCreateInstallationId();
@@ -29,7 +29,7 @@ class AuthService {
     }
     logger.i('No auth token found, authenticating...');
     try {
-      final sessionData = await authenticate();
+      final sessionData = await authenticate(fcmToken: fcmToken);
       logger.i('Authentication successful, token stored securely');
       return sessionData.sessionToken;
     } catch (e) {
@@ -38,10 +38,13 @@ class AuthService {
     }
   }
 
-  Future<SessionData> authenticate() async {
+  Future<SessionData> authenticate({String? fcmToken}) async {
     final installationId = await _installationIdService
         .getOrCreateInstallationId();
-    final authResponse = await _apiClient.authenticate(installationId);
+    final authResponse = await _apiClient.authenticate(
+      installationId,
+      fcmToken,
+    );
     await _secureStorage.write(
       key: _tokenKey,
       value: authResponse.sessionToken,

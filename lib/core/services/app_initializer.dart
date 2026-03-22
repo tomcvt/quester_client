@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/http/api_client.dart';
@@ -18,6 +19,7 @@ class AppInitializer {
   static late final String installationId;
   static late final String? token;
   static late final AppDatabase db;
+  static late final String fcmToken;
 
   static Future<void> init(BuildConfig? passedBuildConfig) async {
     final config =
@@ -31,13 +33,14 @@ class AppInitializer {
     final prefs = await SharedPreferences.getInstance();
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
+    final fcmToken = await getFcmToken(prefs);
     final apiClient = ApiClient(config.apiBaseUrl, installationId);
     //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful
     token = await AuthService(
       installationIdService,
       apiClient,
       FlutterSecureStorage(),
-    ).initialize(installationId: installationId);
+    ).initialize(installationId: installationId, fcmToken: fcmToken);
     db = await AppDatabase.open(buildConfig: buildConfig);
     deviceId = await _getDeviceId();
 
@@ -45,6 +48,15 @@ class AppInitializer {
       await DevDataSeeder.seed(db, installationId);
       logger.d('Development data seeded');
     }
+  }
+
+  static Future<String> getFcmToken(SharedPreferences prefs) async {
+    token = prefs.getString('fcm_token');
+    if (token == null || token!.isEmpty) {
+      token = await FirebaseMessaging.instance.getToken();
+      await prefs.setString('fcm_token', token!);
+    }
+    return token!;
   }
 
   static Future<String> _getDeviceId() async {

@@ -20,10 +20,14 @@ class AuthRequest(BaseModel):
 
 class AuthenticationRequest {
   final String installationId;
+  final String? fcmToken;
 
-  AuthenticationRequest({required this.installationId});
+  AuthenticationRequest({required this.installationId, this.fcmToken});
 
-  Map<String, dynamic> toJson() => {'installation_id': installationId};
+  Map<String, dynamic> toJson() => {
+    'installation_id': installationId,
+    if (fcmToken != null) 'fcm_token': fcmToken,
+  };
 }
 
 class AuthenticationResponse {
