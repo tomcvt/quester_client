@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 import 'auth_service.dart';
 import 'installation_id_service.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 
 class AppInitializer {
   static late final BuildConfig buildConfig;
@@ -51,12 +52,17 @@ class AppInitializer {
   }
 
   static Future<String> getFcmToken(SharedPreferences prefs) async {
-    token = prefs.getString('fcm_token');
-    if (token == null || token!.isEmpty) {
-      token = await FirebaseMessaging.instance.getToken();
-      await prefs.setString('fcm_token', token!);
+    String? newFcmToken = prefs.getString('fcm_token');
+    logger.i('Existing FCM token: $newFcmToken');
+    if (newFcmToken == null || newFcmToken.isEmpty) {
+      newFcmToken = await FirebaseMessaging.instance.getToken(
+        vapidKey:
+            "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
+      );
+      await prefs.setString('fcm_token', newFcmToken!);
+      logger.i('New FCM token generated: $newFcmToken');
     }
-    return token!;
+    return newFcmToken!;
   }
 
   static Future<String> _getDeviceId() async {
