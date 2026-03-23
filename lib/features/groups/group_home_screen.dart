@@ -4,21 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
+import 'package:quester_client/core/data/data_tables.dart';
+import 'package:quester_client/core/providers/create_quest_notifier.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
+import 'package:quester_client/core/providers/service_providers.dart';
 
 // ─── Domain ──────────────────────────────────────────────────────────────────
 
 enum GroupTab { tasks, members, settings }
 
-enum TaskFilter { all, active, completed, other }
-
-// Placeholder model — replace with your Drift-generated Quest class
-class Quest {
-  final String id;
-  final String name;
-  final String status;
-  const Quest({required this.id, required this.name, required this.status});
-}
+enum TaskFilter { all, active, accepted, completed, other }
 
 // ─── Providers ───────────────────────────────────────────────────────────────
 
@@ -56,35 +51,12 @@ final groupTabProvider =
 // autoDispose: safe because GroupHomeScreen keeps all instances alive via
 // silent watches — see _GroupHomeScreenState.build().
 final questsProvider = StreamProvider.autoDispose
-    .family<List<Quest>, TaskFilter>((ref, filter) {
-      // TODO: replace with ref.watch(questsDaoProvider).watchByFilter(filter)
-      // Stubbed as empty stream for now — real DAO call goes here
-      return Stream.value([]);
+    .family<List<Quest>, (String, TaskFilter)>((ref, params) {
+      final (groupId, filter) = params;
+      return ref
+          .watch(questsDaoProvider)
+          .watchByGroupAndFilter(int.parse(groupId), filter);
     });
-
-// ─── Create Quest Notifier ────────────────────────────────────────────────────
-
-// T is Quest? not void — same reasoning as AddGroupNotifier:
-// on success the router may need the created quest's id for navigation.
-class CreateQuestNotifier extends AsyncNotifier<Quest?> {
-  @override
-  Future<Quest?> build() async => null; // idle on start
-
-  Future<void> createQuest(String name, String details) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      // TODO: replace with real service call
-      // final service = ref.read(questServiceProvider);
-      // return await service.createQuest(name, details);
-      await Future.delayed(const Duration(seconds: 1)); // stub
-      return Quest(id: 'stub', name: name, status: 'ACTIVE');
-    });
-  }
-}
-
-final createQuestProvider = AsyncNotifierProvider<CreateQuestNotifier, Quest?>(
-  CreateQuestNotifier.new,
-);
 
 final groupDetailsProvider = StreamProvider.autoDispose.family<Group?, String>((
   ref,
@@ -107,10 +79,11 @@ class GroupHomeScreen extends ConsumerWidget {
     // lifetime of this screen regardless of which tab is active.
     // Same principle as pre-warming a provider before a dialog opens.
     // Value is intentionally discarded.
-    ref.watch(questsProvider(TaskFilter.all));
-    ref.watch(questsProvider(TaskFilter.active));
-    ref.watch(questsProvider(TaskFilter.completed));
-    ref.watch(questsProvider(TaskFilter.other));
+    ref.watch(questsProvider((groupId, TaskFilter.all)));
+    ref.watch(questsProvider((groupId, TaskFilter.active)));
+    ref.watch(questsProvider((groupId, TaskFilter.completed)));
+    ref.watch(questsProvider((groupId, TaskFilter.other)));
+    ref.watch(createQuestProvider); // pre-warm
 
     final tab = ref.watch(groupTabProvider);
     final groupDetailsAsync = ref.watch(groupDetailsProvider(groupId));
@@ -139,7 +112,7 @@ class GroupHomeScreen extends ConsumerWidget {
       // Null on other tabs = Flutter hides it with an animation automatically.
       floatingActionButton: tab == GroupTab.tasks
           ? FloatingActionButton(
-              onPressed: () => _showCreateQuestDialog(context),
+              onPressed: () => _showCreateQuestDialog(context, groupId),
               child: const Icon(Icons.add),
             )
           : null,
@@ -149,18 +122,21 @@ class GroupHomeScreen extends ConsumerWidget {
       // Switch on the tab enum — Dart 3 exhaustive switch expression.
       // Equivalent to your when() on a sealed class in Kotlin.
       body: switch (tab) {
-        GroupTab.tasks => const _TasksSubScreen(),
+        GroupTab.tasks => _TasksSubScreen(groupId: groupId),
         GroupTab.members => const _MembersSubScreen(),
         GroupTab.settings => const _SettingsSubScreen(),
       },
     );
   }
 
-  void _showCreateQuestDialog(BuildContext context) {
+  void _showCreateQuestDialog(BuildContext context, String groupId) {
     // showDialog is a Flutter built-in that pushes a modal route.
     // The dialog is NOT a GoRouter route — it's an overlay on the current route.
     // Use this for transient actions that don't need a URL or deep link.
-    showDialog(context: context, builder: (_) => const _CreateQuestDialog());
+    showDialog(
+      context: context,
+      builder: (_) => _CreateQuestDialog(groupId: groupId),
+    );
   }
 }
 
@@ -195,14 +171,15 @@ class _GroupBottomNav extends ConsumerWidget {
 // ConsumerWidget — needs ref to watch filter + stream providers.
 // No local state needed so no StatefulWidget.
 class _TasksSubScreen extends ConsumerWidget {
-  const _TasksSubScreen();
+  final String groupId; // Pass groupId to the sub-screen for filtered streams
+  const _TasksSubScreen({required this.groupId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(taskFilterProvider);
     // Reads the already-alive stream instance — no cold start because
     // GroupHomeScreen is already watching it silently above.
-    final questsAsync = ref.watch(questsProvider(filter));
+    final questsAsync = ref.watch(questsProvider((groupId, filter)));
 
     return Column(
       children: [
@@ -269,7 +246,7 @@ class _QuestTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(quest.name),
-      subtitle: Text(quest.status),
+      subtitle: Text(quest.status.label),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         // TODO: context.go('/groups/:groupId/quests/:questId')
@@ -305,7 +282,9 @@ class _SettingsSubScreen extends StatelessWidget {
 //   Riverpod: ref.listen for close-on-success, ref.watch for loading state
 // This is the same pattern as _AddGroupDialog from Progress 4.
 class _CreateQuestDialog extends ConsumerStatefulWidget {
-  const _CreateQuestDialog();
+  final String groupId; // Pass groupId to the dialog for quest creation
+
+  const _CreateQuestDialog({required this.groupId});
 
   @override
   ConsumerState<_CreateQuestDialog> createState() => _CreateQuestDialogState();
@@ -397,6 +376,14 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
     final details = _detailsController.text.trim();
     if (name.isEmpty)
       return; // simple local validation before hitting the notifier
-    ref.read(createQuestProvider.notifier).createQuest(name, details);
+    final currentGroupId = widget.groupId;
+    ref
+        .read(createQuestProvider.notifier)
+        .createQuest(
+          int.parse(currentGroupId),
+          name,
+          details.isEmpty ? null : details,
+          null, // contactInfo — add another field and controller if you want this
+        );
   }
 }

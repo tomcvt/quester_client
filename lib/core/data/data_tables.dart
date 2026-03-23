@@ -23,6 +23,17 @@ enum GroupVisibility { public, private }
 extension GroupVisibilityX on GroupVisibility {
   String get value => name; // enum.name = 'public', 'private'
   String get apiValue => name.toUpperCase(); // 'PUBLIC', 'PRIVATE' for API
+  String get label {
+    switch (this) {
+      case GroupVisibility.public:
+        return 'Public';
+      case GroupVisibility.private:
+        return 'Private';
+      default:
+        return name;
+    }
+  }
+
   static GroupVisibility fromString(String s) =>
       GroupVisibility.values.firstWhere((e) => e.name == s.toLowerCase());
 }
@@ -32,6 +43,17 @@ enum GroupType { work, personal }
 extension GroupTypeX on GroupType {
   String get value => name;
   String get apiValue => name.toUpperCase();
+  String get label {
+    switch (this) {
+      case GroupType.work:
+        return 'Work';
+      case GroupType.personal:
+        return 'Personal';
+      default:
+        return name;
+    }
+  }
+
   static GroupType fromString(String s) =>
       GroupType.values.firstWhere((e) => e.name == s.toLowerCase());
 }
@@ -51,6 +73,16 @@ extension MemberRoleX on MemberRole {
   String get apiValue => name.toUpperCase();
   static MemberRole fromString(String s) =>
       MemberRole.values.firstWhere((e) => e.name == s.toLowerCase());
+  String get label {
+    switch (this) {
+      case MemberRole.owner:
+        return 'Owner';
+      case MemberRole.member:
+        return 'Member';
+      default:
+        return name;
+    }
+  }
 }
 
 // GroupMembers stores denormalized user data (username) intentionally.
@@ -72,4 +104,118 @@ class GroupMembers extends Table {
   List<Set<Column>> get uniqueKeys => [
     {groupId, userPublicId}, // prevent duplicate memberships
   ];
+}
+
+/*
+Server data model for reference
+class QuestType(enum.Enum):
+    JOB = "JOB"
+
+class QuestStatus(enum.Enum):
+    STARTED = "STARTED"
+    ACCEPTED = "ACCEPTED"
+    COMPLETED = "COMPLETED"
+    DELETED = "DELETED"
+    TIMED_OUT = "TIMED_OUT"
+
+class Quest(Base):
+    __tablename__ = "quests"
+    
+    @staticmethod
+    def new(quest: NewQuest) -> 'Quest':
+        return Quest(
+            group_id=quest.group_id,
+            name=quest.name,
+            public_id=uuid.uuid4(),
+            data=quest.data,
+            type=quest.type,
+            inclusive=quest.inclusive,
+            status=quest.status,
+            creator_id=quest.creator_id
+        )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id"), nullable=False)
+    public_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True, native_uuid=False), default=uuid.uuid4, unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    data: Mapped[str] = mapped_column(String, nullable=True)  # JSON string or any other relevant data
+    type: Mapped[QuestType] = mapped_column(Enum(QuestType), nullable=False)
+    inclusive: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    status: Mapped[QuestStatus] = mapped_column(Enum(QuestStatus), nullable=False)
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+*/
+@TableIndex(
+  name: 'quests_group_status_updated_idx',
+  columns: {#groupId, #status, #updatedAt},
+)
+class Quests extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(Groups, #id)();
+  TextColumn get publicId => text()();
+  TextColumn get name => text()();
+  TextColumn get data => text().nullable()();
+  TextColumn get contactInfo => text().nullable()();
+  TextColumn get type =>
+      textEnum<QuestType>().withDefault(Constant(QuestType.job.value))();
+  BoolColumn get inclusive => boolean()();
+  TextColumn get status => textEnum<QuestStatus>().withDefault(
+    Constant(QuestStatus.started.value),
+  )();
+  IntColumn get creatorId => integer().references(Users, #id)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(
+    currentDateAndTime,
+  )(); // update on change logic in code
+
+  //indexes
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {publicId}, // ensure publicId uniqueness
+  ];
+}
+
+enum QuestType { job }
+
+extension QuestTypeX on QuestType {
+  String get value => name;
+  String get apiValue => name.toUpperCase();
+  String get label {
+    switch (this) {
+      case QuestType.job:
+        return 'Job';
+      default:
+        return name;
+    }
+  }
+
+  static QuestType fromString(String s) =>
+      QuestType.values.firstWhere((e) => e.name == s.toLowerCase());
+}
+
+enum QuestStatus { started, accepted, completed, deleted, timedOut }
+
+extension QuestStatusX on QuestStatus {
+  String get value => name;
+  String get apiValue => name.toUpperCase();
+  String get label {
+    switch (this) {
+      case QuestStatus.started:
+        return 'Started';
+      case QuestStatus.accepted:
+        return 'Accepted';
+      case QuestStatus.completed:
+        return 'Completed';
+      case QuestStatus.deleted:
+        return 'Deleted';
+      case QuestStatus.timedOut:
+        return 'Timed Out';
+      default:
+        return name;
+    }
+  }
+
+  static QuestStatus fromString(String s) =>
+      QuestStatus.values.firstWhere((e) => e.name == s.toLowerCase());
 }

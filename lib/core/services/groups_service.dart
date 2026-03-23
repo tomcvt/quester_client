@@ -3,9 +3,11 @@ import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/group_members_dao.dart';
 import 'package:quester_client/core/data/groups_dao.dart';
 import 'package:quester_client/core/data/data_tables.dart';
+import 'package:quester_client/core/dto/groups.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
+import 'package:uuid/uuid.dart';
 
 class GroupsService {
   final GroupsDao _groupsDao;
@@ -14,8 +16,19 @@ class GroupsService {
 
   GroupsService(this._groupsDao, this._groupMembersDao, this._apiClient);
 
-  Future<Group?> createGroup(String name, String password) async {
-    final groupResponse = await _apiClient.createGroup(name, password);
+  //TODO - add error handling and logging, visibility field
+  Future<Group?> createGroup(
+    String name,
+    String password, {
+    bool offline = false,
+  }) async {
+    if (offline) {
+      return await createOfflineGroup(name, password);
+    }
+    final GroupResponse groupResponse = await _apiClient.createGroup(
+      name,
+      password,
+    );
     logger.d('Group created on backend: ${groupResponse.toString()}');
     final newGroup = GroupsCompanion(
       name: Value(groupResponse.name),
@@ -46,6 +59,26 @@ class GroupsService {
     );
     logger.d(
       'Members inserted into local DB for group ${groupResponse.publicId}',
+    );
+    return createdGroup;
+  }
+
+  Future<Group?> createOfflineGroup(String name, String password) async {
+    final newGroup = GroupsCompanion(
+      name: Value(name),
+      publicId: Value(Uuid().v4()),
+      type: Value(GroupType.work.value),
+      visibility: Value(GroupVisibility.public.value),
+      createdAt: Value(DateTime.now()),
+    );
+    final id = await _groupsDao.insertGroup(newGroup);
+    final createdGroup = await _groupsDao.groupFromId(id);
+    final userPublicId = AppInitializer.installationId;
+    await _groupMembersDao.insertMember(
+      id,
+      userPublicId,
+      "Offline User", //TODO - fetch actual username from shared prefs or similar
+      MemberRole.owner,
     );
     return createdGroup;
   }

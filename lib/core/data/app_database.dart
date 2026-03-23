@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:quester_client/core/data/group_members_dao.dart';
+import 'package:quester_client/core/data/quests_dao.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'data_tables.dart';
 import 'groups_dao.dart';
@@ -8,8 +9,8 @@ import '../database/connection/connection.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Groups, Users, GroupMembers],
-  daos: [GroupsDao, GroupMembersDao],
+  tables: [Groups, Users, GroupMembers, Quests],
+  daos: [GroupsDao, GroupMembersDao, QuestsDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);

@@ -6,13 +6,7 @@ import 'package:quester_client/core/utils/logger_util.dart';
 class AddGroupNotifier extends AsyncNotifier<Group?> {
   @override
   Future<Group?> build() async {
-    logger.d('AddGroupNotifier build called');
-    try {
-      return null;
-    } catch (e, st) {
-      logger.e('AddGroupNotifier build failed', error: e, stackTrace: st);
-      rethrow;
-    }
+    return null; // idle on start
   }
 
   Future<Group?> createGroup(String name, String password) async {
@@ -27,8 +21,7 @@ class AddGroupNotifier extends AsyncNotifier<Group?> {
         logger.d('Group creation completed: ${state.value}');
         return group;
       },
-      // Optional error filter: catch all errors
-      (err) => false,
+      (err) => true, // catch all errors to prevent unhandled exceptions
     );
     if (state.hasError) {
       logger.e('Group creation failed', error: state.error);

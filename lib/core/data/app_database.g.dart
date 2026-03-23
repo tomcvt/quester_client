@@ -1058,16 +1058,732 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   }
 }
 
+class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $QuestsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<int> groupId = GeneratedColumn<int>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES "groups" (id)',
+    ),
+  );
+  static const VerificationMeta _publicIdMeta = const VerificationMeta(
+    'publicId',
+  );
+  @override
+  late final GeneratedColumn<String> publicId = GeneratedColumn<String>(
+    'public_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dataMeta = const VerificationMeta('data');
+  @override
+  late final GeneratedColumn<String> data = GeneratedColumn<String>(
+    'data',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contactInfoMeta = const VerificationMeta(
+    'contactInfo',
+  );
+  @override
+  late final GeneratedColumn<String> contactInfo = GeneratedColumn<String>(
+    'contact_info',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<QuestType, String> type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(QuestType.job.value),
+      ).withConverter<QuestType>($QuestsTable.$convertertype);
+  static const VerificationMeta _inclusiveMeta = const VerificationMeta(
+    'inclusive',
+  );
+  @override
+  late final GeneratedColumn<bool> inclusive = GeneratedColumn<bool>(
+    'inclusive',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("inclusive" IN (0, 1))',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<QuestStatus, String> status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(QuestStatus.started.value),
+      ).withConverter<QuestStatus>($QuestsTable.$converterstatus);
+  static const VerificationMeta _creatorIdMeta = const VerificationMeta(
+    'creatorId',
+  );
+  @override
+  late final GeneratedColumn<int> creatorId = GeneratedColumn<int>(
+    'creator_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    groupId,
+    publicId,
+    name,
+    data,
+    contactInfo,
+    type,
+    inclusive,
+    status,
+    creatorId,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'quests';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Quest> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('public_id')) {
+      context.handle(
+        _publicIdMeta,
+        publicId.isAcceptableOrUnknown(data['public_id']!, _publicIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_publicIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('data')) {
+      context.handle(
+        _dataMeta,
+        this.data.isAcceptableOrUnknown(data['data']!, _dataMeta),
+      );
+    }
+    if (data.containsKey('contact_info')) {
+      context.handle(
+        _contactInfoMeta,
+        contactInfo.isAcceptableOrUnknown(
+          data['contact_info']!,
+          _contactInfoMeta,
+        ),
+      );
+    }
+    if (data.containsKey('inclusive')) {
+      context.handle(
+        _inclusiveMeta,
+        inclusive.isAcceptableOrUnknown(data['inclusive']!, _inclusiveMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_inclusiveMeta);
+    }
+    if (data.containsKey('creator_id')) {
+      context.handle(
+        _creatorIdMeta,
+        creatorId.isAcceptableOrUnknown(data['creator_id']!, _creatorIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_creatorIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {publicId},
+  ];
+  @override
+  Quest map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Quest(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}group_id'],
+      )!,
+      publicId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}public_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      data: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}data'],
+      ),
+      contactInfo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contact_info'],
+      ),
+      type: $QuestsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      inclusive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}inclusive'],
+      )!,
+      status: $QuestsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      creatorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}creator_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $QuestsTable createAlias(String alias) {
+    return $QuestsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<QuestType, String, String> $convertertype =
+      const EnumNameConverter<QuestType>(QuestType.values);
+  static JsonTypeConverter2<QuestStatus, String, String> $converterstatus =
+      const EnumNameConverter<QuestStatus>(QuestStatus.values);
+}
+
+class Quest extends DataClass implements Insertable<Quest> {
+  final int id;
+  final int groupId;
+  final String publicId;
+  final String name;
+  final String? data;
+  final String? contactInfo;
+  final QuestType type;
+  final bool inclusive;
+  final QuestStatus status;
+  final int creatorId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Quest({
+    required this.id,
+    required this.groupId,
+    required this.publicId,
+    required this.name,
+    this.data,
+    this.contactInfo,
+    required this.type,
+    required this.inclusive,
+    required this.status,
+    required this.creatorId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['group_id'] = Variable<int>(groupId);
+    map['public_id'] = Variable<String>(publicId);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || data != null) {
+      map['data'] = Variable<String>(data);
+    }
+    if (!nullToAbsent || contactInfo != null) {
+      map['contact_info'] = Variable<String>(contactInfo);
+    }
+    {
+      map['type'] = Variable<String>($QuestsTable.$convertertype.toSql(type));
+    }
+    map['inclusive'] = Variable<bool>(inclusive);
+    {
+      map['status'] = Variable<String>(
+        $QuestsTable.$converterstatus.toSql(status),
+      );
+    }
+    map['creator_id'] = Variable<int>(creatorId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  QuestsCompanion toCompanion(bool nullToAbsent) {
+    return QuestsCompanion(
+      id: Value(id),
+      groupId: Value(groupId),
+      publicId: Value(publicId),
+      name: Value(name),
+      data: data == null && nullToAbsent ? const Value.absent() : Value(data),
+      contactInfo: contactInfo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contactInfo),
+      type: Value(type),
+      inclusive: Value(inclusive),
+      status: Value(status),
+      creatorId: Value(creatorId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Quest.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Quest(
+      id: serializer.fromJson<int>(json['id']),
+      groupId: serializer.fromJson<int>(json['groupId']),
+      publicId: serializer.fromJson<String>(json['publicId']),
+      name: serializer.fromJson<String>(json['name']),
+      data: serializer.fromJson<String?>(json['data']),
+      contactInfo: serializer.fromJson<String?>(json['contactInfo']),
+      type: $QuestsTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      inclusive: serializer.fromJson<bool>(json['inclusive']),
+      status: $QuestsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      creatorId: serializer.fromJson<int>(json['creatorId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'groupId': serializer.toJson<int>(groupId),
+      'publicId': serializer.toJson<String>(publicId),
+      'name': serializer.toJson<String>(name),
+      'data': serializer.toJson<String?>(data),
+      'contactInfo': serializer.toJson<String?>(contactInfo),
+      'type': serializer.toJson<String>(
+        $QuestsTable.$convertertype.toJson(type),
+      ),
+      'inclusive': serializer.toJson<bool>(inclusive),
+      'status': serializer.toJson<String>(
+        $QuestsTable.$converterstatus.toJson(status),
+      ),
+      'creatorId': serializer.toJson<int>(creatorId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Quest copyWith({
+    int? id,
+    int? groupId,
+    String? publicId,
+    String? name,
+    Value<String?> data = const Value.absent(),
+    Value<String?> contactInfo = const Value.absent(),
+    QuestType? type,
+    bool? inclusive,
+    QuestStatus? status,
+    int? creatorId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Quest(
+    id: id ?? this.id,
+    groupId: groupId ?? this.groupId,
+    publicId: publicId ?? this.publicId,
+    name: name ?? this.name,
+    data: data.present ? data.value : this.data,
+    contactInfo: contactInfo.present ? contactInfo.value : this.contactInfo,
+    type: type ?? this.type,
+    inclusive: inclusive ?? this.inclusive,
+    status: status ?? this.status,
+    creatorId: creatorId ?? this.creatorId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Quest copyWithCompanion(QuestsCompanion data) {
+    return Quest(
+      id: data.id.present ? data.id.value : this.id,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      publicId: data.publicId.present ? data.publicId.value : this.publicId,
+      name: data.name.present ? data.name.value : this.name,
+      data: data.data.present ? data.data.value : this.data,
+      contactInfo: data.contactInfo.present
+          ? data.contactInfo.value
+          : this.contactInfo,
+      type: data.type.present ? data.type.value : this.type,
+      inclusive: data.inclusive.present ? data.inclusive.value : this.inclusive,
+      status: data.status.present ? data.status.value : this.status,
+      creatorId: data.creatorId.present ? data.creatorId.value : this.creatorId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Quest(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('publicId: $publicId, ')
+          ..write('name: $name, ')
+          ..write('data: $data, ')
+          ..write('contactInfo: $contactInfo, ')
+          ..write('type: $type, ')
+          ..write('inclusive: $inclusive, ')
+          ..write('status: $status, ')
+          ..write('creatorId: $creatorId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    groupId,
+    publicId,
+    name,
+    data,
+    contactInfo,
+    type,
+    inclusive,
+    status,
+    creatorId,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Quest &&
+          other.id == this.id &&
+          other.groupId == this.groupId &&
+          other.publicId == this.publicId &&
+          other.name == this.name &&
+          other.data == this.data &&
+          other.contactInfo == this.contactInfo &&
+          other.type == this.type &&
+          other.inclusive == this.inclusive &&
+          other.status == this.status &&
+          other.creatorId == this.creatorId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class QuestsCompanion extends UpdateCompanion<Quest> {
+  final Value<int> id;
+  final Value<int> groupId;
+  final Value<String> publicId;
+  final Value<String> name;
+  final Value<String?> data;
+  final Value<String?> contactInfo;
+  final Value<QuestType> type;
+  final Value<bool> inclusive;
+  final Value<QuestStatus> status;
+  final Value<int> creatorId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const QuestsCompanion({
+    this.id = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.publicId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.data = const Value.absent(),
+    this.contactInfo = const Value.absent(),
+    this.type = const Value.absent(),
+    this.inclusive = const Value.absent(),
+    this.status = const Value.absent(),
+    this.creatorId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  QuestsCompanion.insert({
+    this.id = const Value.absent(),
+    required int groupId,
+    required String publicId,
+    required String name,
+    this.data = const Value.absent(),
+    this.contactInfo = const Value.absent(),
+    this.type = const Value.absent(),
+    required bool inclusive,
+    this.status = const Value.absent(),
+    required int creatorId,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : groupId = Value(groupId),
+       publicId = Value(publicId),
+       name = Value(name),
+       inclusive = Value(inclusive),
+       creatorId = Value(creatorId);
+  static Insertable<Quest> custom({
+    Expression<int>? id,
+    Expression<int>? groupId,
+    Expression<String>? publicId,
+    Expression<String>? name,
+    Expression<String>? data,
+    Expression<String>? contactInfo,
+    Expression<String>? type,
+    Expression<bool>? inclusive,
+    Expression<String>? status,
+    Expression<int>? creatorId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (groupId != null) 'group_id': groupId,
+      if (publicId != null) 'public_id': publicId,
+      if (name != null) 'name': name,
+      if (data != null) 'data': data,
+      if (contactInfo != null) 'contact_info': contactInfo,
+      if (type != null) 'type': type,
+      if (inclusive != null) 'inclusive': inclusive,
+      if (status != null) 'status': status,
+      if (creatorId != null) 'creator_id': creatorId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  QuestsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? groupId,
+    Value<String>? publicId,
+    Value<String>? name,
+    Value<String?>? data,
+    Value<String?>? contactInfo,
+    Value<QuestType>? type,
+    Value<bool>? inclusive,
+    Value<QuestStatus>? status,
+    Value<int>? creatorId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return QuestsCompanion(
+      id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
+      publicId: publicId ?? this.publicId,
+      name: name ?? this.name,
+      data: data ?? this.data,
+      contactInfo: contactInfo ?? this.contactInfo,
+      type: type ?? this.type,
+      inclusive: inclusive ?? this.inclusive,
+      status: status ?? this.status,
+      creatorId: creatorId ?? this.creatorId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<int>(groupId.value);
+    }
+    if (publicId.present) {
+      map['public_id'] = Variable<String>(publicId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (data.present) {
+      map['data'] = Variable<String>(data.value);
+    }
+    if (contactInfo.present) {
+      map['contact_info'] = Variable<String>(contactInfo.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $QuestsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (inclusive.present) {
+      map['inclusive'] = Variable<bool>(inclusive.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $QuestsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (creatorId.present) {
+      map['creator_id'] = Variable<int>(creatorId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuestsCompanion(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('publicId: $publicId, ')
+          ..write('name: $name, ')
+          ..write('data: $data, ')
+          ..write('contactInfo: $contactInfo, ')
+          ..write('type: $type, ')
+          ..write('inclusive: $inclusive, ')
+          ..write('status: $status, ')
+          ..write('creatorId: $creatorId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $GroupsTable groups = $GroupsTable(this);
   late final $UsersTable users = $UsersTable(this);
   late final $GroupMembersTable groupMembers = $GroupMembersTable(this);
+  late final $QuestsTable quests = $QuestsTable(this);
+  late final Index questsGroupStatusUpdatedIdx = Index(
+    'quests_group_status_updated_idx',
+    'CREATE INDEX quests_group_status_updated_idx ON quests (group_id, status, updated_at)',
+  );
   late final GroupsDao groupsDao = GroupsDao(this as AppDatabase);
   late final GroupMembersDao groupMembersDao = GroupMembersDao(
     this as AppDatabase,
   );
+  late final QuestsDao questsDao = QuestsDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1076,6 +1792,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     groups,
     users,
     groupMembers,
+    quests,
+    questsGroupStatusUpdatedIdx,
   ];
 }
 
@@ -1115,6 +1833,25 @@ final class $$GroupsTableReferences
     ).filter((f) => f.groupId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_groupMembersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$QuestsTable, List<Quest>> _questsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.quests,
+    aliasName: $_aliasNameGenerator(db.groups.id, db.quests.groupId),
+  );
+
+  $$QuestsTableProcessedTableManager get questsRefs {
+    final manager = $$QuestsTableTableManager(
+      $_db,
+      $_db.quests,
+    ).filter((f) => f.groupId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_questsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -1176,6 +1913,31 @@ class $$GroupsTableFilterComposer
           }) => $$GroupMembersTableFilterComposer(
             $db: $db,
             $table: $db.groupMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> questsRefs(
+    Expression<bool> Function($$QuestsTableFilterComposer f) f,
+  ) {
+    final $$QuestsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableFilterComposer(
+            $db: $db,
+            $table: $db.quests,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -1279,6 +2041,31 @@ class $$GroupsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> questsRefs<T extends Object>(
+    Expression<T> Function($$QuestsTableAnnotationComposer a) f,
+  ) {
+    final $$QuestsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.quests,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$GroupsTableTableManager
@@ -1294,7 +2081,7 @@ class $$GroupsTableTableManager
           $$GroupsTableUpdateCompanionBuilder,
           (Group, $$GroupsTableReferences),
           Group,
-          PrefetchHooks Function({bool groupMembersRefs})
+          PrefetchHooks Function({bool groupMembersRefs, bool questsRefs})
         > {
   $$GroupsTableTableManager(_$AppDatabase db, $GroupsTable table)
     : super(
@@ -1345,31 +2132,55 @@ class $$GroupsTableTableManager
                     (e.readTable(table), $$GroupsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({groupMembersRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (groupMembersRefs) db.groupMembers],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (groupMembersRefs)
-                    await $_getPrefetchedData<Group, $GroupsTable, GroupMember>(
-                      currentTable: table,
-                      referencedTable: $$GroupsTableReferences
-                          ._groupMembersRefsTable(db),
-                      managerFromTypedResult: (p0) => $$GroupsTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).groupMembersRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.groupId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({groupMembersRefs = false, questsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (groupMembersRefs) db.groupMembers,
+                    if (questsRefs) db.quests,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (groupMembersRefs)
+                        await $_getPrefetchedData<
+                          Group,
+                          $GroupsTable,
+                          GroupMember
+                        >(
+                          currentTable: table,
+                          referencedTable: $$GroupsTableReferences
+                              ._groupMembersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$GroupsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).groupMembersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.groupId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (questsRefs)
+                        await $_getPrefetchedData<Group, $GroupsTable, Quest>(
+                          currentTable: table,
+                          referencedTable: $$GroupsTableReferences
+                              ._questsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$GroupsTableReferences(db, table, p0).questsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.groupId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -1386,7 +2197,7 @@ typedef $$GroupsTableProcessedTableManager =
       $$GroupsTableUpdateCompanionBuilder,
       (Group, $$GroupsTableReferences),
       Group,
-      PrefetchHooks Function({bool groupMembersRefs})
+      PrefetchHooks Function({bool groupMembersRefs, bool questsRefs})
     >;
 typedef $$UsersTableCreateCompanionBuilder =
     UsersCompanion Function({
@@ -1400,6 +2211,30 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String> publicId,
       Value<String> name,
     });
+
+final class $$UsersTableReferences
+    extends BaseReferences<_$AppDatabase, $UsersTable, User> {
+  $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$QuestsTable, List<Quest>> _questsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.quests,
+    aliasName: $_aliasNameGenerator(db.users.id, db.quests.creatorId),
+  );
+
+  $$QuestsTableProcessedTableManager get questsRefs {
+    final manager = $$QuestsTableTableManager(
+      $_db,
+      $_db.quests,
+    ).filter((f) => f.creatorId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_questsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
@@ -1423,6 +2258,31 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> questsRefs(
+    Expression<bool> Function($$QuestsTableFilterComposer f) f,
+  ) {
+    final $$QuestsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.creatorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableFilterComposer(
+            $db: $db,
+            $table: $db.quests,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableOrderingComposer
@@ -1467,6 +2327,31 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  Expression<T> questsRefs<T extends Object>(
+    Expression<T> Function($$QuestsTableAnnotationComposer a) f,
+  ) {
+    final $$QuestsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.creatorId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.quests,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -1480,9 +2365,9 @@ class $$UsersTableTableManager
           $$UsersTableAnnotationComposer,
           $$UsersTableCreateCompanionBuilder,
           $$UsersTableUpdateCompanionBuilder,
-          (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+          (User, $$UsersTableReferences),
           User,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool questsRefs})
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -1509,9 +2394,34 @@ class $$UsersTableTableManager
               }) =>
                   UsersCompanion.insert(id: id, publicId: publicId, name: name),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) =>
+                    (e.readTable(table), $$UsersTableReferences(db, table, e)),
+              )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({questsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (questsRefs) db.quests],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (questsRefs)
+                    await $_getPrefetchedData<User, $UsersTable, Quest>(
+                      currentTable: table,
+                      referencedTable: $$UsersTableReferences._questsRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$UsersTableReferences(db, table, p0).questsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.creatorId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -1526,9 +2436,9 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableAnnotationComposer,
       $$UsersTableCreateCompanionBuilder,
       $$UsersTableUpdateCompanionBuilder,
-      (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+      (User, $$UsersTableReferences),
       User,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool questsRefs})
     >;
 typedef $$GroupMembersTableCreateCompanionBuilder =
     GroupMembersCompanion Function({
@@ -1864,6 +2774,540 @@ typedef $$GroupMembersTableProcessedTableManager =
       GroupMember,
       PrefetchHooks Function({bool groupId})
     >;
+typedef $$QuestsTableCreateCompanionBuilder =
+    QuestsCompanion Function({
+      Value<int> id,
+      required int groupId,
+      required String publicId,
+      required String name,
+      Value<String?> data,
+      Value<String?> contactInfo,
+      Value<QuestType> type,
+      required bool inclusive,
+      Value<QuestStatus> status,
+      required int creatorId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$QuestsTableUpdateCompanionBuilder =
+    QuestsCompanion Function({
+      Value<int> id,
+      Value<int> groupId,
+      Value<String> publicId,
+      Value<String> name,
+      Value<String?> data,
+      Value<String?> contactInfo,
+      Value<QuestType> type,
+      Value<bool> inclusive,
+      Value<QuestStatus> status,
+      Value<int> creatorId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$QuestsTableReferences
+    extends BaseReferences<_$AppDatabase, $QuestsTable, Quest> {
+  $$QuestsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $GroupsTable _groupIdTable(_$AppDatabase db) => db.groups.createAlias(
+    $_aliasNameGenerator(db.quests.groupId, db.groups.id),
+  );
+
+  $$GroupsTableProcessedTableManager get groupId {
+    final $_column = $_itemColumn<int>('group_id')!;
+
+    final manager = $$GroupsTableTableManager(
+      $_db,
+      $_db.groups,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_groupIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _creatorIdTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.quests.creatorId, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager get creatorId {
+    final $_column = $_itemColumn<int>('creator_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_creatorIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$QuestsTableFilterComposer
+    extends Composer<_$AppDatabase, $QuestsTable> {
+  $$QuestsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get publicId => $composableBuilder(
+    column: $table.publicId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get data => $composableBuilder(
+    column: $table.data,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contactInfo => $composableBuilder(
+    column: $table.contactInfo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<QuestType, QuestType, String> get type =>
+      $composableBuilder(
+        column: $table.type,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get inclusive => $composableBuilder(
+    column: $table.inclusive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<QuestStatus, QuestStatus, String> get status =>
+      $composableBuilder(
+        column: $table.status,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$GroupsTableFilterComposer get groupId {
+    final $$GroupsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.groups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GroupsTableFilterComposer(
+            $db: $db,
+            $table: $db.groups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get creatorId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.creatorId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$QuestsTableOrderingComposer
+    extends Composer<_$AppDatabase, $QuestsTable> {
+  $$QuestsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get publicId => $composableBuilder(
+    column: $table.publicId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get data => $composableBuilder(
+    column: $table.data,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contactInfo => $composableBuilder(
+    column: $table.contactInfo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get inclusive => $composableBuilder(
+    column: $table.inclusive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$GroupsTableOrderingComposer get groupId {
+    final $$GroupsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.groups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GroupsTableOrderingComposer(
+            $db: $db,
+            $table: $db.groups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableOrderingComposer get creatorId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.creatorId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$QuestsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $QuestsTable> {
+  $$QuestsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get publicId =>
+      $composableBuilder(column: $table.publicId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get data =>
+      $composableBuilder(column: $table.data, builder: (column) => column);
+
+  GeneratedColumn<String> get contactInfo => $composableBuilder(
+    column: $table.contactInfo,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<QuestType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<bool> get inclusive =>
+      $composableBuilder(column: $table.inclusive, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<QuestStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$GroupsTableAnnotationComposer get groupId {
+    final $$GroupsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.groups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GroupsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.groups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableAnnotationComposer get creatorId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.creatorId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$QuestsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $QuestsTable,
+          Quest,
+          $$QuestsTableFilterComposer,
+          $$QuestsTableOrderingComposer,
+          $$QuestsTableAnnotationComposer,
+          $$QuestsTableCreateCompanionBuilder,
+          $$QuestsTableUpdateCompanionBuilder,
+          (Quest, $$QuestsTableReferences),
+          Quest,
+          PrefetchHooks Function({bool groupId, bool creatorId})
+        > {
+  $$QuestsTableTableManager(_$AppDatabase db, $QuestsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$QuestsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$QuestsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$QuestsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> groupId = const Value.absent(),
+                Value<String> publicId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> data = const Value.absent(),
+                Value<String?> contactInfo = const Value.absent(),
+                Value<QuestType> type = const Value.absent(),
+                Value<bool> inclusive = const Value.absent(),
+                Value<QuestStatus> status = const Value.absent(),
+                Value<int> creatorId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => QuestsCompanion(
+                id: id,
+                groupId: groupId,
+                publicId: publicId,
+                name: name,
+                data: data,
+                contactInfo: contactInfo,
+                type: type,
+                inclusive: inclusive,
+                status: status,
+                creatorId: creatorId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int groupId,
+                required String publicId,
+                required String name,
+                Value<String?> data = const Value.absent(),
+                Value<String?> contactInfo = const Value.absent(),
+                Value<QuestType> type = const Value.absent(),
+                required bool inclusive,
+                Value<QuestStatus> status = const Value.absent(),
+                required int creatorId,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => QuestsCompanion.insert(
+                id: id,
+                groupId: groupId,
+                publicId: publicId,
+                name: name,
+                data: data,
+                contactInfo: contactInfo,
+                type: type,
+                inclusive: inclusive,
+                status: status,
+                creatorId: creatorId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) =>
+                    (e.readTable(table), $$QuestsTableReferences(db, table, e)),
+              )
+              .toList(),
+          prefetchHooksCallback: ({groupId = false, creatorId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (groupId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.groupId,
+                                referencedTable: $$QuestsTableReferences
+                                    ._groupIdTable(db),
+                                referencedColumn: $$QuestsTableReferences
+                                    ._groupIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (creatorId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.creatorId,
+                                referencedTable: $$QuestsTableReferences
+                                    ._creatorIdTable(db),
+                                referencedColumn: $$QuestsTableReferences
+                                    ._creatorIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$QuestsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $QuestsTable,
+      Quest,
+      $$QuestsTableFilterComposer,
+      $$QuestsTableOrderingComposer,
+      $$QuestsTableAnnotationComposer,
+      $$QuestsTableCreateCompanionBuilder,
+      $$QuestsTableUpdateCompanionBuilder,
+      (Quest, $$QuestsTableReferences),
+      Quest,
+      PrefetchHooks Function({bool groupId, bool creatorId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1874,4 +3318,6 @@ class $AppDatabaseManager {
       $$UsersTableTableManager(_db, _db.users);
   $$GroupMembersTableTableManager get groupMembers =>
       $$GroupMembersTableTableManager(_db, _db.groupMembers);
+  $$QuestsTableTableManager get quests =>
+      $$QuestsTableTableManager(_db, _db.quests);
 }

@@ -23,10 +23,6 @@ class AuthService {
         await _installationIdService.getOrCreateInstallationId();
     logger.i('Installation ID: $id');
     String? key = await _secureStorage.read(key: _tokenKey);
-    if (key != null) {
-      logger.i('Existing auth token found');
-      return key;
-    }
     logger.i('No auth token found, authenticating...');
     try {
       final sessionData = await authenticate(fcmToken: fcmToken);

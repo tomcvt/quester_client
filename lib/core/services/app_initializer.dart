@@ -21,6 +21,9 @@ class AppInitializer {
   static late final String? token;
   static late final AppDatabase db;
   static late final String fcmToken;
+  static final isOnline = ValueNotifier<bool>(
+    true,
+  ); // Start assuming we're online
 
   static Future<void> init(BuildConfig? passedBuildConfig) async {
     final config =
@@ -34,7 +37,7 @@ class AppInitializer {
     final prefs = await SharedPreferences.getInstance();
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
-    final fcmToken = await getFcmToken(prefs);
+    fcmToken = await getFcmToken(prefs);
     final apiClient = ApiClient(config.apiBaseUrl, installationId);
     //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful
     token = await AuthService(
@@ -59,10 +62,14 @@ class AppInitializer {
         vapidKey:
             "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
       );
-      await prefs.setString('fcm_token', newFcmToken!);
+      if (newFcmToken == null) {
+        logger.e('Failed to obtain FCM token');
+        newFcmToken = '';
+      }
+      await prefs.setString('fcm_token', newFcmToken);
       logger.i('New FCM token generated: $newFcmToken');
     }
-    return newFcmToken!;
+    return newFcmToken;
   }
 
   static Future<String> _getDeviceId() async {
