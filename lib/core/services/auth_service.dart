@@ -10,6 +10,10 @@ class AuthService {
   final FlutterSecureStorage _secureStorage;
 
   static const String _tokenKey = 'auth_token';
+  static const String _apiKey = 'x-api-key';
+  static const String _sessionToken = 'session_token';
+  static const String _publicIdKey = 'public_id';
+  static const String _usernameKey = 'username';
 
   AuthService(
     this._installationIdService,
@@ -17,15 +21,9 @@ class AuthService {
     this._secureStorage,
   );
 
-  Future<String?> initialize({String? installationId, String? fcmToken}) async {
-    final id =
-        installationId ??
-        await _installationIdService.getOrCreateInstallationId();
-    logger.i('Installation ID: $id');
-    String? key = await _secureStorage.read(key: _tokenKey);
-    logger.i('No auth token found, authenticating...');
+  Future<String?> initialize(String installationId, {String? fcmToken}) async {
     try {
-      final sessionData = await authenticate(fcmToken: fcmToken);
+      final sessionData = await authenticate(installationId, fcmToken);
       logger.i('Authentication successful, token stored securely');
       return sessionData.sessionToken;
     } catch (e) {
@@ -34,13 +32,30 @@ class AuthService {
     }
   }
 
-  Future<SessionData> authenticate({String? fcmToken}) async {
+  Future<SessionData> authenticate(String installationId, String? fcmToken) async {
     final installationId = await _installationIdService
         .getOrCreateInstallationId();
+    final apiKey = await _secureStorage.read(key: _apiKey);
+    if (apiKey == null || apiKey.isEmpty) {
+      final registrationResponse = await _apiClient.register(
+        installationId,
+        '',
+        '');
+      await _secureStorage.write(key: _apiKey, value: registrationResponse.apiKey);
+      await _secureStorage.write(key: _sessionToken, value: registrationResponse.sessionToken)''
+      await _secureStorage.write(key: _publicIdKey, value: registrationResponse.publicId);
+      final sharedPrefs = _installationIdService.prefs;
+      await sharedPrefs.setString(_usernameKey, registrationResponse.username);
+      logger.i('Registration successful, API key and session token stored securely');
+    }
+    //TODO continue with authentication flow, handle cases where registration is needed, etc.
     final authResponse = await _apiClient.authenticate(
       installationId,
       fcmToken,
     );
+    if (authResponse.sessionToken.isEmpty) {
+      throw Exception('Authentication failed: No session token received');
+    }
     await _secureStorage.write(
       key: _tokenKey,
       value: authResponse.sessionToken,
@@ -49,6 +64,7 @@ class AuthService {
       sessionToken: authResponse.sessionToken,
       username: authResponse.username,
       fcmToken: authResponse.fcmToken,
+
     );
   }
 

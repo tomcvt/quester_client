@@ -4,7 +4,13 @@ class SessionData {
   final String publicId;
   final String? fcmToken;
 
-  SessionData({
+  const SessionData.empty()
+    : sessionToken = '',
+      username = '',
+      publicId = '',
+      fcmToken = null;
+
+  const SessionData({
     required this.sessionToken,
     required this.username,
     required this.publicId,

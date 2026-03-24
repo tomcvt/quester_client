@@ -27,14 +27,47 @@ class ApiClient {
       installationId: installationId,
       fcmToken: fcmToken,
     );
-    final response = await _dio.post(
-      '/auth/authenticate',
-      data: authRequest.toJson(),
-    );
-    if (response.statusCode != 200) {
-      throw Exception('Failed to authenticate: ${response.statusMessage}');
+    try {
+      final response = await _dio.post(
+        '/auth/authenticate',
+        data: authRequest.toJson(),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to authenticate: ${response.statusMessage}');
+      }
+      return AuthenticationResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to authenticate: ${e.response?.statusMessage}');
+      } else {
+        throw Exception('Failed to authenticate: ${e.message}');
+      }
     }
-    return AuthenticationResponse.fromJson(response.data);
+  }
+
+  Future<RegistrationResponse> register(
+    String installationId,
+    String username,
+    String password,
+  ) async {
+    final registrationRequest = RegistrationRequest(
+      installationId: installationId,
+      username: username,
+      password: password,
+    );
+    try {
+      final response = await _dio.post(
+        '/auth/register',
+        data: registrationRequest.toJson(),
+      );
+      return RegistrationResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to register: ${e.response?.statusMessage}');
+      } else {
+        throw Exception('Failed to register: ${e.message}');
+      }
+    }
   }
 
   Future<bool> updateFcmToken(String installationId, String fcmToken) async {

@@ -9,12 +9,12 @@ import 'package:uuid/uuid.dart';
 class InstallationIdService {
   static const String _installationIdKey = 'installation_id';
 
-  final SharedPreferences _prefs;
+  final SharedPreferences prefs;
 
-  InstallationIdService(this._prefs);
+  InstallationIdService(this.prefs);
 
   Future<String> getOrCreateInstallationId() async {
-    final existingId = _prefs.getString(_installationIdKey);
+    final existingId = prefs.getString(_installationIdKey);
     if (existingId != null) return existingId;
 
     var newId = const Uuid().v4();
@@ -29,7 +29,7 @@ class InstallationIdService {
       }
       newId = "00000000-0000-0000-0000-000000000009";
     }
-    await _prefs.setString(_installationIdKey, newId);
+    await prefs.setString(_installationIdKey, newId);
     return newId;
   }
 }
