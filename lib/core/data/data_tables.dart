@@ -108,16 +108,6 @@ class GroupMembers extends Table {
 
 /*
 Server data model for reference
-class QuestType(enum.Enum):
-    JOB = "JOB"
-
-class QuestStatus(enum.Enum):
-    STARTED = "STARTED"
-    ACCEPTED = "ACCEPTED"
-    COMPLETED = "COMPLETED"
-    DELETED = "DELETED"
-    TIMED_OUT = "TIMED_OUT"
-
 class Quest(Base):
     __tablename__ = "quests"
     
@@ -128,6 +118,10 @@ class Quest(Base):
             name=quest.name,
             public_id=uuid.uuid4(),
             data=quest.data,
+            contact_info=quest.contact_info,
+            deadline=quest.deadline,
+            address=quest.address,
+            contact_number=quest.contact_number,
             type=quest.type,
             inclusive=quest.inclusive,
             status=quest.status,
@@ -139,12 +133,18 @@ class Quest(Base):
     public_id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True, native_uuid=False), default=uuid.uuid4, unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     data: Mapped[str] = mapped_column(String, nullable=True)  # JSON string or any other relevant data
+    deadline: Mapped[str] = mapped_column(String, nullable=True)
+    address: Mapped[str] = mapped_column(String, nullable=True)
+    contact_number: Mapped[str] = mapped_column(String, nullable=True)
+    contact_info: Mapped[str] = mapped_column(String, nullable=True)  # Optional field for contact info
     type: Mapped[QuestType] = mapped_column(Enum(QuestType), nullable=False)
     inclusive: Mapped[bool] = mapped_column(Boolean, nullable=False)
     status: Mapped[QuestStatus] = mapped_column(Enum(QuestStatus), nullable=False)
     creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    //TODO refactor 
 */
 @TableIndex(
   name: 'quests_group_status_updated_idx',
