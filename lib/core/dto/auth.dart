@@ -1,33 +1,45 @@
 /*
-
-class TokenResponse(BaseModel):
-    session_token: str
-
 class AuthResponse(BaseModel):
     session_token: str
     username: str
     public_id: uuid.UUID
     fcm_token: str
-    
 
-#TODO : add proper login
 class AuthRequest(BaseModel):
     device_id: str | None = None
-    installation_id: uuid.UUID
+    installation_id: str
+    api_key: str
     username: str | None = None
     fcm_token: str | None = None
 
-    */
+class RegistrationRequest(BaseModel):
+    device_id: str | None = None
+    installation_id: str
+    username: str
+    password: str
+
+class RegistrationResponse(BaseModel):
+    session_token: str
+    api_key: str
+    username: str
+    public_id: uuid.UUID | None = None
+*/
 
 class AuthenticationRequest {
   final String installationId;
   final String? fcmToken;
+  final String apiKey;
 
-  AuthenticationRequest({required this.installationId, this.fcmToken});
+  AuthenticationRequest({
+    required this.installationId,
+    this.fcmToken,
+    required this.apiKey,
+  });
 
   Map<String, dynamic> toJson() => {
     'installation_id': installationId,
     if (fcmToken != null) 'fcm_token': fcmToken,
+    if (apiKey != null) 'api_key': apiKey,
   };
 }
 
@@ -74,6 +86,11 @@ class RegistrationResponse {
       username: json['username'] as String,
       publicId: json['public_id'] as String,
     );
+  }
+
+  @override
+  String toString() {
+    return 'RegistrationResponse(sessionToken: $sessionToken, apiKey: $apiKey, username: $username, publicId: $publicId)';
   }
 }
 

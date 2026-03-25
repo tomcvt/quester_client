@@ -6,6 +6,7 @@ import 'package:quester_client/core/dto/quests.dart';
 
 class ApiClient {
   final Dio _dio;
+  String _sessionToken = '';
 
   ApiClient(String baseUrl, String installationId)
     : _dio = Dio(BaseOptions(baseUrl: baseUrl)) {
@@ -17,15 +18,27 @@ class ApiClient {
         },
       ),
     );
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          options.headers['X-Session-Token'] = 'Bearer $_sessionToken';
+          handler.next(options);
+        },
+      ),
+    );
   }
+
+  void setSessionToken(String token) => _sessionToken = token;
 
   Future<AuthenticationResponse> authenticate(
     String installationId,
+    String apiKey,
     String? fcmToken,
   ) async {
     final authRequest = AuthenticationRequest(
       installationId: installationId,
       fcmToken: fcmToken,
+      apiKey: apiKey,
     );
     try {
       final response = await _dio.post(
@@ -82,6 +95,7 @@ class ApiClient {
     //return response.data['success'] ?? false;
   }
 
+  /*
   Future<CreateQuestResponse> createQuest(
     String groupPublicId,
     String name,
@@ -91,11 +105,28 @@ class ApiClient {
     bool inclusive,
     QuestStatus status,
     String creatorPublicId,
-  ) async {
+  ) */
+  //same but with required named parameters
+  Future<CreateQuestResponse> createQuest({
+    required String groupPublicId,
+    required String name,
+    required String? data,
+    required String? deadline,
+    required String? address,
+    required String? contactNumber,
+    required String? contactInfo,
+    required QuestType type,
+    required bool inclusive,
+    required QuestStatus status,
+    required String creatorPublicId,
+  }) async {
     final createQuestRequest = CreateQuestRequest(
       groupPublicId: groupPublicId,
       name: name,
       data: data,
+      deadline: deadline,
+      address: address,
+      contactNumber: contactNumber,
       contactInfo: contactInfo,
       type: type,
       inclusive: inclusive,

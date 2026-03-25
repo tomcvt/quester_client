@@ -19,23 +19,6 @@ final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
 );
 
-/*
-
-class InstallationIdNotifier extends AsyncNotifier<String> {
-  @override
-  Future<String> build() async {
-    // ref.watch inside AsyncNotifier = safe, lifecycle managed by Riverpod
-    // will wait for sharedPreferencesProvider to resolve before continuing
-    final prefs = await ref.watch(
-      sharedPreferencesProvider.future, // .future unwraps AsyncValue → Future
-    );
-
-    return InstallationIdService(prefs).getOrCreateInstallationId();
-  }
-}
-
-*/
-
 final installationIdServiceProvider = Provider<InstallationIdService>(
   (ref) => InstallationIdService(
     ref
@@ -54,6 +37,12 @@ final authServiceProvider = Provider<AuthService>(
     ), // pass the notifier to getOrCreateInstallationId()
     ref.watch(apiClientProvider),
     ref.watch(secureStorageProvider),
+    ref
+        .watch(sharedPreferencesProvider)
+        .maybeWhen(
+          data: (prefs) => prefs,
+          orElse: () => throw Exception('SharedPreferences not available'),
+        ),
   ),
 );
 

@@ -290,17 +290,44 @@ class _CreateQuestDialog extends ConsumerStatefulWidget {
   ConsumerState<_CreateQuestDialog> createState() => _CreateQuestDialogState();
 }
 
+extension DebugSnackBar on ScaffoldMessengerState {
+  void showDebugSnackBar(
+    String message, {
+    Duration duration = const Duration(seconds: 30),
+  }) {
+    showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: duration,
+        action: SnackBarAction(
+          label: 'Dismiss',
+          onPressed: hideCurrentSnackBar,
+        ),
+      ),
+    );
+  }
+}
+
+///
+/// TODO: implement deadline, address, contactNumber fields in the dialog and pass to notifier
+///
+/// Target [CreateQuestRequest] fields:
+/// through [CreateQuestNotifier.createQuest()]
+///
 class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
   // Controllers are local state — they live and die with this widget.
   // Always dispose them. Same discipline as closing a Kotlin Flow.
   late final TextEditingController _nameController;
   late final TextEditingController _detailsController;
+  bool _inclusive = false;
+  late final TextEditingController _contactController;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _detailsController = TextEditingController();
+    _contactController = TextEditingController();
   }
 
   @override
@@ -317,12 +344,11 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
     ref.listen(createQuestProvider, (previous, next) {
       next.whenOrNull(
         // Error: show snackbar, stay on dialog
-        error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            duration: const Duration(seconds: 3),
-          ),
-        ),
+        error: (e, _) => {
+          ScaffoldMessenger.of(
+            context,
+          ).showDebugSnackBar('Failed to create quest: $e'),
+        },
         // Success: close dialog. No context.mounted check needed here because
         // ref.listen is only called while the widget is alive — Riverpod handles it.
         data: (_) => Navigator.of(context).pop(),

@@ -9,14 +9,17 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
   @override
   Future<Quest?> build() async => null; // idle on start
 
-  Future<Quest?> createQuest(
-    int groupId,
-    String name,
-    String? data,
-    String? contactInfo, {
-    QuestType type = QuestType.job,
-    bool inclusive = true,
-    QuestStatus status = QuestStatus.started,
+  Future<Quest?> createQuest({
+    required int groupId,
+    required String name,
+    required String? data,
+    required String? deadline,
+    required String? address,
+    required String? contactNumber,
+    required String? contactInfo,
+    required QuestType type,
+    required bool inclusive,
+    required QuestStatus status,
   }) async {
     logger.d('createQuest called: $name');
     final questsService = ref.read(questsServiceProvider);
@@ -24,14 +27,16 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
     state = await AsyncValue.guard(
       () async {
         final quest = await questsService.createQuest(
-          groupId,
-          name,
-          data,
-          contactInfo,
+          groupId: groupId,
+          name: name,
+          data: data,
+          deadline: deadline,
+          address: address,
+          contactNumber: contactNumber,
+          contactInfo: contactInfo,
           type: type,
           inclusive: inclusive,
           status: status,
-          offline: !AppInitializer.isOnline.value,
         );
         logger.d('Quest creation completed: ${quest.toString()}');
         return quest;

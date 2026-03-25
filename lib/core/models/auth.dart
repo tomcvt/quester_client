@@ -16,4 +16,9 @@ class SessionData {
     required this.publicId,
     this.fcmToken,
   });
+
+  @override
+  String toString() {
+    return 'SessionData(sessionToken: $sessionToken, username: $username, publicId: $publicId, fcmToken: $fcmToken)';
+  }
 }

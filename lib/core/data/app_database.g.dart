@@ -1119,6 +1119,39 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _deadlineMeta = const VerificationMeta(
+    'deadline',
+  );
+  @override
+  late final GeneratedColumn<String> deadline = GeneratedColumn<String>(
+    'deadline',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _addressMeta = const VerificationMeta(
+    'address',
+  );
+  @override
+  late final GeneratedColumn<String> address = GeneratedColumn<String>(
+    'address',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contactNumberMeta = const VerificationMeta(
+    'contactNumber',
+  );
+  @override
+  late final GeneratedColumn<String> contactNumber = GeneratedColumn<String>(
+    'contact_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _contactInfoMeta = const VerificationMeta(
     'contactInfo',
   );
@@ -1209,6 +1242,9 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     publicId,
     name,
     data,
+    deadline,
+    address,
+    contactNumber,
     contactInfo,
     type,
     inclusive,
@@ -1260,6 +1296,27 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
       context.handle(
         _dataMeta,
         this.data.isAcceptableOrUnknown(data['data']!, _dataMeta),
+      );
+    }
+    if (data.containsKey('deadline')) {
+      context.handle(
+        _deadlineMeta,
+        deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta),
+      );
+    }
+    if (data.containsKey('address')) {
+      context.handle(
+        _addressMeta,
+        address.isAcceptableOrUnknown(data['address']!, _addressMeta),
+      );
+    }
+    if (data.containsKey('contact_number')) {
+      context.handle(
+        _contactNumberMeta,
+        contactNumber.isAcceptableOrUnknown(
+          data['contact_number']!,
+          _contactNumberMeta,
+        ),
       );
     }
     if (data.containsKey('contact_info')) {
@@ -1332,6 +1389,18 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         DriftSqlType.string,
         data['${effectivePrefix}data'],
       ),
+      deadline: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}deadline'],
+      ),
+      address: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}address'],
+      ),
+      contactNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contact_number'],
+      ),
       contactInfo: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}contact_info'],
@@ -1384,6 +1453,9 @@ class Quest extends DataClass implements Insertable<Quest> {
   final String publicId;
   final String name;
   final String? data;
+  final String? deadline;
+  final String? address;
+  final String? contactNumber;
   final String? contactInfo;
   final QuestType type;
   final bool inclusive;
@@ -1397,6 +1469,9 @@ class Quest extends DataClass implements Insertable<Quest> {
     required this.publicId,
     required this.name,
     this.data,
+    this.deadline,
+    this.address,
+    this.contactNumber,
     this.contactInfo,
     required this.type,
     required this.inclusive,
@@ -1414,6 +1489,15 @@ class Quest extends DataClass implements Insertable<Quest> {
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || data != null) {
       map['data'] = Variable<String>(data);
+    }
+    if (!nullToAbsent || deadline != null) {
+      map['deadline'] = Variable<String>(deadline);
+    }
+    if (!nullToAbsent || address != null) {
+      map['address'] = Variable<String>(address);
+    }
+    if (!nullToAbsent || contactNumber != null) {
+      map['contact_number'] = Variable<String>(contactNumber);
     }
     if (!nullToAbsent || contactInfo != null) {
       map['contact_info'] = Variable<String>(contactInfo);
@@ -1440,6 +1524,15 @@ class Quest extends DataClass implements Insertable<Quest> {
       publicId: Value(publicId),
       name: Value(name),
       data: data == null && nullToAbsent ? const Value.absent() : Value(data),
+      deadline: deadline == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadline),
+      address: address == null && nullToAbsent
+          ? const Value.absent()
+          : Value(address),
+      contactNumber: contactNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contactNumber),
       contactInfo: contactInfo == null && nullToAbsent
           ? const Value.absent()
           : Value(contactInfo),
@@ -1463,6 +1556,9 @@ class Quest extends DataClass implements Insertable<Quest> {
       publicId: serializer.fromJson<String>(json['publicId']),
       name: serializer.fromJson<String>(json['name']),
       data: serializer.fromJson<String?>(json['data']),
+      deadline: serializer.fromJson<String?>(json['deadline']),
+      address: serializer.fromJson<String?>(json['address']),
+      contactNumber: serializer.fromJson<String?>(json['contactNumber']),
       contactInfo: serializer.fromJson<String?>(json['contactInfo']),
       type: $QuestsTable.$convertertype.fromJson(
         serializer.fromJson<String>(json['type']),
@@ -1485,6 +1581,9 @@ class Quest extends DataClass implements Insertable<Quest> {
       'publicId': serializer.toJson<String>(publicId),
       'name': serializer.toJson<String>(name),
       'data': serializer.toJson<String?>(data),
+      'deadline': serializer.toJson<String?>(deadline),
+      'address': serializer.toJson<String?>(address),
+      'contactNumber': serializer.toJson<String?>(contactNumber),
       'contactInfo': serializer.toJson<String?>(contactInfo),
       'type': serializer.toJson<String>(
         $QuestsTable.$convertertype.toJson(type),
@@ -1505,6 +1604,9 @@ class Quest extends DataClass implements Insertable<Quest> {
     String? publicId,
     String? name,
     Value<String?> data = const Value.absent(),
+    Value<String?> deadline = const Value.absent(),
+    Value<String?> address = const Value.absent(),
+    Value<String?> contactNumber = const Value.absent(),
     Value<String?> contactInfo = const Value.absent(),
     QuestType? type,
     bool? inclusive,
@@ -1518,6 +1620,11 @@ class Quest extends DataClass implements Insertable<Quest> {
     publicId: publicId ?? this.publicId,
     name: name ?? this.name,
     data: data.present ? data.value : this.data,
+    deadline: deadline.present ? deadline.value : this.deadline,
+    address: address.present ? address.value : this.address,
+    contactNumber: contactNumber.present
+        ? contactNumber.value
+        : this.contactNumber,
     contactInfo: contactInfo.present ? contactInfo.value : this.contactInfo,
     type: type ?? this.type,
     inclusive: inclusive ?? this.inclusive,
@@ -1533,6 +1640,11 @@ class Quest extends DataClass implements Insertable<Quest> {
       publicId: data.publicId.present ? data.publicId.value : this.publicId,
       name: data.name.present ? data.name.value : this.name,
       data: data.data.present ? data.data.value : this.data,
+      deadline: data.deadline.present ? data.deadline.value : this.deadline,
+      address: data.address.present ? data.address.value : this.address,
+      contactNumber: data.contactNumber.present
+          ? data.contactNumber.value
+          : this.contactNumber,
       contactInfo: data.contactInfo.present
           ? data.contactInfo.value
           : this.contactInfo,
@@ -1553,6 +1665,9 @@ class Quest extends DataClass implements Insertable<Quest> {
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
           ..write('data: $data, ')
+          ..write('deadline: $deadline, ')
+          ..write('address: $address, ')
+          ..write('contactNumber: $contactNumber, ')
           ..write('contactInfo: $contactInfo, ')
           ..write('type: $type, ')
           ..write('inclusive: $inclusive, ')
@@ -1571,6 +1686,9 @@ class Quest extends DataClass implements Insertable<Quest> {
     publicId,
     name,
     data,
+    deadline,
+    address,
+    contactNumber,
     contactInfo,
     type,
     inclusive,
@@ -1588,6 +1706,9 @@ class Quest extends DataClass implements Insertable<Quest> {
           other.publicId == this.publicId &&
           other.name == this.name &&
           other.data == this.data &&
+          other.deadline == this.deadline &&
+          other.address == this.address &&
+          other.contactNumber == this.contactNumber &&
           other.contactInfo == this.contactInfo &&
           other.type == this.type &&
           other.inclusive == this.inclusive &&
@@ -1603,6 +1724,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
   final Value<String> publicId;
   final Value<String> name;
   final Value<String?> data;
+  final Value<String?> deadline;
+  final Value<String?> address;
+  final Value<String?> contactNumber;
   final Value<String?> contactInfo;
   final Value<QuestType> type;
   final Value<bool> inclusive;
@@ -1616,6 +1740,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.publicId = const Value.absent(),
     this.name = const Value.absent(),
     this.data = const Value.absent(),
+    this.deadline = const Value.absent(),
+    this.address = const Value.absent(),
+    this.contactNumber = const Value.absent(),
     this.contactInfo = const Value.absent(),
     this.type = const Value.absent(),
     this.inclusive = const Value.absent(),
@@ -1630,6 +1757,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     required String publicId,
     required String name,
     this.data = const Value.absent(),
+    this.deadline = const Value.absent(),
+    this.address = const Value.absent(),
+    this.contactNumber = const Value.absent(),
     this.contactInfo = const Value.absent(),
     this.type = const Value.absent(),
     required bool inclusive,
@@ -1648,6 +1778,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Expression<String>? publicId,
     Expression<String>? name,
     Expression<String>? data,
+    Expression<String>? deadline,
+    Expression<String>? address,
+    Expression<String>? contactNumber,
     Expression<String>? contactInfo,
     Expression<String>? type,
     Expression<bool>? inclusive,
@@ -1662,6 +1795,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       if (publicId != null) 'public_id': publicId,
       if (name != null) 'name': name,
       if (data != null) 'data': data,
+      if (deadline != null) 'deadline': deadline,
+      if (address != null) 'address': address,
+      if (contactNumber != null) 'contact_number': contactNumber,
       if (contactInfo != null) 'contact_info': contactInfo,
       if (type != null) 'type': type,
       if (inclusive != null) 'inclusive': inclusive,
@@ -1678,6 +1814,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Value<String>? publicId,
     Value<String>? name,
     Value<String?>? data,
+    Value<String?>? deadline,
+    Value<String?>? address,
+    Value<String?>? contactNumber,
     Value<String?>? contactInfo,
     Value<QuestType>? type,
     Value<bool>? inclusive,
@@ -1692,6 +1831,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       publicId: publicId ?? this.publicId,
       name: name ?? this.name,
       data: data ?? this.data,
+      deadline: deadline ?? this.deadline,
+      address: address ?? this.address,
+      contactNumber: contactNumber ?? this.contactNumber,
       contactInfo: contactInfo ?? this.contactInfo,
       type: type ?? this.type,
       inclusive: inclusive ?? this.inclusive,
@@ -1719,6 +1861,15 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     }
     if (data.present) {
       map['data'] = Variable<String>(data.value);
+    }
+    if (deadline.present) {
+      map['deadline'] = Variable<String>(deadline.value);
+    }
+    if (address.present) {
+      map['address'] = Variable<String>(address.value);
+    }
+    if (contactNumber.present) {
+      map['contact_number'] = Variable<String>(contactNumber.value);
     }
     if (contactInfo.present) {
       map['contact_info'] = Variable<String>(contactInfo.value);
@@ -1756,6 +1907,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
           ..write('data: $data, ')
+          ..write('deadline: $deadline, ')
+          ..write('address: $address, ')
+          ..write('contactNumber: $contactNumber, ')
           ..write('contactInfo: $contactInfo, ')
           ..write('type: $type, ')
           ..write('inclusive: $inclusive, ')
@@ -2781,6 +2935,9 @@ typedef $$QuestsTableCreateCompanionBuilder =
       required String publicId,
       required String name,
       Value<String?> data,
+      Value<String?> deadline,
+      Value<String?> address,
+      Value<String?> contactNumber,
       Value<String?> contactInfo,
       Value<QuestType> type,
       required bool inclusive,
@@ -2796,6 +2953,9 @@ typedef $$QuestsTableUpdateCompanionBuilder =
       Value<String> publicId,
       Value<String> name,
       Value<String?> data,
+      Value<String?> deadline,
+      Value<String?> address,
+      Value<String?> contactNumber,
       Value<String?> contactInfo,
       Value<QuestType> type,
       Value<bool> inclusive,
@@ -2872,6 +3032,21 @@ class $$QuestsTableFilterComposer
 
   ColumnFilters<String> get data => $composableBuilder(
     column: $table.data,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deadline => $composableBuilder(
+    column: $table.deadline,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contactNumber => $composableBuilder(
+    column: $table.contactNumber,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2983,6 +3158,21 @@ class $$QuestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get deadline => $composableBuilder(
+    column: $table.deadline,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contactNumber => $composableBuilder(
+    column: $table.contactNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get contactInfo => $composableBuilder(
     column: $table.contactInfo,
     builder: (column) => ColumnOrderings(column),
@@ -3080,6 +3270,17 @@ class $$QuestsTableAnnotationComposer
 
   GeneratedColumn<String> get data =>
       $composableBuilder(column: $table.data, builder: (column) => column);
+
+  GeneratedColumn<String> get deadline =>
+      $composableBuilder(column: $table.deadline, builder: (column) => column);
+
+  GeneratedColumn<String> get address =>
+      $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumn<String> get contactNumber => $composableBuilder(
+    column: $table.contactNumber,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get contactInfo => $composableBuilder(
     column: $table.contactInfo,
@@ -3181,6 +3382,9 @@ class $$QuestsTableTableManager
                 Value<String> publicId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> data = const Value.absent(),
+                Value<String?> deadline = const Value.absent(),
+                Value<String?> address = const Value.absent(),
+                Value<String?> contactNumber = const Value.absent(),
                 Value<String?> contactInfo = const Value.absent(),
                 Value<QuestType> type = const Value.absent(),
                 Value<bool> inclusive = const Value.absent(),
@@ -3194,6 +3398,9 @@ class $$QuestsTableTableManager
                 publicId: publicId,
                 name: name,
                 data: data,
+                deadline: deadline,
+                address: address,
+                contactNumber: contactNumber,
                 contactInfo: contactInfo,
                 type: type,
                 inclusive: inclusive,
@@ -3209,6 +3416,9 @@ class $$QuestsTableTableManager
                 required String publicId,
                 required String name,
                 Value<String?> data = const Value.absent(),
+                Value<String?> deadline = const Value.absent(),
+                Value<String?> address = const Value.absent(),
+                Value<String?> contactNumber = const Value.absent(),
                 Value<String?> contactInfo = const Value.absent(),
                 Value<QuestType> type = const Value.absent(),
                 required bool inclusive,
@@ -3222,6 +3432,9 @@ class $$QuestsTableTableManager
                 publicId: publicId,
                 name: name,
                 data: data,
+                deadline: deadline,
+                address: address,
+                contactNumber: contactNumber,
                 contactInfo: contactInfo,
                 type: type,
                 inclusive: inclusive,

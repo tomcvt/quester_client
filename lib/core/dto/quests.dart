@@ -5,6 +5,9 @@ class CreateQuestRequest(BaseModel):
     group_public_id: uuid.UUID
     name: str
     data: str
+    deadline: str | None
+    address: str | None
+    contact_number: str | None
     contact_info: str | None
     type: QuestType
     inclusive: bool
@@ -15,6 +18,9 @@ class CreateQuestResponse(BaseModel):
     public_id: uuid.UUID
     name: str
     data: str | None
+    deadline: str | None
+    address: str | None
+    contact_number: str | None
     contact_info: str | None
     type: QuestType
     inclusive: bool
@@ -28,6 +34,9 @@ class CreateQuestRequest {
   final String groupPublicId;
   final String name;
   final String? data;
+  final String? deadline;
+  final String? address;
+  final String? contactNumber;
   final String? contactInfo;
   final QuestType type;
   final bool inclusive;
@@ -38,6 +47,9 @@ class CreateQuestRequest {
     required this.groupPublicId,
     required this.name,
     this.data,
+    this.deadline,
+    this.address,
+    this.contactNumber,
     this.contactInfo,
     this.type = QuestType.job,
     this.inclusive = true,
@@ -50,6 +62,9 @@ class CreateQuestRequest {
       'group_public_id': groupPublicId,
       'name': name,
       'data': data,
+      'deadline': deadline,
+      'address': address,
+      'contact_number': contactNumber,
       'contact_info': contactInfo,
       'type': type.apiValue,
       'inclusive': inclusive,
@@ -63,6 +78,9 @@ class CreateQuestResponse {
   final String publicId;
   final String name;
   final String? data;
+  final String? deadline;
+  final String? address;
+  final String? contactNumber;
   final String? contactInfo;
   final QuestType type;
   final bool inclusive;
@@ -75,6 +93,9 @@ class CreateQuestResponse {
     required this.publicId,
     required this.name,
     this.data,
+    this.deadline,
+    this.address,
+    this.contactNumber,
     this.contactInfo,
     required this.type,
     required this.inclusive,
@@ -89,6 +110,9 @@ class CreateQuestResponse {
       publicId: json['public_id'],
       name: json['name'],
       data: json['data'],
+      deadline: json['deadline'],
+      address: json['address'],
+      contactNumber: json['contact_number'],
       contactInfo: json['contact_info'],
       type: QuestTypeX.fromString(json['type']),
       inclusive: json['inclusive'],
@@ -107,6 +131,9 @@ class QuestSyncDTO(BaseModel):
     public_id: uuid.UUID
     name: str
     data: str | None
+    deadline: str | None
+    address: str | None
+    contact_number: str | None
     contact_info: str | None
     type: QuestType
     inclusive: bool
@@ -124,6 +151,9 @@ class QuestSyncDTO {
   final String publicId;
   final String name;
   final String? data;
+  final String? deadline;
+  final String? address;
+  final String? contactNumber;
   final String? contactInfo;
   final QuestType type;
   final bool inclusive;
@@ -137,6 +167,9 @@ class QuestSyncDTO {
     required this.publicId,
     required this.name,
     this.data,
+    this.deadline,
+    this.address,
+    this.contactNumber,
     this.contactInfo,
     required this.type,
     required this.inclusive,
@@ -152,6 +185,9 @@ class QuestSyncDTO {
       publicId: json['public_id'],
       name: json['name'],
       data: json['data'],
+      deadline: json['deadline'],
+      address: json['address'],
+      contactNumber: json['contact_number'],
       contactInfo: json['contact_info'],
       type: QuestTypeX.fromString(json['type']),
       inclusive: json['inclusive'],

@@ -41,8 +41,8 @@ class QuestsService {
 
   QuestsService(this._questsDao, this._groupsDao, this._apiClient);
 
-  Future<Quest?> createQuest(
-    int groupId,
+  /*
+  int groupId,
     String name,
     String? data,
     String? contactInfo, {
@@ -50,36 +50,78 @@ class QuestsService {
     bool inclusive = true,
     QuestStatus status = QuestStatus.started,
     bool offline = false,
+    */
+  //this but with required named
+
+  Future<Quest?> createQuest({
+    required int groupId,
+    required String name,
+    required String? data,
+    required String? deadline,
+    required String? address,
+    required String? contactNumber,
+    required String? contactInfo,
+    required QuestType type,
+    required bool inclusive,
+    required QuestStatus status,
+    bool offline = false,
   }) async {
     if (offline) {
       return await createOfflineQuest(
-        groupId,
-        name,
-        data,
-        contactInfo,
-        type,
-        inclusive,
-        status,
+        groupId: groupId,
+        name: name,
+        data: data,
+        deadline: deadline,
+        address: address,
+        contactNumber: contactNumber,
+        contactInfo: contactInfo,
+        type: type,
+        inclusive: inclusive,
+        status: status,
       );
     }
     final group = await _groupsDao.groupFromId(groupId);
-    final questResponse = await _apiClient.createQuest(
-      group!.publicId,
+    if (group == null) {
+      logger.e('Group with id $groupId not found');
+      return null;
+    }
+    /*
+    group.publicId,
       name,
       data,
+      deadline,
+      address,
+      contactNumber,
       contactInfo,
       type,
       inclusive,
       status,
       AppInitializer
-          .installationId, //TODO - fetch actual user public id from shared prefs or similar
+          .installationId,
+          */
+    final questResponse = await _apiClient.createQuest(
+      groupPublicId: group.publicId,
+      name: name,
+      data: data,
+      deadline: deadline,
+      address: address,
+      contactNumber: contactNumber,
+      contactInfo: contactInfo,
+      type: type,
+      inclusive: inclusive,
+      status: status,
+      creatorPublicId: AppInitializer.installationId,
     );
+    //TODO - fetch actual user public id from shared prefs or similar
     logger.d('Quest created on backend: ${questResponse.toString()}');
     final newQuest = QuestsCompanion(
       groupId: Value(groupId),
       publicId: Value(questResponse.publicId),
       name: Value(questResponse.name),
       data: Value(questResponse.data),
+      deadline: Value(questResponse.deadline),
+      address: Value(questResponse.address),
+      contactNumber: Value(questResponse.contactNumber),
       contactInfo: Value(questResponse.contactInfo),
       type: Value(questResponse.type),
       inclusive: Value(questResponse.inclusive),
@@ -102,20 +144,26 @@ class QuestsService {
     return createdQuest;
   }
 
-  Future<Quest?> createOfflineQuest(
-    int groupId,
-    String name,
-    String? data,
-    String? contactInfo,
-    QuestType type,
-    bool inclusive,
-    QuestStatus status,
-  ) async {
+  Future<Quest?> createOfflineQuest({
+    required int groupId,
+    required String name,
+    required String? data,
+    required String? deadline,
+    required String? address,
+    required String? contactNumber,
+    required String? contactInfo,
+    required QuestType type,
+    required bool inclusive,
+    required QuestStatus status,
+  }) async {
     final newQuest = QuestsCompanion(
       groupId: Value(groupId),
       publicId: Value(Uuid().v4()),
       name: Value(name),
       data: Value(data),
+      deadline: Value(deadline),
+      address: Value(address),
+      contactNumber: Value(contactNumber),
       contactInfo: Value(contactInfo),
       type: Value(type),
       inclusive: Value(inclusive),

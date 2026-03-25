@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/http/api_client.dart';
+import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/dev/dev_data_seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,8 @@ class AppInitializer {
   static late final String? token;
   static late final AppDatabase db;
   static late final String fcmToken;
+  static late final SharedPreferences prefs;
+  static SessionData sessionData = const SessionData.empty();
   static final isOnline = ValueNotifier<bool>(
     true,
   ); // Start assuming we're online
@@ -34,17 +37,23 @@ class AppInitializer {
           apiBaseUrl: 'http://localhost:8100/api/v1/',
         );
     buildConfig = config; // assign to static variable for global access
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
     fcmToken = await getFcmToken(prefs);
     final apiClient = ApiClient(config.apiBaseUrl, installationId);
     //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful
-    token = await AuthService(
+    final authService = AuthService(
       installationIdService,
       apiClient,
       FlutterSecureStorage(),
-    ).initialize(installationId: installationId, fcmToken: fcmToken);
+      prefs,
+    );
+    sessionData = await authService.initialize(
+      installationId,
+      fcmToken: fcmToken,
+    );
+    logger.i('Session data: ${sessionData.toString()}');
     db = await AppDatabase.open(buildConfig: buildConfig);
     deviceId = await _getDeviceId();
 

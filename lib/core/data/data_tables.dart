@@ -156,6 +156,9 @@ class Quests extends Table {
   TextColumn get publicId => text()();
   TextColumn get name => text()();
   TextColumn get data => text().nullable()();
+  TextColumn get deadline => text().nullable()();
+  TextColumn get address => text().nullable()();
+  TextColumn get contactNumber => text().nullable()();
   TextColumn get contactInfo => text().nullable()();
   TextColumn get type =>
       textEnum<QuestType>().withDefault(Constant(QuestType.job.value))();
