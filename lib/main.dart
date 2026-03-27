@@ -51,6 +51,7 @@ void main() async {
       overrides: [
         databaseProvider.overrideWithValue(AsyncValue.data(AppInitializer.db)),
         installationIdProvider.overrideWithValue(AppInitializer.installationId),
+        apiClientProvider.overrideWithValue(AppInitializer.apiClient),
         //fcmTokenProvider.overrideWithValue(AppInitializer.fcmToken), TODO
       ],
       child: MyApp(),

@@ -21,7 +21,7 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          options.headers['X-Session-Token'] = 'Bearer $_sessionToken';
+          options.headers['X-Session-Token'] = _sessionToken;
           handler.next(options);
         },
       ),

@@ -64,6 +64,10 @@ class AuthService {
       await registerAndSave(installationId, username, password)
     }
     */
+    _apiClient.setSessionToken(authResponse.sessionToken);
+    logger.d(
+      'Setting session token in API client: ${authResponse.sessionToken}',
+    );
     await _secureStorage.write(
       key: _sessionToken,
       value: authResponse.sessionToken,

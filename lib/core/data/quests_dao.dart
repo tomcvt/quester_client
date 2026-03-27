@@ -82,6 +82,13 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
               ),
             ]))
           .watch();
+  Stream<Quest?> watchByGroupAndId(int groupId, int questId) =>
+      (select(quests)..where(
+            (q) =>
+                q.groupId.equals(groupId) &
+                q.id.equals(questId), //maybe just use id here
+          ))
+          .watchSingleOrNull();
   Stream<List<Quest>> watchByGroupAndFilter(int groupId, TaskFilter filter) {
     final query = select(quests)..where((q) => q.groupId.equals(groupId));
     switch (filter) {

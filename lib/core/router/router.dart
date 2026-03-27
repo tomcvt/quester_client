@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
+import 'package:quester_client/features/groups/quest_details_screen.dart';
 import 'package:quester_client/features/groups/user_groups_screen.dart';
 import '../providers/auth_provider.dart';
 import '../../features/splash/splash_screen.dart';
@@ -61,6 +62,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final groupId = state.pathParameters['groupId']!;
           return GroupHomeScreen(groupId: groupId);
+        },
+      ),
+      GoRoute(
+        path: '/groups/:groupId/quests/:questId',
+        builder: (context, state) {
+          final groupId = state.pathParameters['groupId']!;
+          final questId = state.pathParameters['questId']!;
+          return QuestDetailsScreen(groupId: groupId, questId: questId);
         },
       ),
     ],

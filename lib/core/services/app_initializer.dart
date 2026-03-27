@@ -23,6 +23,7 @@ class AppInitializer {
   static late final AppDatabase db;
   static late final String fcmToken;
   static late final SharedPreferences prefs;
+  static late final ApiClient apiClient;
   static SessionData sessionData = const SessionData.empty();
   static final isOnline = ValueNotifier<bool>(
     true,
@@ -41,7 +42,7 @@ class AppInitializer {
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
     fcmToken = await getFcmToken(prefs);
-    final apiClient = ApiClient(config.apiBaseUrl, installationId);
+    apiClient = ApiClient(config.apiBaseUrl, installationId);
     //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful
     final authService = AuthService(
       installationIdService,

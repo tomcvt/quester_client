@@ -1,6 +1,7 @@
 // lib/features/group_home/group_home_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
@@ -245,11 +246,13 @@ class _QuestTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(quest.name),
+      title: Text(
+        '${quest.name}   ${quest.deadline != null ? '(${quest.deadline})' : ''}',
+      ),
       subtitle: Text(quest.status.label),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
-        // TODO: context.go('/groups/:groupId/quests/:questId')
+        context.push('/groups/${quest.groupId}/quests/${quest.id}');
       },
     );
   }
@@ -287,9 +290,13 @@ class _CreateQuestDialog extends ConsumerStatefulWidget {
   const _CreateQuestDialog({required this.groupId});
 
   @override
-  ConsumerState<_CreateQuestDialog> createState() => _CreateQuestDialogState();
+  ConsumerState<_CreateQuestDialog> createState() =>
+      _CreateQuestDialogState(groupId: groupId);
 }
 
+///
+/// Extension method on ScaffoldMessengerState for showing debug snack bars.
+/// Includes a Dismiss action and a long default duration for visibility during development.
 extension DebugSnackBar on ScaffoldMessengerState {
   void showDebugSnackBar(
     String message, {
@@ -313,27 +320,47 @@ extension DebugSnackBar on ScaffoldMessengerState {
 ///
 /// Target [CreateQuestRequest] fields:
 /// through [CreateQuestNotifier.createQuest()]
+/// in UI ordered for targeted specific UX
+/// - name (required)
+/// - deadline (optional)
+/// - address (optional)
+/// - contactNumber (optional)
+/// - contactInfo (optional)
+/// - details (optional)
+/// - inclusive (optional)
 ///
 class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
+  final String groupId;
+  _CreateQuestDialogState({required this.groupId});
+
   // Controllers are local state — they live and die with this widget.
   // Always dispose them. Same discipline as closing a Kotlin Flow.
   late final TextEditingController _nameController;
   late final TextEditingController _detailsController;
   bool _inclusive = false;
-  late final TextEditingController _contactController;
+  late final TextEditingController _contactNumberController;
+  late final TextEditingController _contactInfoController;
+  late final TextEditingController _addressController;
+  TimeOfDay?
+  _deadline; // no controller needed for TimeOfDay — it's not a text field
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _detailsController = TextEditingController();
-    _contactController = TextEditingController();
+    _contactNumberController = TextEditingController();
+    _contactInfoController = TextEditingController();
+    _addressController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _detailsController.dispose();
+    _contactNumberController.dispose();
+    _contactInfoController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -359,21 +386,82 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
 
     return AlertDialog(
       title: const Text('New Quest'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min, // dialog shrinks to content height
-        children: [
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(labelText: 'Quest name'),
-            textInputAction: TextInputAction.next, // moves focus to next field
+      content: SizedBox(
+        width: double.maxFinite, // prevents dialog from being too narrow
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // dialog shrinks to content height
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Quest name'),
+                keyboardType: TextInputType.text,
+                textInputAction:
+                    TextInputAction.next, // moves focus to next field
+              ),
+              ActionChip(
+                label: Text(
+                  _deadline == null ? 'Set time' : _deadline!.format(context),
+                ),
+                onPressed: () async {
+                  final now = TimeOfDay.now();
+                  final picked = await showTimePicker(
+                    context: context,
+                    initialTime: now,
+                  );
+                  if (picked != null) {
+                    setState(() => _deadline = picked);
+                  }
+                },
+              ),
+              TextField(
+                controller: _addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                  prefixIcon: Icon(Icons.location_on_outlined),
+                ),
+                keyboardType: TextInputType.streetAddress,
+              ),
+              TextField(
+                controller: _contactNumberController,
+                decoration: const InputDecoration(
+                  labelText: 'Contact number',
+                  prefixIcon: Icon(Icons.phone_outlined),
+                ),
+                keyboardType: TextInputType.phone,
+                // Digits and + only — input formatter is the right layer for this,
+                // not validation after the fact. Equivalent to an InputFilter in Android.
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                ],
+              ),
+              TextField(
+                controller: _contactInfoController,
+                decoration: const InputDecoration(
+                  labelText: 'Contact info',
+                  prefixIcon: Icon(Icons.contact_mail_outlined),
+                ),
+                keyboardType: TextInputType.text,
+              ),
+              //const SizedBox(height: 12),
+              TextField(
+                controller: _detailsController,
+                decoration: const InputDecoration(labelText: 'Details'),
+                maxLines: 3,
+              ),
+              FilterChip(
+                label: const Text('Me too'),
+                selected: _inclusive,
+                // When selected: show tick. When not: show person icon.
+                // avatar appears on the LEFT of the label — that's FilterChip's slot for leading icon
+                avatar: _inclusive
+                    ? const Icon(Icons.check, size: 18)
+                    : const Icon(Icons.person_outline, size: 18),
+                onSelected: (value) => setState(() => _inclusive = value),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _detailsController,
-            decoration: const InputDecoration(labelText: 'Details'),
-            maxLines: 3,
-          ),
-        ],
+        ),
       ),
       actions: [
         TextButton(
@@ -400,16 +488,35 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
   void _submit() {
     final name = _nameController.text.trim();
     final details = _detailsController.text.trim();
-    if (name.isEmpty)
-      return; // simple local validation before hitting the notifier
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showDebugSnackBar('Quest name cannot be empty');
+      return;
+    }
     final currentGroupId = widget.groupId;
+    final deadlineAsString = _deadline != null
+        ? '${_deadline!.hour}:${_deadline!.minute}'
+        : null;
     ref
         .read(createQuestProvider.notifier)
         .createQuest(
-          int.parse(currentGroupId),
-          name,
-          details.isEmpty ? null : details,
-          null, // contactInfo — add another field and controller if you want this
+          groupId: int.parse(currentGroupId),
+          name: name,
+          data: details.isEmpty ? null : details,
+          inclusive: _inclusive,
+          contactNumber: _contactNumberController.text.trim().isEmpty
+              ? null
+              : _contactNumberController.text.trim(),
+          contactInfo: _contactInfoController.text.trim().isEmpty
+              ? null
+              : _contactInfoController.text.trim(),
+          address: _addressController.text.trim().isEmpty
+              ? null
+              : _addressController.text.trim(),
+          deadline: deadlineAsString,
+          type: QuestType.job,
+          status: QuestStatus.started,
         );
   }
 }
