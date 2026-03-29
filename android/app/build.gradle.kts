@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.quester_client"
+    namespace = "com.tomcvt.quester_client"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

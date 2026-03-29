@@ -1235,6 +1235,17 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _acceptedByIdMeta = const VerificationMeta(
+    'acceptedById',
+  );
+  @override
+  late final GeneratedColumn<String> acceptedById = GeneratedColumn<String>(
+    'accepted_by_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1252,6 +1263,7 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     creatorId,
     createdAt,
     updatedAt,
+    acceptedById,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1356,6 +1368,15 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('accepted_by_id')) {
+      context.handle(
+        _acceptedByIdMeta,
+        acceptedById.isAcceptableOrUnknown(
+          data['accepted_by_id']!,
+          _acceptedByIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1433,6 +1454,10 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      acceptedById: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}accepted_by_id'],
+      ),
     );
   }
 
@@ -1463,6 +1488,7 @@ class Quest extends DataClass implements Insertable<Quest> {
   final int creatorId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? acceptedById;
   const Quest({
     required this.id,
     required this.groupId,
@@ -1479,6 +1505,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     required this.creatorId,
     required this.createdAt,
     required this.updatedAt,
+    this.acceptedById,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1514,6 +1541,9 @@ class Quest extends DataClass implements Insertable<Quest> {
     map['creator_id'] = Variable<int>(creatorId);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || acceptedById != null) {
+      map['accepted_by_id'] = Variable<String>(acceptedById);
+    }
     return map;
   }
 
@@ -1542,6 +1572,9 @@ class Quest extends DataClass implements Insertable<Quest> {
       creatorId: Value(creatorId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      acceptedById: acceptedById == null && nullToAbsent
+          ? const Value.absent()
+          : Value(acceptedById),
     );
   }
 
@@ -1570,6 +1603,7 @@ class Quest extends DataClass implements Insertable<Quest> {
       creatorId: serializer.fromJson<int>(json['creatorId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      acceptedById: serializer.fromJson<String?>(json['acceptedById']),
     );
   }
   @override
@@ -1595,6 +1629,7 @@ class Quest extends DataClass implements Insertable<Quest> {
       'creatorId': serializer.toJson<int>(creatorId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'acceptedById': serializer.toJson<String?>(acceptedById),
     };
   }
 
@@ -1614,6 +1649,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     int? creatorId,
     DateTime? createdAt,
     DateTime? updatedAt,
+    Value<String?> acceptedById = const Value.absent(),
   }) => Quest(
     id: id ?? this.id,
     groupId: groupId ?? this.groupId,
@@ -1632,6 +1668,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     creatorId: creatorId ?? this.creatorId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    acceptedById: acceptedById.present ? acceptedById.value : this.acceptedById,
   );
   Quest copyWithCompanion(QuestsCompanion data) {
     return Quest(
@@ -1654,6 +1691,9 @@ class Quest extends DataClass implements Insertable<Quest> {
       creatorId: data.creatorId.present ? data.creatorId.value : this.creatorId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      acceptedById: data.acceptedById.present
+          ? data.acceptedById.value
+          : this.acceptedById,
     );
   }
 
@@ -1674,7 +1714,8 @@ class Quest extends DataClass implements Insertable<Quest> {
           ..write('status: $status, ')
           ..write('creatorId: $creatorId, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('acceptedById: $acceptedById')
           ..write(')'))
         .toString();
   }
@@ -1696,6 +1737,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     creatorId,
     createdAt,
     updatedAt,
+    acceptedById,
   );
   @override
   bool operator ==(Object other) =>
@@ -1715,7 +1757,8 @@ class Quest extends DataClass implements Insertable<Quest> {
           other.status == this.status &&
           other.creatorId == this.creatorId &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.acceptedById == this.acceptedById);
 }
 
 class QuestsCompanion extends UpdateCompanion<Quest> {
@@ -1734,6 +1777,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
   final Value<int> creatorId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<String?> acceptedById;
   const QuestsCompanion({
     this.id = const Value.absent(),
     this.groupId = const Value.absent(),
@@ -1750,6 +1794,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.creatorId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.acceptedById = const Value.absent(),
   });
   QuestsCompanion.insert({
     this.id = const Value.absent(),
@@ -1767,6 +1812,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     required int creatorId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.acceptedById = const Value.absent(),
   }) : groupId = Value(groupId),
        publicId = Value(publicId),
        name = Value(name),
@@ -1788,6 +1834,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Expression<int>? creatorId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<String>? acceptedById,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1805,6 +1852,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       if (creatorId != null) 'creator_id': creatorId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (acceptedById != null) 'accepted_by_id': acceptedById,
     });
   }
 
@@ -1824,6 +1872,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Value<int>? creatorId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<String?>? acceptedById,
   }) {
     return QuestsCompanion(
       id: id ?? this.id,
@@ -1841,6 +1890,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       creatorId: creatorId ?? this.creatorId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      acceptedById: acceptedById ?? this.acceptedById,
     );
   }
 
@@ -1896,6 +1946,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (acceptedById.present) {
+      map['accepted_by_id'] = Variable<String>(acceptedById.value);
+    }
     return map;
   }
 
@@ -1916,7 +1969,8 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
           ..write('status: $status, ')
           ..write('creatorId: $creatorId, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('acceptedById: $acceptedById')
           ..write(')'))
         .toString();
   }
@@ -2945,6 +2999,7 @@ typedef $$QuestsTableCreateCompanionBuilder =
       required int creatorId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<String?> acceptedById,
     });
 typedef $$QuestsTableUpdateCompanionBuilder =
     QuestsCompanion Function({
@@ -2963,6 +3018,7 @@ typedef $$QuestsTableUpdateCompanionBuilder =
       Value<int> creatorId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<String?> acceptedById,
     });
 
 final class $$QuestsTableReferences
@@ -3079,6 +3135,11 @@ class $$QuestsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get acceptedById => $composableBuilder(
+    column: $table.acceptedById,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3203,6 +3264,11 @@ class $$QuestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get acceptedById => $composableBuilder(
+    column: $table.acceptedById,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$GroupsTableOrderingComposer get groupId {
     final $$GroupsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3302,6 +3368,11 @@ class $$QuestsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<String> get acceptedById => $composableBuilder(
+    column: $table.acceptedById,
+    builder: (column) => column,
+  );
+
   $$GroupsTableAnnotationComposer get groupId {
     final $$GroupsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -3392,6 +3463,7 @@ class $$QuestsTableTableManager
                 Value<int> creatorId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> acceptedById = const Value.absent(),
               }) => QuestsCompanion(
                 id: id,
                 groupId: groupId,
@@ -3408,6 +3480,7 @@ class $$QuestsTableTableManager
                 creatorId: creatorId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                acceptedById: acceptedById,
               ),
           createCompanionCallback:
               ({
@@ -3426,6 +3499,7 @@ class $$QuestsTableTableManager
                 required int creatorId,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> acceptedById = const Value.absent(),
               }) => QuestsCompanion.insert(
                 id: id,
                 groupId: groupId,
@@ -3442,6 +3516,7 @@ class $$QuestsTableTableManager
                 creatorId: creatorId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                acceptedById: acceptedById,
               ),
           withReferenceMapper: (p0) => p0
               .map(

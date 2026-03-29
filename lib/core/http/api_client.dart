@@ -214,4 +214,17 @@ class ApiClient {
       }
     }
   }
+
+  Future<bool?> acceptQuest(String publicId) async {
+    try {
+      final response = await _dio.post('/quests/$publicId/accept');
+      return true;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to accept quest: ${e.response?.statusMessage}');
+      } else {
+        throw Exception('Failed to accept quest: ${e.message}');
+      }
+    }
+  }
 }

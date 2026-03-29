@@ -245,12 +245,15 @@ class _QuestTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var statusMeta = _StatusMeta.from(quest.status);
     return ListTile(
       title: Text(
         '${quest.name}   ${quest.deadline != null ? '(${quest.deadline})' : ''}',
       ),
       subtitle: Text(quest.status.label),
+      leading: Icon(statusMeta.icon, color: statusMeta.color),
       trailing: const Icon(Icons.chevron_right),
+      tileColor: statusMeta.color.withOpacity(0.1),
       onTap: () {
         context.push('/groups/${quest.groupId}/quests/${quest.id}');
       },
@@ -290,8 +293,7 @@ class _CreateQuestDialog extends ConsumerStatefulWidget {
   const _CreateQuestDialog({required this.groupId});
 
   @override
-  ConsumerState<_CreateQuestDialog> createState() =>
-      _CreateQuestDialogState(groupId: groupId);
+  ConsumerState<_CreateQuestDialog> createState() => _CreateQuestDialogState();
 }
 
 ///
@@ -330,8 +332,7 @@ extension DebugSnackBar on ScaffoldMessengerState {
 /// - inclusive (optional)
 ///
 class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
-  final String groupId;
-  _CreateQuestDialogState({required this.groupId});
+  _CreateQuestDialogState();
 
   // Controllers are local state — they live and die with this widget.
   // Always dispose them. Same discipline as closing a Kotlin Flow.
@@ -519,4 +520,44 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
           status: QuestStatus.started,
         );
   }
+}
+
+class _StatusMeta {
+  final Color color;
+  final IconData icon;
+  final String label;
+
+  const _StatusMeta({
+    required this.color,
+    required this.icon,
+    required this.label,
+  });
+
+  factory _StatusMeta.from(QuestStatus status) => switch (status) {
+    QuestStatus.started => _StatusMeta(
+      color: Colors.orange,
+      icon: Icons.play_circle_outline,
+      label: 'Open',
+    ),
+    QuestStatus.accepted => _StatusMeta(
+      color: Colors.blue,
+      icon: Icons.person_outlined,
+      label: 'Accepted',
+    ),
+    QuestStatus.completed => _StatusMeta(
+      color: Colors.green,
+      icon: Icons.check_circle_outline,
+      label: 'Done',
+    ),
+    QuestStatus.deleted => _StatusMeta(
+      color: Colors.red,
+      icon: Icons.cancel_outlined,
+      label: 'Cancelled',
+    ),
+    QuestStatus.timedOut => _StatusMeta(
+      color: Colors.grey,
+      icon: Icons.timer_off_outlined,
+      label: 'Timed Out',
+    ),
+  };
 }

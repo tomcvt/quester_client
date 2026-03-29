@@ -29,6 +29,10 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
             ]))
           .get();
 
+  Future<void> updateQuest(Quest quest) {
+    return update(quests).replace(quest);
+  }
+
   Future<void> insertQuestsFromSync(
     int groupId,
     List<QuestSyncDTO> questList,

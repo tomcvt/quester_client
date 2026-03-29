@@ -171,6 +171,7 @@ class Quests extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(
     currentDateAndTime,
   )(); // update on change logic in code
+  TextColumn get acceptedById => text().nullable()();
 
   //indexes
   @override

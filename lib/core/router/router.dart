@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
-import 'package:quester_client/features/groups/quest_details_screen.dart';
+import 'package:quester_client/features/quests/quest_details_screen.dart';
 import 'package:quester_client/features/groups/user_groups_screen.dart';
 import '../providers/auth_provider.dart';
 import '../../features/splash/splash_screen.dart';

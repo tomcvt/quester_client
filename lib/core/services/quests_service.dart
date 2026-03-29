@@ -177,4 +177,26 @@ class QuestsService {
     final createdQuest = await _questsDao.questFromId(id);
     return createdQuest;
   }
+
+  Future<Quest?> acceptQuest(int questId, {bool offline = false}) async {
+    final quest = await _questsDao.questFromId(questId);
+    if (quest == null) {
+      logger.e('Quest with id $questId not found');
+      return null;
+    }
+    final updateResponse = offline
+        ? null
+        : await _apiClient.acceptQuest(quest.publicId);
+    if (updateResponse != null) {
+      logger.d('Quest accepted on backend: ${updateResponse.toString()}');
+    } else {
+      logger.d('Offline quest acceptance, skipping API call');
+    }
+    final updatedQuest = quest.copyWith(
+      status: QuestStatus.accepted,
+      acceptedById: Value(AppInitializer.installationId),
+    );
+    await _questsDao.updateQuest(updatedQuest);
+    logger.d('Quest with id $questId accepted');
+  }
 }

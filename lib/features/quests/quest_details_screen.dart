@@ -25,6 +25,7 @@ import 'package:flutter/foundation.dart'; // kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quester_client/features/quests/quest_actions_notifier.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quester_client/core/data/app_database.dart';
@@ -79,6 +80,9 @@ class QuestDetailsScreen extends ConsumerWidget {
           return _QuestDetailsBody(quest: quest, groupId: groupId);
         },
       ),
+      bottomNavigationBar: questAsync.asData?.value != null
+          ? _QuestActionBar(quest: questAsync.asData!.value!)
+          : null,
     );
   }
 }
@@ -136,7 +140,7 @@ class _QuestDetailsBody extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  statusMeta.color.withOpacity(0.85),
+                  statusMeta.color.withOpacity(0.25),
                   colorScheme.surface,
                 ],
               ),
@@ -332,6 +336,10 @@ class _QuestDetailsBody extends StatelessWidget {
 //       same shape as createQuestProvider — guard(), isLoading drives button state,
 //       ref.listen for success (pop) / error (snackbar).
 //
+
+// questActionsNotifierProvider is defined in quest_actions_notifier.dart.
+// It is a plain (non-family) provider — questId is passed directly to each action method.
+
 class _QuestActionBar extends ConsumerWidget {
   final Quest quest;
 
@@ -340,8 +348,9 @@ class _QuestActionBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isLoading = ref.watch(questActionsNotifierProvider).isLoading;
     // Only STARTED quests can be accepted.
-    final canAccept = quest.status == QuestStatus.started;
+    final canAccept = quest.status == QuestStatus.started && !isLoading;
 
     return SafeArea(
       child: Padding(
@@ -350,9 +359,9 @@ class _QuestActionBar extends ConsumerWidget {
           // FilledButton is Material 3 — solid background, highest emphasis.
           // Use for the single most important action on a screen.
           onPressed: canAccept
-              ? () {
-                  // TODO: ref.read(acceptQuestProvider.notifier).accept(quest.id)
-                }
+              ? () => ref
+                    .read(questActionsNotifierProvider.notifier)
+                    .acceptQuest(quest.id)
               : null,
           icon: const Icon(Icons.check_circle_outline),
           label: Text(canAccept ? 'Accept Quest' : quest.status.label),
