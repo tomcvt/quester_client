@@ -14,6 +14,9 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
 
   Future<Quest?> questFromId(int id) =>
       (select(quests)..where((q) => q.id.equals(id))).getSingleOrNull();
+  Future<Quest?> getByPublicId(String publicId) => (select(
+    quests,
+  )..where((q) => q.publicId.equals(publicId))).getSingleOrNull();
   Future<List<Quest>> questsForGroup(int groupId) =>
       (select(quests)..where((q) => q.groupId.equals(groupId))).get();
   Future<List<Quest>> questsByGroupAndStatus(int groupId, QuestStatus status) =>
@@ -31,6 +34,20 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
 
   Future<void> updateQuest(Quest quest) {
     return update(quests).replace(quest);
+  }
+
+  Future<DateTime> getLatestUpdateTimeForGroup(int groupId) async {
+    final result =
+        await (select(quests)
+              ..where((q) => q.groupId.equals(groupId))
+              ..orderBy([
+                (q) => OrderingTerm(
+                  expression: q.updatedAt,
+                  mode: OrderingMode.desc,
+                ),
+              ]))
+            .getSingleOrNull();
+    return result?.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
   }
 
   Future<void> insertQuestsFromSync(

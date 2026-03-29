@@ -24,11 +24,14 @@ class _RouterNotifier extends ChangeNotifier {
   }
 }
 
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 // RouterProvider so we can access router anywhere if needed
 final routerProvider = Provider<GoRouter>((ref) {
   final notifier = _RouterNotifier(ref);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     // refreshListenable = "re-run redirect whenever this fires"
     refreshListenable: notifier,

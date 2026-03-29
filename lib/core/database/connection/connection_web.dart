@@ -1,4 +1,3 @@
-import 'package:drift/web.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import '../../services/app_initializer.dart';

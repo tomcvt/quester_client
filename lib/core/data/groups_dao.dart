@@ -64,6 +64,9 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
       (select(groups)..where((g) => g.id.equals(id))).getSingleOrNull();
   Future<Group?> groupFromName(String name) =>
       (select(groups)..where((g) => g.name.equals(name))).getSingleOrNull();
+  Future<Group?> groupFromPublicId(String publicId) => (select(
+    groups,
+  )..where((g) => g.publicId.equals(publicId))).getSingleOrNull();
   Future<int?> groupIdFromPublicId(String publicId) async {
     final group = await (select(
       groups,

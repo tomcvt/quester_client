@@ -8,8 +8,11 @@ class ApiClient {
   final Dio _dio;
   String _sessionToken = '';
 
-  ApiClient(String baseUrl, String installationId)
+  ApiClient(String baseUrl, String installationId, {String? sessionToken})
     : _dio = Dio(BaseOptions(baseUrl: baseUrl)) {
+    if (sessionToken != null) {
+      _sessionToken = sessionToken;
+    }
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
@@ -205,6 +208,25 @@ class ApiClient {
   Future<QuestsSyncResponse> syncGroupQuests(String groupPublicId) async {
     try {
       final response = await _dio.get('/groups/$groupPublicId/quests');
+      return QuestsSyncResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to sync quests: ${e.response?.statusMessage}');
+      } else {
+        throw Exception('Failed to sync quests: ${e.message}');
+      }
+    }
+  }
+
+  Future<QuestsSyncResponse> syncGroupQuestsSince(
+    String groupPublicId,
+    DateTime since,
+  ) async {
+    try {
+      final response = await _dio.get(
+        '/groups/$groupPublicId/quests',
+        queryParameters: {'since': since.toIso8601String()},
+      );
       return QuestsSyncResponse.fromJson(response.data);
     } on DioException catch (e) {
       if (e.response != null) {

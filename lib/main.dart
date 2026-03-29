@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quester_client/core/services/fcm_handler.dart';
 import 'firebase_options.dart';
 import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
@@ -38,6 +39,7 @@ void main() async {
 
   BuildConfig buildConfig = BuildConfig(
     persistenceMode: kIsWeb ? PersistenceMode.memory : PersistenceMode.sqlite,
+    //TODO: memory for debug
     isDebug: kDebugMode,
     apiBaseUrl: apiBaseUrl,
   );
@@ -46,6 +48,20 @@ void main() async {
   logger.d('DB: ${AppInitializer.db}');
   await FirebaseMessaging.instance.requestPermission();
 
+  FirebaseMessaging.onBackgroundMessage(
+    firebaseMessagingBackgroundHandler,
+  ); // killed / background (separate isolate)
+  initFcmHandlers(); // wires up foreground + background handlers, must be called after FirebaseMessaging.onBackgroundMessage
+  /*
+    * Note: onMessageOpenedApp only triggers for notification messages, not data-only messages.
+    * Since we're using data-only for everything, we need to handle background taps in the same way as foreground messages.
+    * If we were to add a notification field to the FCM payload, then we could use onMessageOpenedApp for background taps instead.
+    */
+  /*
+  FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    _handleMessage(message);
+  });     // user tapped notification, app was in background
+  */
   runApp(
     ProviderScope(
       overrides: [

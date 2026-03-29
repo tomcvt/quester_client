@@ -29,6 +29,8 @@ class AppInitializer {
     true,
   ); // Start assuming we're online
 
+  static const String _apiBaseUrlKey = 'api_base_url';
+
   static Future<void> init(BuildConfig? passedBuildConfig) async {
     final config =
         passedBuildConfig ??
@@ -42,6 +44,8 @@ class AppInitializer {
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
     fcmToken = await getFcmToken(prefs);
+    prefs.setString(_apiBaseUrlKey, config.apiBaseUrl);
+    prefs.setString('installation_id', installationId);
     apiClient = ApiClient(config.apiBaseUrl, installationId);
     //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful
     final authService = AuthService(
