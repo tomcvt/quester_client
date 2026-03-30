@@ -29,6 +29,8 @@ class AppInitializer {
     true,
   ); // Start assuming we're online
 
+  //TODO think about what is really static and final
+
   static const String _apiBaseUrlKey = 'api_base_url';
 
   static Future<void> init(BuildConfig? passedBuildConfig) async {

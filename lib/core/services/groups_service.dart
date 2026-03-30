@@ -83,13 +83,68 @@ class GroupsService {
     return createdGroup;
   }
 
-  Future<void> leaveGroup(String groupPublicId) async {
-    final group = await _groupsDao.groupFromPublicId(groupPublicId);
+  Future<Group?> joinGroup(
+    String name,
+    String password, {
+    bool offline = false,
+  }) async {
+    if (offline) {
+      return await createOfflineGroup(name, password);
+    }
+    final GroupResponse groupResponse = await _apiClient.joinGroup(
+      name,
+      password,
+    );
+    //TODO - handle case where group already exists in local DB (e.g. from previous offline join) -
+    //for now we assume it doesn't exist and just insert, but this could lead to duplicates if user tries to
+    //join the same group multiple times while offline
+    //fix - we just update local group and members data
+    logger.d('Joined group on backend: ${groupResponse.toString()}');
+    final existingGroup = await _groupsDao.groupFromPublicId(
+      groupResponse.publicId,
+    );
+    if (existingGroup != null) {
+      //TODO - update existing group data with latest from backend, including members
+      //for now we skip and return
+      logger.d(
+        'Group with public ID ${groupResponse.publicId} already exists in local DB, skipping insert',
+      );
+      return existingGroup;
+    }
+    final newGroup = GroupsCompanion(
+      name: Value(groupResponse.name),
+      publicId: Value(groupResponse.publicId),
+      type: Value(groupResponse.type.value),
+      visibility: Value(groupResponse.visibility.value),
+      createdAt: Value(groupResponse.createdAt),
+    );
+
+    final id = await _groupsDao.insertGroup(newGroup);
+    final createdGroup = await _groupsDao.groupFromId(id);
+    logger.d('Joined group inserted into local DB: ${createdGroup.toString()}');
+    final fetchedMembers = await _apiClient.syncGroupMembers(
+      groupResponse.publicId,
+    );
+    logger.d('Fetched members from backend: ${fetchedMembers.toString()}');
+
+    await _groupMembersDao.insertMembersFromSync(
+      groupResponse.publicId,
+      fetchedMembers.members,
+    );
+    logger.d(
+      'Members inserted into local DB for joined group ${groupResponse.publicId}',
+    );
+    return createdGroup;
+  }
+
+  Future<void> leaveGroup(String groupId) async {
+    final group = await _groupsDao.groupFromId(int.parse(groupId));
     if (group == null) return;
-    final didLeave = await _apiClient.leaveGroup(groupPublicId);
+    final didLeave = await _apiClient.leaveGroup(group.publicId);
     if (!didLeave) {
       throw Exception('Failed to leave group on backend');
     }
+    logger.d('Left group on backend: ${group.publicId}');
     await _groupMembersDao.deleteMembersForGroup(group.id);
     await _groupsDao.deleteGroupById(group.id);
   }

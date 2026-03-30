@@ -273,12 +273,14 @@ class _MembersSubScreen extends StatelessWidget {
   }
 }
 
-class _SettingsSubScreen extends StatelessWidget {
+class _SettingsSubScreen extends ConsumerWidget {
   final String groupId;
   const _SettingsSubScreen({required this.groupId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(groupActionsProvider); // pre-warm for leave group action
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [

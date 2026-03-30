@@ -4,6 +4,28 @@ import 'package:quester_client/core/dto/auth.dart';
 import 'package:quester_client/core/dto/groups.dart';
 import 'package:quester_client/core/dto/quests.dart';
 
+class ApiException implements Exception {
+  final int? statusCode;
+  final String detail;
+
+  const ApiException({this.statusCode, required this.detail});
+
+  @override
+  String toString() => statusCode != null ? '[$statusCode] $detail' : detail;
+}
+
+Never _throwFromDio(DioException e, String fallback) {
+  final response = e.response;
+  if (response != null) {
+    final serverDetail = response.data is Map
+        ? (response.data['detail'] as String?)
+        : null;
+    final detail = serverDetail != null ? '$fallback: $serverDetail' : fallback;
+    throw ApiException(statusCode: response.statusCode, detail: detail);
+  }
+  throw ApiException(detail: '$fallback: ${e.message ?? e.type.name}');
+}
+
 class ApiClient {
   final Dio _dio;
   String _sessionToken = '';
@@ -53,11 +75,7 @@ class ApiClient {
       }
       return AuthenticationResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to authenticate: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to authenticate: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to authenticate');
     }
   }
 
@@ -78,11 +96,7 @@ class ApiClient {
       );
       return RegistrationResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to register: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to register: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to register');
     }
   }
 
@@ -143,11 +157,7 @@ class ApiClient {
       );
       return CreateQuestResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to create quest: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to create quest: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to create quest');
     }
   }
 
@@ -163,11 +173,7 @@ class ApiClient {
       );
       return GroupResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to create group: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to create group: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to create group');
     }
   }
 
@@ -180,11 +186,7 @@ class ApiClient {
       );
       return GroupResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to join group: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to join group: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to join group');
     }
   }
 
@@ -193,11 +195,7 @@ class ApiClient {
       final response = await _dio.post('/groups/$groupPublicId/leave');
       return true;
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to leave group: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to leave group: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to leave group');
     }
   }
 
@@ -208,13 +206,7 @@ class ApiClient {
       final response = await _dio.get('/groups/$groupPublicId/members');
       return GroupMembersSyncResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception(
-          'Failed to sync group members: ${e.response?.statusMessage}',
-        );
-      } else {
-        throw Exception('Failed to sync group members: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to sync group members');
     }
   }
 
@@ -223,11 +215,7 @@ class ApiClient {
       final response = await _dio.get('/groups/$groupPublicId/quests');
       return QuestsSyncResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to sync quests: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to sync quests: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to sync quests');
     }
   }
 
@@ -242,11 +230,7 @@ class ApiClient {
       );
       return QuestsSyncResponse.fromJson(response.data);
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to sync quests: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to sync quests: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to sync quests');
     }
   }
 
@@ -255,11 +239,19 @@ class ApiClient {
       final response = await _dio.post('/quests/$publicId/accept');
       return true;
     } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Failed to accept quest: ${e.response?.statusMessage}');
-      } else {
-        throw Exception('Failed to accept quest: ${e.message}');
-      }
+      _throwFromDio(e, 'Failed to accept quest');
+    }
+  }
+
+  Future<bool> changeUsername(String newUsername) async {
+    try {
+      final response = await _dio.post(
+        '/user/change-username',
+        data: {'username': newUsername},
+      );
+      return true;
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to change username');
     }
   }
 }

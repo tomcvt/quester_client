@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
+import 'package:quester_client/features/profile/profile_screen.dart';
 import 'package:quester_client/features/quests/quest_details_screen.dart';
 import 'package:quester_client/features/groups/user_groups_screen.dart';
 import '../providers/auth_provider.dart';
@@ -53,6 +54,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Already on login and logged in — go home
       if (isLoggedIn && state.matchedLocation == '/login') return '/home';
 
+      //TODO add more route guards as needed (e.g. prevent accessing group/quest details if not a member)
+      //like no username -> setUsername screen
+
       return null; // proceed
     },
     routes: [
@@ -60,6 +64,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
       GoRoute(path: '/groups', builder: (_, __) => const UserGroupsScreen()),
+      GoRoute(
+        path: '/profile',
+        builder: (_, __) => const ProfileScreen(),
+      ), // TODO: implement ProfileScreen
       GoRoute(
         path: '/groups/:groupId',
         builder: (context, state) {

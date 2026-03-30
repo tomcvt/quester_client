@@ -39,12 +39,7 @@ class HomeScreen extends ConsumerWidget {
               title: const Text('Groups'),
               onTap: () {
                 Navigator.of(context).pop(); // close drawer first
-                context.push('/groups');
-                /*
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const UserGroupsScreen()),
-                );
-                */
+                context.push('/groups'); // navigate to UserGroupsScreen
               },
             ),
             // ── Profile ──────────────────────────────────────────────────────
@@ -53,7 +48,9 @@ class HomeScreen extends ConsumerWidget {
               title: const Text('Profile'),
               onTap: () {
                 Navigator.of(context).pop();
-                // TODO: context.go('/profile')
+                context.push(
+                  '/profile',
+                ); // TODO: implement profile screen and route
               },
             ),
 

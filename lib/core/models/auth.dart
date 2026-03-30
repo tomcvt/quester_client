@@ -21,4 +21,18 @@ class SessionData {
   String toString() {
     return 'SessionData(sessionToken: $sessionToken, username: $username, publicId: $publicId, fcmToken: $fcmToken)';
   }
+
+  SessionData copyWith({
+    String? sessionToken,
+    String? username,
+    String? publicId,
+    String? fcmToken,
+  }) {
+    return SessionData(
+      sessionToken: sessionToken ?? this.sessionToken,
+      username: username ?? this.username,
+      publicId: publicId ?? this.publicId,
+      fcmToken: fcmToken ?? this.fcmToken,
+    );
+  }
 }
