@@ -188,6 +188,19 @@ class ApiClient {
     }
   }
 
+  Future<bool> leaveGroup(String groupPublicId) async {
+    try {
+      final response = await _dio.post('/groups/$groupPublicId/leave');
+      return true;
+    } on DioException catch (e) {
+      if (e.response != null) {
+        throw Exception('Failed to leave group: ${e.response?.statusMessage}');
+      } else {
+        throw Exception('Failed to leave group: ${e.message}');
+      }
+    }
+  }
+
   Future<GroupMembersSyncResponse> syncGroupMembers(
     String groupPublicId,
   ) async {

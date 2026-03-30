@@ -73,4 +73,7 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
     )..where((g) => g.publicId.equals(publicId))).getSingleOrNull();
     return group?.id;
   }
+
+  Future<int> deleteGroupById(int id) =>
+      (delete(groups)..where((g) => g.id.equals(id))).go();
 }

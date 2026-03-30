@@ -33,7 +33,7 @@ void main() async {
       );
     }
   } else {
-    //apiBaseUrl = 'https://questerapp.tomcvt.com/api';
+    //apiBaseUrl = 'https://questerapp.tomcvt.com/api/v1/';
     apiBaseUrl = 'http://localhost:8100/api/v1/';
   }
 

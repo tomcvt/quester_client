@@ -68,4 +68,7 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
       updatedAt: DateTime.now(),
     );
   }
+
+  Future<int> deleteMembersForGroup(int groupId) =>
+      (delete(groupMembers)..where((m) => m.groupId.equals(groupId))).go();
 }

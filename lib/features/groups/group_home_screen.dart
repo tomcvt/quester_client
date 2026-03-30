@@ -8,6 +8,7 @@ import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/providers/create_quest_notifier.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
+import 'package:quester_client/core/providers/group_actions_notifier.dart';
 import 'package:quester_client/core/providers/service_providers.dart';
 
 // ─── Domain ──────────────────────────────────────────────────────────────────
@@ -125,7 +126,7 @@ class GroupHomeScreen extends ConsumerWidget {
       body: switch (tab) {
         GroupTab.tasks => _TasksSubScreen(groupId: groupId),
         GroupTab.members => const _MembersSubScreen(),
-        GroupTab.settings => const _SettingsSubScreen(),
+        GroupTab.settings => _SettingsSubScreen(groupId: groupId),
       },
     );
   }
@@ -273,11 +274,74 @@ class _MembersSubScreen extends StatelessWidget {
 }
 
 class _SettingsSubScreen extends StatelessWidget {
-  const _SettingsSubScreen();
+  final String groupId;
+  const _SettingsSubScreen({required this.groupId});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Settings — TODO'));
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.red,
+            side: const BorderSide(color: Colors.red),
+            shape: const StadiumBorder(),
+          ),
+          onPressed: () => showDialog(
+            context: context,
+            builder: (_) => _LeaveGroupDialog(groupId: groupId),
+          ),
+          child: const Text('Leave Group'),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Leave Group Dialog ───────────────────────────────────────────────────────
+
+class _LeaveGroupDialog extends ConsumerWidget {
+  final String groupId;
+  const _LeaveGroupDialog({required this.groupId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(groupActionsProvider, (_, next) {
+      next.whenOrNull(
+        error: (e, _) => ScaffoldMessenger.of(
+          context,
+        ).showDebugSnackBar('Failed to leave group: $e'),
+        data: (_) => context.go('/groups'),
+      );
+    });
+
+    final state = ref.watch(groupActionsProvider);
+
+    return AlertDialog(
+      title: const Text('Leave Group'),
+      content: const Text('Are you sure you want to leave this group?'),
+      actions: [
+        TextButton(
+          onPressed: state.isLoading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(foregroundColor: Colors.red),
+          onPressed: state.isLoading
+              ? null
+              : () =>
+                    ref.read(groupActionsProvider.notifier).leaveGroup(groupId),
+          child: state.isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Leave'),
+        ),
+      ],
+    );
   }
 }
 

@@ -83,6 +83,17 @@ class GroupsService {
     return createdGroup;
   }
 
+  Future<void> leaveGroup(String groupPublicId) async {
+    final group = await _groupsDao.groupFromPublicId(groupPublicId);
+    if (group == null) return;
+    final didLeave = await _apiClient.leaveGroup(groupPublicId);
+    if (!didLeave) {
+      throw Exception('Failed to leave group on backend');
+    }
+    await _groupMembersDao.deleteMembersForGroup(group.id);
+    await _groupsDao.deleteGroupById(group.id);
+  }
+
   Future<Group?> createMockGroupWithUser(String groupName) async {
     final newGroup = GroupsCompanion(
       name: Value(groupName),
