@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:quester_client/core/providers/profile_providers.dart';
+import 'package:quester_client/core/providers/profile_providers.dart'; // usernameProvider
 import 'package:quester_client/features/profile/profile_actions_notifier.dart';
 
 class SetupProfileScreen extends ConsumerWidget {
@@ -10,12 +10,10 @@ class SetupProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(profileActionsProvider);
-    ref.watch(usernameStreamProvider);
 
-    ref.listen(usernameStreamProvider, (prev, next) {
-      final username = next.asData?.value;
-      if (username != null && username.isNotEmpty) {
-        context.go('/home'); // Go back to the previous screen
+    ref.listen(usernameProvider, (prev, next) {
+      if (next.isNotEmpty) {
+        context.go('/home');
       }
     });
 

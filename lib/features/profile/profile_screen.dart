@@ -8,28 +8,24 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usernameAsync = ref.watch(usernameStreamProvider);
+    final username = ref.watch(usernameProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         children: [
-          usernameAsync.when(
-            loading: () => const ListTile(title: Text('Loading...')),
-            error: (err, _) => ListTile(title: Text('Error: $err')),
-            data: (username) => ListTile(
-              title: Text('Username'),
-              subtitle: Text(username),
-              trailing: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  shape: const StadiumBorder(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
+          ListTile(
+            title: const Text('Username'),
+            subtitle: Text(username),
+            trailing: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
                 ),
-                onPressed: () => _showEditDialog(context, ref, username),
-                child: const Text('Edit'),
               ),
+              onPressed: () => _showEditDialog(context, ref, username),
+              child: const Text('Edit'),
             ),
           ),
         ],
