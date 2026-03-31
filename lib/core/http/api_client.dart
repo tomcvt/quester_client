@@ -246,7 +246,7 @@ class ApiClient {
   Future<bool> changeUsername(String newUsername) async {
     try {
       final response = await _dio.post(
-        '/user/change-username',
+        '/users/change-username',
         data: {'username': newUsername},
       );
       return true;
