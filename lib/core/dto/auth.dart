@@ -110,7 +110,7 @@ class RegistrationRequest {
   Map<String, dynamic> toJson() => {
     'installation_id': installationId,
     if (deviceId != null) 'device_id': deviceId,
-    if (username != null) 'username': username,
+    'username': username,
     if (password != null) 'password': password,
   };
 }

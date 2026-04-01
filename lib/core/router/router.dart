@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
+import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/features/auth/setup_profile_screen.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
 import 'package:quester_client/features/profile/profile_screen.dart';
@@ -39,14 +41,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     // refreshListenable = "re-run redirect whenever this fires"
     refreshListenable: notifier,
     redirect: (context, state) {
-      final authState = ref.read(authProvider);
+      final authState = ref.watch(authProvider);
+      final sessionData = authState.maybeWhen(
+        data: (data) => data,
+        orElse: () => const SessionData.empty(),
+      );
       final isSplash = state.matchedLocation == '/splash';
       final usernameOrNull = ref.read(usernameProvider);
 
       // Still loading auth — stay on splash
-      if (authState.isLoading) return isSplash ? null : '/splash';
+      //if (authState.isLoading) return isSplash ? null : '/splash';
 
-      final isLoggedIn = authState.value ?? false;
+      final isLoggedIn = sessionData.sessionToken.isNotEmpty;
       // Logged in but no username — force setup profile
       if (isSplash && isLoggedIn && usernameOrNull == null) {
         return '/setup-profile';
@@ -62,7 +68,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isLoggedIn && state.matchedLocation == '/login') return '/home';
 
       //TODO add more route guards as needed (e.g. prevent accessing group/quest details if not a member)
-      //like no username -> setUsername screen
 
       return null; // proceed
     },

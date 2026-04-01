@@ -39,25 +39,30 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(profileActionsProvider);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          controller: _usernameController,
-          decoration: const InputDecoration(labelText: 'Choose a username'),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _usernameController,
+              decoration: const InputDecoration(labelText: 'Choose a username'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: state.isLoading ? null : _saveUsername,
+              child: state.isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Save'),
+            ),
+          ],
         ),
-        const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: state.isLoading ? null : _saveUsername,
-          child: state.isLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Save'),
-        ),
-      ],
+      ),
     );
   }
 

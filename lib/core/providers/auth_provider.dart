@@ -5,9 +5,9 @@ import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'core_providers.dart';
 
-class AuthNotifier extends AsyncNotifier<bool> {
+class AuthNotifier extends AsyncNotifier<SessionData> {
   @override
-  Future<bool> build() async {
+  Future<SessionData> build() async {
     // orchestrates, delegates to service
     final SessionData sessionData = await ref
         .watch(authServiceProvider)
@@ -15,23 +15,25 @@ class AuthNotifier extends AsyncNotifier<bool> {
           AppInitializer.installationId,
           fcmToken: AppInitializer.fcmToken,
         );
-    return sessionData.sessionToken.isNotEmpty;
+    return sessionData;
   }
   //TODO bool -> session data and observe that in UI, handle errors, etc.
 
   Future<void> login(String username, String password) async {
     state = const AsyncValue.loading();
-    await ref.read(authServiceProvider).login(username, password);
-    state = const AsyncValue.data(true);
+    final session = await ref
+        .read(authServiceProvider)
+        .login(username, password);
+    state = AsyncValue.data(session);
   }
 
   Future<void> logout() async {
     state = const AsyncValue.loading();
     await ref.read(authServiceProvider).logout();
-    state = const AsyncValue.data(false);
+    state = const AsyncValue.data(const SessionData.empty());
   }
 }
 
-final authProvider = AsyncNotifierProvider<AuthNotifier, bool>(
+final authProvider = AsyncNotifierProvider<AuthNotifier, SessionData>(
   AuthNotifier.new,
 );

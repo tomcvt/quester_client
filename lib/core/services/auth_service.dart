@@ -74,7 +74,7 @@ class AuthService {
       value: authResponse.sessionToken,
     );
     await _secureStorage.write(key: _publicIdKey, value: authResponse.publicId);
-    await _prefs.setString(_usernameKey, authResponse.username);
+    await _prefs.setString(_usernameKey, authResponse.username ?? '');
     return SessionData(
       sessionToken: authResponse.sessionToken,
       username: authResponse.username,
@@ -135,9 +135,9 @@ class AuthService {
     return newUsername;
   }
 
-  Future<void> login(String username, String password) async {
-    await Future.delayed(const Duration(seconds: 2)); // mock network
-    await _secureStorage.write(key: _sessionToken, value: 'mock_token_123');
+  Future<SessionData> login(String username, String password) async {
+    await Future.delayed(const Duration(seconds: 1));
+    return AppInitializer.sessionData;
   }
 
   Future<void> logout() async {
