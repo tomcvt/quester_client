@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quester_client/core/providers/profile_providers.dart';
+import 'package:quester_client/features/auth/setup_profile_screen.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
 import 'package:quester_client/features/profile/profile_screen.dart';
 import 'package:quester_client/features/quests/quest_details_screen.dart';
@@ -39,11 +41,16 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authProvider);
       final isSplash = state.matchedLocation == '/splash';
+      final usernameOrNull = ref.read(usernameProvider);
 
       // Still loading auth — stay on splash
       if (authState.isLoading) return isSplash ? null : '/splash';
 
       final isLoggedIn = authState.value ?? false;
+      // Logged in but no username — force setup profile
+      if (isSplash && isLoggedIn && usernameOrNull == null) {
+        return '/setup-profile';
+      }
 
       // On splash and auth resolved — redirect to correct screen
       if (isSplash) return isLoggedIn ? '/home' : '/login';
@@ -64,6 +71,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
       GoRoute(path: '/groups', builder: (_, __) => const UserGroupsScreen()),
+      GoRoute(
+        path: '/setup-profile',
+        builder: (_, __) => const SetupProfileScreen(),
+      ),
       GoRoute(
         path: '/profile',
         builder: (_, __) => const ProfileScreen(),

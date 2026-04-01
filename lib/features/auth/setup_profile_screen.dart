@@ -12,8 +12,10 @@ class SetupProfileScreen extends ConsumerWidget {
     ref.watch(profileActionsProvider);
 
     ref.listen(usernameProvider, (prev, next) {
-      if (next.isNotEmpty) {
-        context.go('/home');
+      if (next != null) {
+        if (next.isNotEmpty) {
+          context.go('/home');
+        }
       }
     });
 

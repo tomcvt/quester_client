@@ -15,7 +15,7 @@ class ProfileScreen extends ConsumerWidget {
         children: [
           ListTile(
             title: const Text('Username'),
-            subtitle: Text(username),
+            subtitle: Text(username ?? 'No username set'),
             trailing: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 shape: const StadiumBorder(),
@@ -36,9 +36,9 @@ class ProfileScreen extends ConsumerWidget {
   void _showEditDialog(
     BuildContext context,
     WidgetRef ref,
-    String currentUsername,
+    String? currentUsername,
   ) {
-    final controller = TextEditingController(text: currentUsername);
+    final controller = TextEditingController(text: currentUsername ?? '');
     showDialog(
       context: context,
       builder: (context) {

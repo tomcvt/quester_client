@@ -21,7 +21,7 @@ class RegistrationRequest(BaseModel):
 class RegistrationResponse(BaseModel):
     session_token: str
     api_key: str
-    username: str
+    username: str | None = None
     public_id: uuid.UUID | None = None
 */
 
@@ -45,13 +45,13 @@ class AuthenticationRequest {
 
 class AuthenticationResponse {
   final String sessionToken;
-  final String username;
+  final String? username;
   final String publicId;
   final String fcmToken;
 
   AuthenticationResponse({
     required this.sessionToken,
-    required this.username,
+    this.username,
     required this.publicId,
     required this.fcmToken,
   });
@@ -59,7 +59,7 @@ class AuthenticationResponse {
   factory AuthenticationResponse.fromJson(Map<String, dynamic> json) {
     return AuthenticationResponse(
       sessionToken: json['session_token'] as String,
-      username: json['username'] as String,
+      username: json['username'] as String?,
       publicId: json['public_id'] as String,
       fcmToken: json['fcm_token'] as String,
     );
@@ -69,13 +69,13 @@ class AuthenticationResponse {
 class RegistrationResponse {
   final String sessionToken;
   final String apiKey;
-  final String username;
+  final String? username;
   final String publicId;
 
   RegistrationResponse({
     required this.sessionToken,
     required this.apiKey,
-    required this.username,
+    this.username,
     required this.publicId,
   });
 
@@ -83,7 +83,7 @@ class RegistrationResponse {
     return RegistrationResponse(
       sessionToken: json['session_token'] as String,
       apiKey: json['api_key'] as String,
-      username: json['username'] as String,
+      username: json['username'] as String?,
       publicId: json['public_id'] as String,
     );
   }

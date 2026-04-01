@@ -47,7 +47,7 @@ class AuthService {
         .getOrCreateInstallationId();
     var apiKey = await _secureStorage.read(key: _apiKey);
     if (apiKey == null || apiKey.isEmpty) {
-      await registerAndSave(installationId, 'User', '');
+      await registerAndSave(installationId, null, '');
     }
     apiKey = await _secureStorage.read(key: _apiKey);
     if (apiKey == null || apiKey.isEmpty) {
@@ -85,7 +85,7 @@ class AuthService {
 
   Future<RegistrationResponse> registerAndSave(
     String installationId,
-    String username,
+    String? username,
     String password,
   ) async {
     final registrationResponse = await _apiClient.register(
@@ -105,12 +105,13 @@ class AuthService {
       key: _publicIdKey,
       value: registrationResponse.publicId,
     );
-    await _prefs.setString(_usernameKey, registrationResponse.username);
+    //how to handle case where username is null? for now we just store empty string, but maybe we should generate a random username or something?
+    await _prefs.setString(_usernameKey, registrationResponse.username ?? '');
     logger.d('Registered: ${registrationResponse.toString()}');
     return registrationResponse;
   }
 
-  String getUsername() => AppInitializer.sessionData.username;
+  String? getUsername() => AppInitializer.sessionData.username;
 
   Future<String?> changeUsername(String newUsername) async {
     final publicId = await _secureStorage.read(key: _publicIdKey);

@@ -81,7 +81,7 @@ class ApiClient {
 
   Future<RegistrationResponse> register(
     String installationId,
-    String username,
+    String? username,
     String password,
   ) async {
     final registrationRequest = RegistrationRequest(
