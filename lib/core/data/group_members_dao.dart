@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:quester_client/core/data/app_database.dart';
+import 'package:quester_client/core/data/data_objects.dart';
 import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/dto/groups.dart';
 
@@ -13,6 +14,43 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
   Stream<List<GroupMember>> watchMembersForGroup(int groupId) {
     final query = select(groupMembers)..where((m) => m.groupId.equals(groupId));
     return query.watch();
+  }
+
+  // use inner join and first ensure users are updated before emitting members stream
+  Stream<List<GroupMemberWithUser>> watchMembersWithUserForGroup(int groupId) {
+    final query = select(groupMembers).join([
+      innerJoin(users, users.publicId.equalsExp(groupMembers.userPublicId)),
+    ])..where(groupMembers.groupId.equals(groupId));
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        final member = row.readTable(groupMembers);
+        final user = row.readTable(users);
+        return GroupMemberWithUser(groupMember: member, user: user);
+      }).toList();
+    });
+  }
+
+  Stream<List<GroupMemberWithUser>> watchMembersWithUserForGroupExcluding(
+    int groupId,
+    String excludeUserPublicId,
+  ) {
+    final query =
+        select(groupMembers).join([
+          innerJoin(users, users.publicId.equalsExp(groupMembers.userPublicId)),
+          innerJoin(groups, groups.id.equalsExp(groupMembers.groupId)),
+        ])..where(
+          groups.id.equals(groupId) &
+              groupMembers.userPublicId.isNotValue(excludeUserPublicId),
+        );
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        final member = row.readTable(groupMembers);
+        final user = row.readTable(users);
+        return GroupMemberWithUser(groupMember: member, user: user);
+      }).toList();
+    });
   }
 
   Future<void> insertMembersFromSync(
@@ -36,7 +74,6 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
           return GroupMembersCompanion(
             groupId: Value(groupId),
             userPublicId: Value(member.userPublicId),
-            username: Value(member.username),
             role: Value(member.role),
             updatedAt: Value(member.updatedAt),
           );
@@ -54,7 +91,6 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
     final member = GroupMembersCompanion(
       groupId: Value(groupId),
       userPublicId: Value(userPublicId),
-      username: Value(username),
       role: Value(role),
       updatedAt: Value(DateTime.now()),
     );
@@ -63,7 +99,6 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
       id: id,
       groupId: groupId,
       userPublicId: userPublicId,
-      username: username,
       role: role,
       updatedAt: DateTime.now(),
     );

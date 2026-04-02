@@ -427,17 +427,19 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  static const VerificationMeta _usernameMeta = const VerificationMeta(
+    'username',
+  );
   @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
+  late final GeneratedColumn<String> username = GeneratedColumn<String>(
+    'username',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, publicId, name];
+  List<GeneratedColumn> get $columns => [id, publicId, username];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -461,19 +463,23 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     } else if (isInserting) {
       context.missing(_publicIdMeta);
     }
-    if (data.containsKey('name')) {
+    if (data.containsKey('username')) {
       context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+        _usernameMeta,
+        username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
       );
     } else if (isInserting) {
-      context.missing(_nameMeta);
+      context.missing(_usernameMeta);
     }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {publicId},
+  ];
   @override
   User map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -486,9 +492,9 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.string,
         data['${effectivePrefix}public_id'],
       )!,
-      name: attachedDatabase.typeMapping.read(
+      username: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}name'],
+        data['${effectivePrefix}username'],
       )!,
     );
   }
@@ -502,14 +508,18 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
 class User extends DataClass implements Insertable<User> {
   final int id;
   final String publicId;
-  final String name;
-  const User({required this.id, required this.publicId, required this.name});
+  final String username;
+  const User({
+    required this.id,
+    required this.publicId,
+    required this.username,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['public_id'] = Variable<String>(publicId);
-    map['name'] = Variable<String>(name);
+    map['username'] = Variable<String>(username);
     return map;
   }
 
@@ -517,7 +527,7 @@ class User extends DataClass implements Insertable<User> {
     return UsersCompanion(
       id: Value(id),
       publicId: Value(publicId),
-      name: Value(name),
+      username: Value(username),
     );
   }
 
@@ -529,7 +539,7 @@ class User extends DataClass implements Insertable<User> {
     return User(
       id: serializer.fromJson<int>(json['id']),
       publicId: serializer.fromJson<String>(json['publicId']),
-      name: serializer.fromJson<String>(json['name']),
+      username: serializer.fromJson<String>(json['username']),
     );
   }
   @override
@@ -538,20 +548,20 @@ class User extends DataClass implements Insertable<User> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'publicId': serializer.toJson<String>(publicId),
-      'name': serializer.toJson<String>(name),
+      'username': serializer.toJson<String>(username),
     };
   }
 
-  User copyWith({int? id, String? publicId, String? name}) => User(
+  User copyWith({int? id, String? publicId, String? username}) => User(
     id: id ?? this.id,
     publicId: publicId ?? this.publicId,
-    name: name ?? this.name,
+    username: username ?? this.username,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
       id: data.id.present ? data.id.value : this.id,
       publicId: data.publicId.present ? data.publicId.value : this.publicId,
-      name: data.name.present ? data.name.value : this.name,
+      username: data.username.present ? data.username.value : this.username,
     );
   }
 
@@ -560,58 +570,58 @@ class User extends DataClass implements Insertable<User> {
     return (StringBuffer('User(')
           ..write('id: $id, ')
           ..write('publicId: $publicId, ')
-          ..write('name: $name')
+          ..write('username: $username')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, publicId, name);
+  int get hashCode => Object.hash(id, publicId, username);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is User &&
           other.id == this.id &&
           other.publicId == this.publicId &&
-          other.name == this.name);
+          other.username == this.username);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
   final Value<int> id;
   final Value<String> publicId;
-  final Value<String> name;
+  final Value<String> username;
   const UsersCompanion({
     this.id = const Value.absent(),
     this.publicId = const Value.absent(),
-    this.name = const Value.absent(),
+    this.username = const Value.absent(),
   });
   UsersCompanion.insert({
     this.id = const Value.absent(),
     required String publicId,
-    required String name,
+    required String username,
   }) : publicId = Value(publicId),
-       name = Value(name);
+       username = Value(username);
   static Insertable<User> custom({
     Expression<int>? id,
     Expression<String>? publicId,
-    Expression<String>? name,
+    Expression<String>? username,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (publicId != null) 'public_id': publicId,
-      if (name != null) 'name': name,
+      if (username != null) 'username': username,
     });
   }
 
   UsersCompanion copyWith({
     Value<int>? id,
     Value<String>? publicId,
-    Value<String>? name,
+    Value<String>? username,
   }) {
     return UsersCompanion(
       id: id ?? this.id,
       publicId: publicId ?? this.publicId,
-      name: name ?? this.name,
+      username: username ?? this.username,
     );
   }
 
@@ -624,8 +634,8 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (publicId.present) {
       map['public_id'] = Variable<String>(publicId.value);
     }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
+    if (username.present) {
+      map['username'] = Variable<String>(username.value);
     }
     return map;
   }
@@ -635,7 +645,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     return (StringBuffer('UsersCompanion(')
           ..write('id: $id, ')
           ..write('publicId: $publicId, ')
-          ..write('name: $name')
+          ..write('username: $username')
           ..write(')'))
         .toString();
   }
@@ -684,17 +694,9 @@ class $GroupMembersTable extends GroupMembers
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-  );
-  static const VerificationMeta _usernameMeta = const VerificationMeta(
-    'username',
-  );
-  @override
-  late final GeneratedColumn<String> username = GeneratedColumn<String>(
-    'username',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (public_id)',
+    ),
   );
   @override
   late final GeneratedColumnWithTypeConverter<MemberRole, String> role =
@@ -722,7 +724,6 @@ class $GroupMembersTable extends GroupMembers
     id,
     groupId,
     userPublicId,
-    username,
     role,
     updatedAt,
   ];
@@ -760,14 +761,6 @@ class $GroupMembersTable extends GroupMembers
     } else if (isInserting) {
       context.missing(_userPublicIdMeta);
     }
-    if (data.containsKey('username')) {
-      context.handle(
-        _usernameMeta,
-        username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_usernameMeta);
-    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -801,10 +794,6 @@ class $GroupMembersTable extends GroupMembers
         DriftSqlType.string,
         data['${effectivePrefix}user_public_id'],
       )!,
-      username: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}username'],
-      )!,
       role: $GroupMembersTable.$converterrole.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -831,14 +820,12 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   final int id;
   final int groupId;
   final String userPublicId;
-  final String username;
   final MemberRole role;
   final DateTime updatedAt;
   const GroupMember({
     required this.id,
     required this.groupId,
     required this.userPublicId,
-    required this.username,
     required this.role,
     required this.updatedAt,
   });
@@ -848,7 +835,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     map['id'] = Variable<int>(id);
     map['group_id'] = Variable<int>(groupId);
     map['user_public_id'] = Variable<String>(userPublicId);
-    map['username'] = Variable<String>(username);
     {
       map['role'] = Variable<String>(
         $GroupMembersTable.$converterrole.toSql(role),
@@ -863,7 +849,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       id: Value(id),
       groupId: Value(groupId),
       userPublicId: Value(userPublicId),
-      username: Value(username),
       role: Value(role),
       updatedAt: Value(updatedAt),
     );
@@ -878,7 +863,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       id: serializer.fromJson<int>(json['id']),
       groupId: serializer.fromJson<int>(json['groupId']),
       userPublicId: serializer.fromJson<String>(json['userPublicId']),
-      username: serializer.fromJson<String>(json['username']),
       role: $GroupMembersTable.$converterrole.fromJson(
         serializer.fromJson<String>(json['role']),
       ),
@@ -892,7 +876,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       'id': serializer.toJson<int>(id),
       'groupId': serializer.toJson<int>(groupId),
       'userPublicId': serializer.toJson<String>(userPublicId),
-      'username': serializer.toJson<String>(username),
       'role': serializer.toJson<String>(
         $GroupMembersTable.$converterrole.toJson(role),
       ),
@@ -904,14 +887,12 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     int? id,
     int? groupId,
     String? userPublicId,
-    String? username,
     MemberRole? role,
     DateTime? updatedAt,
   }) => GroupMember(
     id: id ?? this.id,
     groupId: groupId ?? this.groupId,
     userPublicId: userPublicId ?? this.userPublicId,
-    username: username ?? this.username,
     role: role ?? this.role,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -922,7 +903,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       userPublicId: data.userPublicId.present
           ? data.userPublicId.value
           : this.userPublicId,
-      username: data.username.present ? data.username.value : this.username,
       role: data.role.present ? data.role.value : this.role,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -934,7 +914,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('id: $id, ')
           ..write('groupId: $groupId, ')
           ..write('userPublicId: $userPublicId, ')
-          ..write('username: $username, ')
           ..write('role: $role, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -942,8 +921,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, groupId, userPublicId, username, role, updatedAt);
+  int get hashCode => Object.hash(id, groupId, userPublicId, role, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -951,7 +929,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.id == this.id &&
           other.groupId == this.groupId &&
           other.userPublicId == this.userPublicId &&
-          other.username == this.username &&
           other.role == this.role &&
           other.updatedAt == this.updatedAt);
 }
@@ -960,14 +937,12 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<int> id;
   final Value<int> groupId;
   final Value<String> userPublicId;
-  final Value<String> username;
   final Value<MemberRole> role;
   final Value<DateTime> updatedAt;
   const GroupMembersCompanion({
     this.id = const Value.absent(),
     this.groupId = const Value.absent(),
     this.userPublicId = const Value.absent(),
-    this.username = const Value.absent(),
     this.role = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -975,18 +950,15 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.id = const Value.absent(),
     required int groupId,
     required String userPublicId,
-    required String username,
     this.role = const Value.absent(),
     required DateTime updatedAt,
   }) : groupId = Value(groupId),
        userPublicId = Value(userPublicId),
-       username = Value(username),
        updatedAt = Value(updatedAt);
   static Insertable<GroupMember> custom({
     Expression<int>? id,
     Expression<int>? groupId,
     Expression<String>? userPublicId,
-    Expression<String>? username,
     Expression<String>? role,
     Expression<DateTime>? updatedAt,
   }) {
@@ -994,7 +966,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (id != null) 'id': id,
       if (groupId != null) 'group_id': groupId,
       if (userPublicId != null) 'user_public_id': userPublicId,
-      if (username != null) 'username': username,
       if (role != null) 'role': role,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1004,7 +975,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Value<int>? id,
     Value<int>? groupId,
     Value<String>? userPublicId,
-    Value<String>? username,
     Value<MemberRole>? role,
     Value<DateTime>? updatedAt,
   }) {
@@ -1012,7 +982,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       id: id ?? this.id,
       groupId: groupId ?? this.groupId,
       userPublicId: userPublicId ?? this.userPublicId,
-      username: username ?? this.username,
       role: role ?? this.role,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -1029,9 +998,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     }
     if (userPublicId.present) {
       map['user_public_id'] = Variable<String>(userPublicId.value);
-    }
-    if (username.present) {
-      map['username'] = Variable<String>(username.value);
     }
     if (role.present) {
       map['role'] = Variable<String>(
@@ -1050,7 +1016,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('id: $id, ')
           ..write('groupId: $groupId, ')
           ..write('userPublicId: $userPublicId, ')
-          ..write('username: $username, ')
           ..write('role: $role, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2411,18 +2376,41 @@ typedef $$UsersTableCreateCompanionBuilder =
     UsersCompanion Function({
       Value<int> id,
       required String publicId,
-      required String name,
+      required String username,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
     UsersCompanion Function({
       Value<int> id,
       Value<String> publicId,
-      Value<String> name,
+      Value<String> username,
     });
 
 final class $$UsersTableReferences
     extends BaseReferences<_$AppDatabase, $UsersTable, User> {
   $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$GroupMembersTable, List<GroupMember>>
+  _groupMembersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.groupMembers,
+    aliasName: $_aliasNameGenerator(
+      db.users.publicId,
+      db.groupMembers.userPublicId,
+    ),
+  );
+
+  $$GroupMembersTableProcessedTableManager get groupMembersRefs {
+    final manager = $$GroupMembersTableTableManager($_db, $_db.groupMembers)
+        .filter(
+          (f) => f.userPublicId.publicId.sqlEquals(
+            $_itemColumn<String>('public_id')!,
+          ),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_groupMembersRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 
   static MultiTypedResultKey<$QuestsTable, List<Quest>> _questsRefsTable(
     _$AppDatabase db,
@@ -2462,10 +2450,35 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
+  ColumnFilters<String> get username => $composableBuilder(
+    column: $table.username,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> groupMembersRefs(
+    Expression<bool> Function($$GroupMembersTableFilterComposer f) f,
+  ) {
+    final $$GroupMembersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.publicId,
+      referencedTable: $db.groupMembers,
+      getReferencedColumn: (t) => t.userPublicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GroupMembersTableFilterComposer(
+            $db: $db,
+            $table: $db.groupMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 
   Expression<bool> questsRefs(
     Expression<bool> Function($$QuestsTableFilterComposer f) f,
@@ -2512,8 +2525,8 @@ class $$UsersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
+  ColumnOrderings<String> get username => $composableBuilder(
+    column: $table.username,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2533,8 +2546,33 @@ class $$UsersTableAnnotationComposer
   GeneratedColumn<String> get publicId =>
       $composableBuilder(column: $table.publicId, builder: (column) => column);
 
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
+  GeneratedColumn<String> get username =>
+      $composableBuilder(column: $table.username, builder: (column) => column);
+
+  Expression<T> groupMembersRefs<T extends Object>(
+    Expression<T> Function($$GroupMembersTableAnnotationComposer a) f,
+  ) {
+    final $$GroupMembersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.publicId,
+      referencedTable: $db.groupMembers,
+      getReferencedColumn: (t) => t.userPublicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GroupMembersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.groupMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 
   Expression<T> questsRefs<T extends Object>(
     Expression<T> Function($$QuestsTableAnnotationComposer a) f,
@@ -2575,7 +2613,7 @@ class $$UsersTableTableManager
           $$UsersTableUpdateCompanionBuilder,
           (User, $$UsersTableReferences),
           User,
-          PrefetchHooks Function({bool questsRefs})
+          PrefetchHooks Function({bool groupMembersRefs, bool questsRefs})
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -2592,44 +2630,77 @@ class $$UsersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> publicId = const Value.absent(),
-                Value<String> name = const Value.absent(),
-              }) => UsersCompanion(id: id, publicId: publicId, name: name),
+                Value<String> username = const Value.absent(),
+              }) => UsersCompanion(
+                id: id,
+                publicId: publicId,
+                username: username,
+              ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
                 required String publicId,
-                required String name,
-              }) =>
-                  UsersCompanion.insert(id: id, publicId: publicId, name: name),
+                required String username,
+              }) => UsersCompanion.insert(
+                id: id,
+                publicId: publicId,
+                username: username,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) =>
                     (e.readTable(table), $$UsersTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({questsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (questsRefs) db.quests],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (questsRefs)
-                    await $_getPrefetchedData<User, $UsersTable, Quest>(
-                      currentTable: table,
-                      referencedTable: $$UsersTableReferences._questsRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$UsersTableReferences(db, table, p0).questsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.creatorId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({groupMembersRefs = false, questsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (groupMembersRefs) db.groupMembers,
+                    if (questsRefs) db.quests,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (groupMembersRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          GroupMember
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._groupMembersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).groupMembersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userPublicId == item.publicId,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (questsRefs)
+                        await $_getPrefetchedData<User, $UsersTable, Quest>(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._questsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(db, table, p0).questsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.creatorId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2646,14 +2717,13 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableUpdateCompanionBuilder,
       (User, $$UsersTableReferences),
       User,
-      PrefetchHooks Function({bool questsRefs})
+      PrefetchHooks Function({bool groupMembersRefs, bool questsRefs})
     >;
 typedef $$GroupMembersTableCreateCompanionBuilder =
     GroupMembersCompanion Function({
       Value<int> id,
       required int groupId,
       required String userPublicId,
-      required String username,
       Value<MemberRole> role,
       required DateTime updatedAt,
     });
@@ -2662,7 +2732,6 @@ typedef $$GroupMembersTableUpdateCompanionBuilder =
       Value<int> id,
       Value<int> groupId,
       Value<String> userPublicId,
-      Value<String> username,
       Value<MemberRole> role,
       Value<DateTime> updatedAt,
     });
@@ -2688,6 +2757,25 @@ final class $$GroupMembersTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static $UsersTable _userPublicIdTable(_$AppDatabase db) =>
+      db.users.createAlias(
+        $_aliasNameGenerator(db.groupMembers.userPublicId, db.users.publicId),
+      );
+
+  $$UsersTableProcessedTableManager get userPublicId {
+    final $_column = $_itemColumn<String>('user_public_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.publicId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userPublicIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 }
 
 class $$GroupMembersTableFilterComposer
@@ -2701,16 +2789,6 @@ class $$GroupMembersTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get userPublicId => $composableBuilder(
-    column: $table.userPublicId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get username => $composableBuilder(
-    column: $table.username,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2747,6 +2825,29 @@ class $$GroupMembersTableFilterComposer
     );
     return composer;
   }
+
+  $$UsersTableFilterComposer get userPublicId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userPublicId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.publicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$GroupMembersTableOrderingComposer
@@ -2760,16 +2861,6 @@ class $$GroupMembersTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
     column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get userPublicId => $composableBuilder(
-    column: $table.userPublicId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get username => $composableBuilder(
-    column: $table.username,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2805,6 +2896,29 @@ class $$GroupMembersTableOrderingComposer
     );
     return composer;
   }
+
+  $$UsersTableOrderingComposer get userPublicId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userPublicId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.publicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$GroupMembersTableAnnotationComposer
@@ -2818,14 +2932,6 @@ class $$GroupMembersTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get userPublicId => $composableBuilder(
-    column: $table.userPublicId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get username =>
-      $composableBuilder(column: $table.username, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<MemberRole, String> get role =>
       $composableBuilder(column: $table.role, builder: (column) => column);
@@ -2855,6 +2961,29 @@ class $$GroupMembersTableAnnotationComposer
     );
     return composer;
   }
+
+  $$UsersTableAnnotationComposer get userPublicId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userPublicId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.publicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$GroupMembersTableTableManager
@@ -2870,7 +2999,7 @@ class $$GroupMembersTableTableManager
           $$GroupMembersTableUpdateCompanionBuilder,
           (GroupMember, $$GroupMembersTableReferences),
           GroupMember,
-          PrefetchHooks Function({bool groupId})
+          PrefetchHooks Function({bool groupId, bool userPublicId})
         > {
   $$GroupMembersTableTableManager(_$AppDatabase db, $GroupMembersTable table)
     : super(
@@ -2888,14 +3017,12 @@ class $$GroupMembersTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<int> groupId = const Value.absent(),
                 Value<String> userPublicId = const Value.absent(),
-                Value<String> username = const Value.absent(),
                 Value<MemberRole> role = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => GroupMembersCompanion(
                 id: id,
                 groupId: groupId,
                 userPublicId: userPublicId,
-                username: username,
                 role: role,
                 updatedAt: updatedAt,
               ),
@@ -2904,14 +3031,12 @@ class $$GroupMembersTableTableManager
                 Value<int> id = const Value.absent(),
                 required int groupId,
                 required String userPublicId,
-                required String username,
                 Value<MemberRole> role = const Value.absent(),
                 required DateTime updatedAt,
               }) => GroupMembersCompanion.insert(
                 id: id,
                 groupId: groupId,
                 userPublicId: userPublicId,
-                username: username,
                 role: role,
                 updatedAt: updatedAt,
               ),
@@ -2923,7 +3048,7 @@ class $$GroupMembersTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({groupId = false}) {
+          prefetchHooksCallback: ({groupId = false, userPublicId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -2956,6 +3081,19 @@ class $$GroupMembersTableTableManager
                               )
                               as T;
                     }
+                    if (userPublicId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userPublicId,
+                                referencedTable: $$GroupMembersTableReferences
+                                    ._userPublicIdTable(db),
+                                referencedColumn: $$GroupMembersTableReferences
+                                    ._userPublicIdTable(db)
+                                    .publicId,
+                              )
+                              as T;
+                    }
 
                     return state;
                   },
@@ -2980,7 +3118,7 @@ typedef $$GroupMembersTableProcessedTableManager =
       $$GroupMembersTableUpdateCompanionBuilder,
       (GroupMember, $$GroupMembersTableReferences),
       GroupMember,
-      PrefetchHooks Function({bool groupId})
+      PrefetchHooks Function({bool groupId, bool userPublicId})
     >;
 typedef $$QuestsTableCreateCompanionBuilder =
     QuestsCompanion Function({

@@ -61,7 +61,12 @@ extension GroupTypeX on GroupType {
 class Users extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get publicId => text()();
-  TextColumn get name => text()();
+  TextColumn get username => text()();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {publicId},
+  ];
 }
 
 //-- GroupMembers
@@ -94,8 +99,7 @@ extension MemberRoleX on MemberRole {
 class GroupMembers extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get groupId => integer().references(Groups, #id)();
-  TextColumn get userPublicId => text()();
-  TextColumn get username => text()();
+  TextColumn get userPublicId => text().references(Users, #publicId)();
   TextColumn get role =>
       textEnum<MemberRole>().withDefault(Constant(MemberRole.member.value))();
   DateTimeColumn get updatedAt => dateTime()();

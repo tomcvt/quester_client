@@ -12,9 +12,15 @@ import 'package:uuid/uuid.dart';
 class GroupsService {
   final GroupsDao _groupsDao;
   final GroupMembersDao _groupMembersDao;
+  final UsersDao _usersDao;
   final ApiClient _apiClient;
 
-  GroupsService(this._groupsDao, this._groupMembersDao, this._apiClient);
+  GroupsService(
+    this._groupsDao,
+    this._groupMembersDao,
+    this._usersDao,
+    this._apiClient,
+  );
 
   //TODO - add error handling and logging, visibility field
   Future<Group?> createGroup(
@@ -126,6 +132,18 @@ class GroupsService {
       groupResponse.publicId,
     );
     logger.d('Fetched members from backend: ${fetchedMembers.toString()}');
+
+    final usersPublicIds = fetchedMembers.members
+        .map((m) => m.userPublicId)
+        .toSet();
+    final existingUsersPublicIds = await _usersDao.getPublicIdsForUsers(
+      usersPublicIds,
+    );
+    final newUsersPublicIds = usersPublicIds.difference(existingUsersPublicIds);
+
+    final fetchedUsers = _apiClient.fetchUsersByPublicIds(
+      newUsersPublicIds.toList(),
+    );
 
     await _groupMembersDao.insertMembersFromSync(
       groupResponse.publicId,
