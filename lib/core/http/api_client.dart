@@ -3,6 +3,7 @@ import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/dto/auth.dart';
 import 'package:quester_client/core/dto/groups.dart';
 import 'package:quester_client/core/dto/quests.dart';
+import 'package:quester_client/core/dto/users.dart';
 
 class ApiException implements Exception {
   final int? statusCode;
@@ -252,6 +253,18 @@ class ApiClient {
       return true;
     } on DioException catch (e) {
       _throwFromDio(e, 'Failed to change username');
+    }
+  }
+
+  Future<UsersSyncResponse> fetchUsersByPublicIds(List<String> list) async {
+    try {
+      final response = await _dio.post(
+        '/users/fetch-by-public-ids',
+        data: {'public_ids': list},
+      );
+      return UsersSyncResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to fetch users by public IDs');
     }
   }
 }

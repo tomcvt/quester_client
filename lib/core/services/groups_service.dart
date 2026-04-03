@@ -3,6 +3,7 @@ import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/group_members_dao.dart';
 import 'package:quester_client/core/data/groups_dao.dart';
 import 'package:quester_client/core/data/data_tables.dart';
+import 'package:quester_client/core/data/users_dao.dart';
 import 'package:quester_client/core/dto/groups.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
@@ -128,26 +129,42 @@ class GroupsService {
     final id = await _groupsDao.insertGroup(newGroup);
     final createdGroup = await _groupsDao.groupFromId(id);
     logger.d('Joined group inserted into local DB: ${createdGroup.toString()}');
-    final fetchedMembers = await _apiClient.syncGroupMembers(
+
+    final fetchedMembersResponse = await _apiClient.syncGroupMembers(
       groupResponse.publicId,
     );
-    logger.d('Fetched members from backend: ${fetchedMembers.toString()}');
+    logger.d(
+      'Fetched members from backend: ${fetchedMembersResponse.toString()}',
+    );
 
-    final usersPublicIds = fetchedMembers.members
+    final usersPublicIds = fetchedMembersResponse.members
         .map((m) => m.userPublicId)
         .toSet();
-    final existingUsersPublicIds = await _usersDao.getPublicIdsForUsers(
-      usersPublicIds,
-    );
-    final newUsersPublicIds = usersPublicIds.difference(existingUsersPublicIds);
+    //TODO - optimize by only fetching users that are not already in local DB
+    //actually better to just fetch and update the usernames etc.
+    /*
+    final Set<String> existingUsersPublicIds = await _usersDao
+        .getExistingPublicIdsForUsers(usersPublicIds);
 
-    final fetchedUsers = _apiClient.fetchUsersByPublicIds(
+    final newUsersPublicIds = usersPublicIds.difference(existingUsersPublicIds);
+    */
+    final newUsersPublicIds = usersPublicIds;
+
+    final fetchedUsersResponse = await _apiClient.fetchUsersByPublicIds(
       newUsersPublicIds.toList(),
+    );
+    final fetchedUsers = fetchedUsersResponse.users;
+    logger.d('Fetched users from backend: ${fetchedUsers.toString()}');
+
+    await _usersDao.insertUsersFromSync(fetchedUsers);
+
+    logger.d(
+      'Users inserted/updated in local DB: ${fetchedUsers.map((u) => u.publicId).toList()}',
     );
 
     await _groupMembersDao.insertMembersFromSync(
       groupResponse.publicId,
-      fetchedMembers.members,
+      fetchedMembersResponse.members,
     );
     logger.d(
       'Members inserted into local DB for joined group ${groupResponse.publicId}',
