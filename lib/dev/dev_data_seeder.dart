@@ -8,6 +8,7 @@ class DevDataSeeder {
     final groupService = GroupsService(
       db.groupsDao,
       db.groupMembersDao,
+      db.usersDao,
       // Pass a mock ApiClient that simulates backend responses
       StubApiClient(installationId: installationId),
     );

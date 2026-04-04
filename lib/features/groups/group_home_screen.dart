@@ -11,6 +11,7 @@ import 'package:quester_client/core/providers/create_quest_notifier.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/providers/group_actions_notifier.dart';
 import 'package:quester_client/core/providers/service_providers.dart';
+import 'package:quester_client/core/services/app_initializer.dart';
 
 // ─── Domain ──────────────────────────────────────────────────────────────────
 
@@ -63,10 +64,19 @@ final questsProvider = StreamProvider.autoDispose
 
 final groupMembersProvider = StreamProvider.autoDispose
     .family<List<GroupMemberWithUser>, String>((ref, groupId) {
-      final meUserPublicId = A
+      final meUserPublicId = AppInitializer.getCurrentUserPublicId();
+      if (meUserPublicId == null) {
+        //throw Exception('No user logged in');
+        return ref
+            .watch(groupMembersDaoProvider)
+            .watchMembersWithUserForGroup(int.parse(groupId));
+      }
       return ref
           .watch(groupMembersDaoProvider)
-          .watchMembersWithUserForGroupExcluding(int.parse(groupId));
+          .watchMembersWithUserForGroupExcluding(
+            int.parse(groupId),
+            meUserPublicId,
+          );
     });
 
 final groupDetailsProvider = StreamProvider.autoDispose.family<Group?, String>((
@@ -134,7 +144,7 @@ class GroupHomeScreen extends ConsumerWidget {
       // Equivalent to your when() on a sealed class in Kotlin.
       body: switch (tab) {
         GroupTab.tasks => _TasksSubScreen(groupId: groupId),
-        GroupTab.members => const _MembersSubScreen(),
+        GroupTab.members => _MembersSubScreen(groupId: groupId),
         GroupTab.settings => _SettingsSubScreen(groupId: groupId),
       },
     );
@@ -180,11 +190,37 @@ class _GroupBottomNav extends ConsumerWidget {
 // --- Members Sub-Screen ----
 
 class _MembersSubScreen extends ConsumerWidget {
-  const _MembersSubScreen();
+  final String groupId;
+  const _MembersSubScreen({required this.groupId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(groupMembersProvider(groupId));
+    return membersAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (members) => members.isEmpty
+          ? const Center(child: Text('No members found.'))
+          : ListView.builder(
+              itemCount: members.length,
+              itemBuilder: (context, index) {
+                final member = members[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    child: Text(
+                      member.user.username != null
+                          ? member.user.username![0].toUpperCase()
+                          : '?',
+                    ),
+                  ),
+                  title: Text(
+                    member.user.username ?? 'User ${member.user.publicId}',
+                  ),
+                  subtitle: Text('Role: ${member.groupMember.role}'),
+                );
+              },
+            ),
+    );
     return const Center(child: Text('Members — TODO'));
   }
 }
@@ -280,17 +316,6 @@ class _QuestTile extends StatelessWidget {
         context.push('/groups/${quest.groupId}/quests/${quest.id}');
       },
     );
-  }
-}
-
-// ─── Placeholder Sub-Screens ──────────────────────────────────────────────────
-
-class _MembersSubScreen extends StatelessWidget {
-  const _MembersSubScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Members — TODO'));
   }
 }
 

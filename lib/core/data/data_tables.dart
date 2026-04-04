@@ -61,7 +61,8 @@ extension GroupTypeX on GroupType {
 class Users extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get publicId => text()();
-  TextColumn get username => text()();
+  TextColumn get username => text().nullable()();
+  //TextColumn get avatarUrl => text().nullable()();
 
   @override
   List<Set<Column>> get uniqueKeys => [

@@ -33,6 +33,10 @@ class AppInitializer {
 
   static const String _apiBaseUrlKey = 'api_base_url';
 
+  static String? getCurrentUserPublicId() {
+    return sessionData.publicId;
+  }
+
   static Future<void> init(BuildConfig? passedBuildConfig) async {
     final config =
         passedBuildConfig ??

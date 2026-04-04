@@ -434,9 +434,9 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   late final GeneratedColumn<String> username = GeneratedColumn<String>(
     'username',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   @override
   List<GeneratedColumn> get $columns => [id, publicId, username];
@@ -468,8 +468,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         _usernameMeta,
         username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
       );
-    } else if (isInserting) {
-      context.missing(_usernameMeta);
     }
     return context;
   }
@@ -495,7 +493,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       username: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}username'],
-      )!,
+      ),
     );
   }
 
@@ -508,18 +506,16 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
 class User extends DataClass implements Insertable<User> {
   final int id;
   final String publicId;
-  final String username;
-  const User({
-    required this.id,
-    required this.publicId,
-    required this.username,
-  });
+  final String? username;
+  const User({required this.id, required this.publicId, this.username});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['public_id'] = Variable<String>(publicId);
-    map['username'] = Variable<String>(username);
+    if (!nullToAbsent || username != null) {
+      map['username'] = Variable<String>(username);
+    }
     return map;
   }
 
@@ -527,7 +523,9 @@ class User extends DataClass implements Insertable<User> {
     return UsersCompanion(
       id: Value(id),
       publicId: Value(publicId),
-      username: Value(username),
+      username: username == null && nullToAbsent
+          ? const Value.absent()
+          : Value(username),
     );
   }
 
@@ -539,7 +537,7 @@ class User extends DataClass implements Insertable<User> {
     return User(
       id: serializer.fromJson<int>(json['id']),
       publicId: serializer.fromJson<String>(json['publicId']),
-      username: serializer.fromJson<String>(json['username']),
+      username: serializer.fromJson<String?>(json['username']),
     );
   }
   @override
@@ -548,14 +546,18 @@ class User extends DataClass implements Insertable<User> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'publicId': serializer.toJson<String>(publicId),
-      'username': serializer.toJson<String>(username),
+      'username': serializer.toJson<String?>(username),
     };
   }
 
-  User copyWith({int? id, String? publicId, String? username}) => User(
+  User copyWith({
+    int? id,
+    String? publicId,
+    Value<String?> username = const Value.absent(),
+  }) => User(
     id: id ?? this.id,
     publicId: publicId ?? this.publicId,
-    username: username ?? this.username,
+    username: username.present ? username.value : this.username,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -589,7 +591,7 @@ class User extends DataClass implements Insertable<User> {
 class UsersCompanion extends UpdateCompanion<User> {
   final Value<int> id;
   final Value<String> publicId;
-  final Value<String> username;
+  final Value<String?> username;
   const UsersCompanion({
     this.id = const Value.absent(),
     this.publicId = const Value.absent(),
@@ -598,9 +600,8 @@ class UsersCompanion extends UpdateCompanion<User> {
   UsersCompanion.insert({
     this.id = const Value.absent(),
     required String publicId,
-    required String username,
-  }) : publicId = Value(publicId),
-       username = Value(username);
+    this.username = const Value.absent(),
+  }) : publicId = Value(publicId);
   static Insertable<User> custom({
     Expression<int>? id,
     Expression<String>? publicId,
@@ -616,7 +617,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   UsersCompanion copyWith({
     Value<int>? id,
     Value<String>? publicId,
-    Value<String>? username,
+    Value<String?>? username,
   }) {
     return UsersCompanion(
       id: id ?? this.id,
@@ -2377,13 +2378,13 @@ typedef $$UsersTableCreateCompanionBuilder =
     UsersCompanion Function({
       Value<int> id,
       required String publicId,
-      required String username,
+      Value<String?> username,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
     UsersCompanion Function({
       Value<int> id,
       Value<String> publicId,
-      Value<String> username,
+      Value<String?> username,
     });
 
 final class $$UsersTableReferences
@@ -2631,7 +2632,7 @@ class $$UsersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> publicId = const Value.absent(),
-                Value<String> username = const Value.absent(),
+                Value<String?> username = const Value.absent(),
               }) => UsersCompanion(
                 id: id,
                 publicId: publicId,
@@ -2641,7 +2642,7 @@ class $$UsersTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String publicId,
-                required String username,
+                Value<String?> username = const Value.absent(),
               }) => UsersCompanion.insert(
                 id: id,
                 publicId: publicId,
