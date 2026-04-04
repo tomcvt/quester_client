@@ -7,8 +7,9 @@ import 'package:quester_client/core/services/quests_service.dart';
 final groupsServiceProvider = Provider<GroupsService>((ref) {
   final groupsDao = ref.watch(groupsDaoProvider);
   final groupMembersDao = ref.watch(groupMembersDaoProvider);
+  final usersDao = ref.watch(usersDaoProvider);
   final apiClient = ref.watch(apiClientProvider);
-  return GroupsService(groupsDao, groupMembersDao, apiClient);
+  return GroupsService(groupsDao, groupMembersDao, usersDao, apiClient);
 });
 
 final questsServiceProvider = Provider<QuestsService>((ref) {

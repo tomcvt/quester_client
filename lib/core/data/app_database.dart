@@ -32,4 +32,6 @@ class AppDatabase extends _$AppDatabase {
 
   late final groupsDao = GroupsDao(this);
   late final groupMembersDao = GroupMembersDao(this);
+  late final questsDao = QuestsDao(this);
+  late final usersDao = UsersDao(this);
 }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
+import 'package:quester_client/core/data/data_objects.dart';
 import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/providers/create_quest_notifier.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
@@ -58,6 +59,14 @@ final questsProvider = StreamProvider.autoDispose
       return ref
           .watch(questsDaoProvider)
           .watchByGroupAndFilter(int.parse(groupId), filter);
+    });
+
+final groupMembersProvider = StreamProvider.autoDispose
+    .family<List<GroupMemberWithUser>, String>((ref, groupId) {
+      final meUserPublicId = A
+      return ref
+          .watch(groupMembersDaoProvider)
+          .watchMembersWithUserForGroupExcluding(int.parse(groupId));
     });
 
 final groupDetailsProvider = StreamProvider.autoDispose.family<Group?, String>((
@@ -165,6 +174,18 @@ class _GroupBottomNav extends ConsumerWidget {
         NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
       ],
     );
+  }
+}
+
+// --- Members Sub-Screen ----
+
+class _MembersSubScreen extends ConsumerWidget {
+  const _MembersSubScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final membersAsync = ref.watch(groupMembersProvider(groupId));
+    return const Center(child: Text('Members — TODO'));
   }
 }
 

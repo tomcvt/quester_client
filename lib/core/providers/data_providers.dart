@@ -4,6 +4,7 @@ import 'package:quester_client/core/data/group_members_dao.dart';
 import 'package:quester_client/core/data/groups_dao.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/quests_dao.dart';
+import 'package:quester_client/core/data/users_dao.dart';
 
 final databaseProvider = FutureProvider<AppDatabase>((ref) async {
   return AppDatabase.open(); // Drift opens the file here
@@ -28,6 +29,13 @@ final questsDaoProvider = Provider<QuestsDao>((ref) {
       .watch(databaseProvider)
       .requireValue
       .questsDao; // Access the DAO from the database
+});
+
+final usersDaoProvider = Provider<UsersDao>((ref) {
+  return ref
+      .watch(databaseProvider)
+      .requireValue
+      .usersDao; // Access the DAO from the database
 });
 
 /*
