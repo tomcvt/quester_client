@@ -169,6 +169,8 @@ class GroupsService {
     logger.d(
       'Members inserted into local DB for joined group ${groupResponse.publicId}',
     );
+
+    //TODO - run quests sync in background to fetch any quests for this group that aren't in local DB yet
     return createdGroup;
   }
 
