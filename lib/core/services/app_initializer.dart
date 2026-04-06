@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/models/auth.dart';
@@ -24,6 +25,7 @@ class AppInitializer {
   static late final String fcmToken;
   static late final SharedPreferences prefs;
   static late final ApiClient apiClient;
+  static bool isInitialized = false;
   static SessionData sessionData = const SessionData.empty();
   static final isOnline = ValueNotifier<bool>(
     true,
@@ -72,6 +74,7 @@ class AppInitializer {
       await DevDataSeeder.seed(db, installationId);
       logger.d('Development data seeded');
     }
+    isInitialized = true;
   }
 
   static Future<String> getFcmToken(SharedPreferences prefs) async {
@@ -145,3 +148,12 @@ class BuildConfig {
 }
 
 enum PersistenceMode { memory, sqlite }
+
+final appDatabaseProvider = Provider<AppDatabase>((ref) {
+  if (!AppInitializer.isInitialized) {
+    throw Exception(
+      'AppDatabase provider accessed before AppInitializer.init()',
+    );
+  }
+  return AppInitializer.db;
+});

@@ -8,7 +8,7 @@ import '../../services/app_initializer.dart';
 Future<QueryExecutor> openConnection({BuildConfig? buildConfig}) async {
   //@Warning('Using native database connection, which is not supported on web. Ensure this is only used in non-web builds.')
   //TODO for debug purposes:
-  return NativeDatabase.memory();
+  //return NativeDatabase.memory();
   if (buildConfig?.persistenceMode == PersistenceMode.memory) {
     return NativeDatabase.memory();
   }

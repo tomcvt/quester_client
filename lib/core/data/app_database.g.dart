@@ -403,19 +403,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UsersTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
   static const VerificationMeta _publicIdMeta = const VerificationMeta(
     'publicId',
   );
@@ -426,6 +413,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
   static const VerificationMeta _usernameMeta = const VerificationMeta(
     'username',
@@ -439,7 +427,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, publicId, username];
+  List<GeneratedColumn> get $columns => [publicId, username];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -452,9 +440,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
     if (data.containsKey('public_id')) {
       context.handle(
         _publicIdMeta,
@@ -473,7 +458,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {publicId};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
     {publicId},
@@ -482,10 +467,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   User map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return User(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
       publicId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}public_id'],
@@ -504,14 +485,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
 }
 
 class User extends DataClass implements Insertable<User> {
-  final int id;
   final String publicId;
   final String? username;
-  const User({required this.id, required this.publicId, this.username});
+  const User({required this.publicId, this.username});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
     map['public_id'] = Variable<String>(publicId);
     if (!nullToAbsent || username != null) {
       map['username'] = Variable<String>(username);
@@ -521,7 +500,6 @@ class User extends DataClass implements Insertable<User> {
 
   UsersCompanion toCompanion(bool nullToAbsent) {
     return UsersCompanion(
-      id: Value(id),
       publicId: Value(publicId),
       username: username == null && nullToAbsent
           ? const Value.absent()
@@ -535,7 +513,6 @@ class User extends DataClass implements Insertable<User> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return User(
-      id: serializer.fromJson<int>(json['id']),
       publicId: serializer.fromJson<String>(json['publicId']),
       username: serializer.fromJson<String?>(json['username']),
     );
@@ -544,24 +521,20 @@ class User extends DataClass implements Insertable<User> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
       'publicId': serializer.toJson<String>(publicId),
       'username': serializer.toJson<String?>(username),
     };
   }
 
   User copyWith({
-    int? id,
     String? publicId,
     Value<String?> username = const Value.absent(),
   }) => User(
-    id: id ?? this.id,
     publicId: publicId ?? this.publicId,
     username: username.present ? username.value : this.username,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
-      id: data.id.present ? data.id.value : this.id,
       publicId: data.publicId.present ? data.publicId.value : this.publicId,
       username: data.username.present ? data.username.value : this.username,
     );
@@ -570,7 +543,6 @@ class User extends DataClass implements Insertable<User> {
   @override
   String toString() {
     return (StringBuffer('User(')
-          ..write('id: $id, ')
           ..write('publicId: $publicId, ')
           ..write('username: $username')
           ..write(')'))
@@ -578,65 +550,64 @@ class User extends DataClass implements Insertable<User> {
   }
 
   @override
-  int get hashCode => Object.hash(id, publicId, username);
+  int get hashCode => Object.hash(publicId, username);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is User &&
-          other.id == this.id &&
           other.publicId == this.publicId &&
           other.username == this.username);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
-  final Value<int> id;
   final Value<String> publicId;
   final Value<String?> username;
+  final Value<int> rowid;
   const UsersCompanion({
-    this.id = const Value.absent(),
     this.publicId = const Value.absent(),
     this.username = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
-    this.id = const Value.absent(),
     required String publicId,
     this.username = const Value.absent(),
+    this.rowid = const Value.absent(),
   }) : publicId = Value(publicId);
   static Insertable<User> custom({
-    Expression<int>? id,
     Expression<String>? publicId,
     Expression<String>? username,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
       if (publicId != null) 'public_id': publicId,
       if (username != null) 'username': username,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   UsersCompanion copyWith({
-    Value<int>? id,
     Value<String>? publicId,
     Value<String?>? username,
+    Value<int>? rowid,
   }) {
     return UsersCompanion(
-      id: id ?? this.id,
       publicId: publicId ?? this.publicId,
       username: username ?? this.username,
+      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
     if (publicId.present) {
       map['public_id'] = Variable<String>(publicId.value);
     }
     if (username.present) {
       map['username'] = Variable<String>(username.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -644,9 +615,9 @@ class UsersCompanion extends UpdateCompanion<User> {
   @override
   String toString() {
     return (StringBuffer('UsersCompanion(')
-          ..write('id: $id, ')
           ..write('publicId: $publicId, ')
-          ..write('username: $username')
+          ..write('username: $username, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -1163,18 +1134,18 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         requiredDuringInsert: false,
         defaultValue: Constant(QuestStatus.started.value),
       ).withConverter<QuestStatus>($QuestsTable.$converterstatus);
-  static const VerificationMeta _creatorIdMeta = const VerificationMeta(
-    'creatorId',
+  static const VerificationMeta _creatorPublicIdMeta = const VerificationMeta(
+    'creatorPublicId',
   );
   @override
-  late final GeneratedColumn<int> creatorId = GeneratedColumn<int>(
-    'creator_id',
+  late final GeneratedColumn<String> creatorPublicId = GeneratedColumn<String>(
+    'creator_public_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES users (id)',
+      'REFERENCES users (public_id)',
     ),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
@@ -1201,17 +1172,20 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
-  static const VerificationMeta _acceptedByIdMeta = const VerificationMeta(
-    'acceptedById',
-  );
+  static const VerificationMeta _acceptedByPublicIdMeta =
+      const VerificationMeta('acceptedByPublicId');
   @override
-  late final GeneratedColumn<String> acceptedById = GeneratedColumn<String>(
-    'accepted_by_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
+  late final GeneratedColumn<String> acceptedByPublicId =
+      GeneratedColumn<String>(
+        'accepted_by_public_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES users (public_id)',
+        ),
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1226,10 +1200,10 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     type,
     inclusive,
     status,
-    creatorId,
+    creatorPublicId,
     createdAt,
     updatedAt,
-    acceptedById,
+    acceptedByPublicId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1314,13 +1288,16 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     } else if (isInserting) {
       context.missing(_inclusiveMeta);
     }
-    if (data.containsKey('creator_id')) {
+    if (data.containsKey('creator_public_id')) {
       context.handle(
-        _creatorIdMeta,
-        creatorId.isAcceptableOrUnknown(data['creator_id']!, _creatorIdMeta),
+        _creatorPublicIdMeta,
+        creatorPublicId.isAcceptableOrUnknown(
+          data['creator_public_id']!,
+          _creatorPublicIdMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_creatorIdMeta);
+      context.missing(_creatorPublicIdMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -1334,12 +1311,12 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
-    if (data.containsKey('accepted_by_id')) {
+    if (data.containsKey('accepted_by_public_id')) {
       context.handle(
-        _acceptedByIdMeta,
-        acceptedById.isAcceptableOrUnknown(
-          data['accepted_by_id']!,
-          _acceptedByIdMeta,
+        _acceptedByPublicIdMeta,
+        acceptedByPublicId.isAcceptableOrUnknown(
+          data['accepted_by_public_id']!,
+          _acceptedByPublicIdMeta,
         ),
       );
     }
@@ -1408,9 +1385,9 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
           data['${effectivePrefix}status'],
         )!,
       ),
-      creatorId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}creator_id'],
+      creatorPublicId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}creator_public_id'],
       )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -1420,9 +1397,9 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
-      acceptedById: attachedDatabase.typeMapping.read(
+      acceptedByPublicId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}accepted_by_id'],
+        data['${effectivePrefix}accepted_by_public_id'],
       ),
     );
   }
@@ -1451,10 +1428,10 @@ class Quest extends DataClass implements Insertable<Quest> {
   final QuestType type;
   final bool inclusive;
   final QuestStatus status;
-  final int creatorId;
+  final String creatorPublicId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String? acceptedById;
+  final String? acceptedByPublicId;
   const Quest({
     required this.id,
     required this.groupId,
@@ -1468,10 +1445,10 @@ class Quest extends DataClass implements Insertable<Quest> {
     required this.type,
     required this.inclusive,
     required this.status,
-    required this.creatorId,
+    required this.creatorPublicId,
     required this.createdAt,
     required this.updatedAt,
-    this.acceptedById,
+    this.acceptedByPublicId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1504,11 +1481,11 @@ class Quest extends DataClass implements Insertable<Quest> {
         $QuestsTable.$converterstatus.toSql(status),
       );
     }
-    map['creator_id'] = Variable<int>(creatorId);
+    map['creator_public_id'] = Variable<String>(creatorPublicId);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
-    if (!nullToAbsent || acceptedById != null) {
-      map['accepted_by_id'] = Variable<String>(acceptedById);
+    if (!nullToAbsent || acceptedByPublicId != null) {
+      map['accepted_by_public_id'] = Variable<String>(acceptedByPublicId);
     }
     return map;
   }
@@ -1535,12 +1512,12 @@ class Quest extends DataClass implements Insertable<Quest> {
       type: Value(type),
       inclusive: Value(inclusive),
       status: Value(status),
-      creatorId: Value(creatorId),
+      creatorPublicId: Value(creatorPublicId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
-      acceptedById: acceptedById == null && nullToAbsent
+      acceptedByPublicId: acceptedByPublicId == null && nullToAbsent
           ? const Value.absent()
-          : Value(acceptedById),
+          : Value(acceptedByPublicId),
     );
   }
 
@@ -1566,10 +1543,12 @@ class Quest extends DataClass implements Insertable<Quest> {
       status: $QuestsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
-      creatorId: serializer.fromJson<int>(json['creatorId']),
+      creatorPublicId: serializer.fromJson<String>(json['creatorPublicId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      acceptedById: serializer.fromJson<String?>(json['acceptedById']),
+      acceptedByPublicId: serializer.fromJson<String?>(
+        json['acceptedByPublicId'],
+      ),
     );
   }
   @override
@@ -1592,10 +1571,10 @@ class Quest extends DataClass implements Insertable<Quest> {
       'status': serializer.toJson<String>(
         $QuestsTable.$converterstatus.toJson(status),
       ),
-      'creatorId': serializer.toJson<int>(creatorId),
+      'creatorPublicId': serializer.toJson<String>(creatorPublicId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'acceptedById': serializer.toJson<String?>(acceptedById),
+      'acceptedByPublicId': serializer.toJson<String?>(acceptedByPublicId),
     };
   }
 
@@ -1612,10 +1591,10 @@ class Quest extends DataClass implements Insertable<Quest> {
     QuestType? type,
     bool? inclusive,
     QuestStatus? status,
-    int? creatorId,
+    String? creatorPublicId,
     DateTime? createdAt,
     DateTime? updatedAt,
-    Value<String?> acceptedById = const Value.absent(),
+    Value<String?> acceptedByPublicId = const Value.absent(),
   }) => Quest(
     id: id ?? this.id,
     groupId: groupId ?? this.groupId,
@@ -1631,10 +1610,12 @@ class Quest extends DataClass implements Insertable<Quest> {
     type: type ?? this.type,
     inclusive: inclusive ?? this.inclusive,
     status: status ?? this.status,
-    creatorId: creatorId ?? this.creatorId,
+    creatorPublicId: creatorPublicId ?? this.creatorPublicId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
-    acceptedById: acceptedById.present ? acceptedById.value : this.acceptedById,
+    acceptedByPublicId: acceptedByPublicId.present
+        ? acceptedByPublicId.value
+        : this.acceptedByPublicId,
   );
   Quest copyWithCompanion(QuestsCompanion data) {
     return Quest(
@@ -1654,12 +1635,14 @@ class Quest extends DataClass implements Insertable<Quest> {
       type: data.type.present ? data.type.value : this.type,
       inclusive: data.inclusive.present ? data.inclusive.value : this.inclusive,
       status: data.status.present ? data.status.value : this.status,
-      creatorId: data.creatorId.present ? data.creatorId.value : this.creatorId,
+      creatorPublicId: data.creatorPublicId.present
+          ? data.creatorPublicId.value
+          : this.creatorPublicId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-      acceptedById: data.acceptedById.present
-          ? data.acceptedById.value
-          : this.acceptedById,
+      acceptedByPublicId: data.acceptedByPublicId.present
+          ? data.acceptedByPublicId.value
+          : this.acceptedByPublicId,
     );
   }
 
@@ -1678,10 +1661,10 @@ class Quest extends DataClass implements Insertable<Quest> {
           ..write('type: $type, ')
           ..write('inclusive: $inclusive, ')
           ..write('status: $status, ')
-          ..write('creatorId: $creatorId, ')
+          ..write('creatorPublicId: $creatorPublicId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('acceptedById: $acceptedById')
+          ..write('acceptedByPublicId: $acceptedByPublicId')
           ..write(')'))
         .toString();
   }
@@ -1700,10 +1683,10 @@ class Quest extends DataClass implements Insertable<Quest> {
     type,
     inclusive,
     status,
-    creatorId,
+    creatorPublicId,
     createdAt,
     updatedAt,
-    acceptedById,
+    acceptedByPublicId,
   );
   @override
   bool operator ==(Object other) =>
@@ -1721,10 +1704,10 @@ class Quest extends DataClass implements Insertable<Quest> {
           other.type == this.type &&
           other.inclusive == this.inclusive &&
           other.status == this.status &&
-          other.creatorId == this.creatorId &&
+          other.creatorPublicId == this.creatorPublicId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.acceptedById == this.acceptedById);
+          other.acceptedByPublicId == this.acceptedByPublicId);
 }
 
 class QuestsCompanion extends UpdateCompanion<Quest> {
@@ -1740,10 +1723,10 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
   final Value<QuestType> type;
   final Value<bool> inclusive;
   final Value<QuestStatus> status;
-  final Value<int> creatorId;
+  final Value<String> creatorPublicId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<String?> acceptedById;
+  final Value<String?> acceptedByPublicId;
   const QuestsCompanion({
     this.id = const Value.absent(),
     this.groupId = const Value.absent(),
@@ -1757,10 +1740,10 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.type = const Value.absent(),
     this.inclusive = const Value.absent(),
     this.status = const Value.absent(),
-    this.creatorId = const Value.absent(),
+    this.creatorPublicId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-    this.acceptedById = const Value.absent(),
+    this.acceptedByPublicId = const Value.absent(),
   });
   QuestsCompanion.insert({
     this.id = const Value.absent(),
@@ -1775,15 +1758,15 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.type = const Value.absent(),
     required bool inclusive,
     this.status = const Value.absent(),
-    required int creatorId,
+    required String creatorPublicId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-    this.acceptedById = const Value.absent(),
+    this.acceptedByPublicId = const Value.absent(),
   }) : groupId = Value(groupId),
        publicId = Value(publicId),
        name = Value(name),
        inclusive = Value(inclusive),
-       creatorId = Value(creatorId);
+       creatorPublicId = Value(creatorPublicId);
   static Insertable<Quest> custom({
     Expression<int>? id,
     Expression<int>? groupId,
@@ -1797,10 +1780,10 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Expression<String>? type,
     Expression<bool>? inclusive,
     Expression<String>? status,
-    Expression<int>? creatorId,
+    Expression<String>? creatorPublicId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
-    Expression<String>? acceptedById,
+    Expression<String>? acceptedByPublicId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1815,10 +1798,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       if (type != null) 'type': type,
       if (inclusive != null) 'inclusive': inclusive,
       if (status != null) 'status': status,
-      if (creatorId != null) 'creator_id': creatorId,
+      if (creatorPublicId != null) 'creator_public_id': creatorPublicId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
-      if (acceptedById != null) 'accepted_by_id': acceptedById,
+      if (acceptedByPublicId != null)
+        'accepted_by_public_id': acceptedByPublicId,
     });
   }
 
@@ -1835,10 +1819,10 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Value<QuestType>? type,
     Value<bool>? inclusive,
     Value<QuestStatus>? status,
-    Value<int>? creatorId,
+    Value<String>? creatorPublicId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
-    Value<String?>? acceptedById,
+    Value<String?>? acceptedByPublicId,
   }) {
     return QuestsCompanion(
       id: id ?? this.id,
@@ -1853,10 +1837,10 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       type: type ?? this.type,
       inclusive: inclusive ?? this.inclusive,
       status: status ?? this.status,
-      creatorId: creatorId ?? this.creatorId,
+      creatorPublicId: creatorPublicId ?? this.creatorPublicId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      acceptedById: acceptedById ?? this.acceptedById,
+      acceptedByPublicId: acceptedByPublicId ?? this.acceptedByPublicId,
     );
   }
 
@@ -1903,8 +1887,8 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
         $QuestsTable.$converterstatus.toSql(status.value),
       );
     }
-    if (creatorId.present) {
-      map['creator_id'] = Variable<int>(creatorId.value);
+    if (creatorPublicId.present) {
+      map['creator_public_id'] = Variable<String>(creatorPublicId.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1912,8 +1896,8 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
-    if (acceptedById.present) {
-      map['accepted_by_id'] = Variable<String>(acceptedById.value);
+    if (acceptedByPublicId.present) {
+      map['accepted_by_public_id'] = Variable<String>(acceptedByPublicId.value);
     }
     return map;
   }
@@ -1933,10 +1917,10 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
           ..write('type: $type, ')
           ..write('inclusive: $inclusive, ')
           ..write('status: $status, ')
-          ..write('creatorId: $creatorId, ')
+          ..write('creatorPublicId: $creatorPublicId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('acceptedById: $acceptedById')
+          ..write('acceptedByPublicId: $acceptedByPublicId')
           ..write(')'))
         .toString();
   }
@@ -2376,15 +2360,15 @@ typedef $$GroupsTableProcessedTableManager =
     >;
 typedef $$UsersTableCreateCompanionBuilder =
     UsersCompanion Function({
-      Value<int> id,
       required String publicId,
       Value<String?> username,
+      Value<int> rowid,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
     UsersCompanion Function({
-      Value<int> id,
       Value<String> publicId,
       Value<String?> username,
+      Value<int> rowid,
     });
 
 final class $$UsersTableReferences
@@ -2413,25 +2397,6 @@ final class $$UsersTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
-
-  static MultiTypedResultKey<$QuestsTable, List<Quest>> _questsRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.quests,
-    aliasName: $_aliasNameGenerator(db.users.id, db.quests.creatorId),
-  );
-
-  $$QuestsTableProcessedTableManager get questsRefs {
-    final manager = $$QuestsTableTableManager(
-      $_db,
-      $_db.quests,
-    ).filter((f) => f.creatorId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_questsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
 }
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
@@ -2442,11 +2407,6 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get publicId => $composableBuilder(
     column: $table.publicId,
     builder: (column) => ColumnFilters(column),
@@ -2481,31 +2441,6 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     );
     return f(composer);
   }
-
-  Expression<bool> questsRefs(
-    Expression<bool> Function($$QuestsTableFilterComposer f) f,
-  ) {
-    final $$QuestsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.quests,
-      getReferencedColumn: (t) => t.creatorId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$QuestsTableFilterComposer(
-            $db: $db,
-            $table: $db.quests,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$UsersTableOrderingComposer
@@ -2517,11 +2452,6 @@ class $$UsersTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get publicId => $composableBuilder(
     column: $table.publicId,
     builder: (column) => ColumnOrderings(column),
@@ -2542,9 +2472,6 @@ class $$UsersTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
   GeneratedColumn<String> get publicId =>
       $composableBuilder(column: $table.publicId, builder: (column) => column);
 
@@ -2575,31 +2502,6 @@ class $$UsersTableAnnotationComposer
     );
     return f(composer);
   }
-
-  Expression<T> questsRefs<T extends Object>(
-    Expression<T> Function($$QuestsTableAnnotationComposer a) f,
-  ) {
-    final $$QuestsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.quests,
-      getReferencedColumn: (t) => t.creatorId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$QuestsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.quests,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$UsersTableTableManager
@@ -2615,7 +2517,7 @@ class $$UsersTableTableManager
           $$UsersTableUpdateCompanionBuilder,
           (User, $$UsersTableReferences),
           User,
-          PrefetchHooks Function({bool groupMembersRefs, bool questsRefs})
+          PrefetchHooks Function({bool groupMembersRefs})
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -2630,23 +2532,23 @@ class $$UsersTableTableManager
               $$UsersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 Value<String> publicId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => UsersCompanion(
-                id: id,
                 publicId: publicId,
                 username: username,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 required String publicId,
                 Value<String?> username = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => UsersCompanion.insert(
-                id: id,
                 publicId: publicId,
                 username: username,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -2654,55 +2556,33 @@ class $$UsersTableTableManager
                     (e.readTable(table), $$UsersTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback:
-              ({groupMembersRefs = false, questsRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (groupMembersRefs) db.groupMembers,
-                    if (questsRefs) db.quests,
-                  ],
-                  addJoins: null,
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (groupMembersRefs)
-                        await $_getPrefetchedData<
-                          User,
-                          $UsersTable,
-                          GroupMember
-                        >(
-                          currentTable: table,
-                          referencedTable: $$UsersTableReferences
-                              ._groupMembersRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).groupMembersRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.userPublicId == item.publicId,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (questsRefs)
-                        await $_getPrefetchedData<User, $UsersTable, Quest>(
-                          currentTable: table,
-                          referencedTable: $$UsersTableReferences
-                              ._questsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$UsersTableReferences(db, table, p0).questsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.creatorId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
+          prefetchHooksCallback: ({groupMembersRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (groupMembersRefs) db.groupMembers],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (groupMembersRefs)
+                    await $_getPrefetchedData<User, $UsersTable, GroupMember>(
+                      currentTable: table,
+                      referencedTable: $$UsersTableReferences
+                          ._groupMembersRefsTable(db),
+                      managerFromTypedResult: (p0) => $$UsersTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).groupMembersRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.userPublicId == item.publicId,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
               },
+            );
+          },
         ),
       );
 }
@@ -2719,7 +2599,7 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableUpdateCompanionBuilder,
       (User, $$UsersTableReferences),
       User,
-      PrefetchHooks Function({bool groupMembersRefs, bool questsRefs})
+      PrefetchHooks Function({bool groupMembersRefs})
     >;
 typedef $$GroupMembersTableCreateCompanionBuilder =
     GroupMembersCompanion Function({
@@ -3136,10 +3016,10 @@ typedef $$QuestsTableCreateCompanionBuilder =
       Value<QuestType> type,
       required bool inclusive,
       Value<QuestStatus> status,
-      required int creatorId,
+      required String creatorPublicId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<String?> acceptedById,
+      Value<String?> acceptedByPublicId,
     });
 typedef $$QuestsTableUpdateCompanionBuilder =
     QuestsCompanion Function({
@@ -3155,10 +3035,10 @@ typedef $$QuestsTableUpdateCompanionBuilder =
       Value<QuestType> type,
       Value<bool> inclusive,
       Value<QuestStatus> status,
-      Value<int> creatorId,
+      Value<String> creatorPublicId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<String?> acceptedById,
+      Value<String?> acceptedByPublicId,
     });
 
 final class $$QuestsTableReferences
@@ -3183,18 +3063,38 @@ final class $$QuestsTableReferences
     );
   }
 
-  static $UsersTable _creatorIdTable(_$AppDatabase db) => db.users.createAlias(
-    $_aliasNameGenerator(db.quests.creatorId, db.users.id),
-  );
+  static $UsersTable _creatorPublicIdTable(_$AppDatabase db) =>
+      db.users.createAlias(
+        $_aliasNameGenerator(db.quests.creatorPublicId, db.users.publicId),
+      );
 
-  $$UsersTableProcessedTableManager get creatorId {
-    final $_column = $_itemColumn<int>('creator_id')!;
+  $$UsersTableProcessedTableManager get creatorPublicId {
+    final $_column = $_itemColumn<String>('creator_public_id')!;
 
     final manager = $$UsersTableTableManager(
       $_db,
       $_db.users,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_creatorIdTable($_db));
+    ).filter((f) => f.publicId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_creatorPublicIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _acceptedByPublicIdTable(_$AppDatabase db) =>
+      db.users.createAlias(
+        $_aliasNameGenerator(db.quests.acceptedByPublicId, db.users.publicId),
+      );
+
+  $$UsersTableProcessedTableManager? get acceptedByPublicId {
+    final $_column = $_itemColumn<String>('accepted_by_public_id');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.publicId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_acceptedByPublicIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -3278,11 +3178,6 @@ class $$QuestsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get acceptedById => $composableBuilder(
-    column: $table.acceptedById,
-    builder: (column) => ColumnFilters(column),
-  );
-
   $$GroupsTableFilterComposer get groupId {
     final $$GroupsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -3306,12 +3201,35 @@ class $$QuestsTableFilterComposer
     return composer;
   }
 
-  $$UsersTableFilterComposer get creatorId {
+  $$UsersTableFilterComposer get creatorPublicId {
     final $$UsersTableFilterComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.creatorId,
+      getCurrentColumn: (t) => t.creatorPublicId,
       referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
+      getReferencedColumn: (t) => t.publicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get acceptedByPublicId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.acceptedByPublicId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.publicId,
       builder:
           (
             joinBuilder, {
@@ -3404,11 +3322,6 @@ class $$QuestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get acceptedById => $composableBuilder(
-    column: $table.acceptedById,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   $$GroupsTableOrderingComposer get groupId {
     final $$GroupsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3432,12 +3345,35 @@ class $$QuestsTableOrderingComposer
     return composer;
   }
 
-  $$UsersTableOrderingComposer get creatorId {
+  $$UsersTableOrderingComposer get creatorPublicId {
     final $$UsersTableOrderingComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.creatorId,
+      getCurrentColumn: (t) => t.creatorPublicId,
       referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
+      getReferencedColumn: (t) => t.publicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableOrderingComposer get acceptedByPublicId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.acceptedByPublicId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.publicId,
       builder:
           (
             joinBuilder, {
@@ -3508,11 +3444,6 @@ class $$QuestsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<String> get acceptedById => $composableBuilder(
-    column: $table.acceptedById,
-    builder: (column) => column,
-  );
-
   $$GroupsTableAnnotationComposer get groupId {
     final $$GroupsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -3536,12 +3467,35 @@ class $$QuestsTableAnnotationComposer
     return composer;
   }
 
-  $$UsersTableAnnotationComposer get creatorId {
+  $$UsersTableAnnotationComposer get creatorPublicId {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
       composer: this,
-      getCurrentColumn: (t) => t.creatorId,
+      getCurrentColumn: (t) => t.creatorPublicId,
       referencedTable: $db.users,
-      getReferencedColumn: (t) => t.id,
+      getReferencedColumn: (t) => t.publicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableAnnotationComposer get acceptedByPublicId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.acceptedByPublicId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.publicId,
       builder:
           (
             joinBuilder, {
@@ -3573,7 +3527,11 @@ class $$QuestsTableTableManager
           $$QuestsTableUpdateCompanionBuilder,
           (Quest, $$QuestsTableReferences),
           Quest,
-          PrefetchHooks Function({bool groupId, bool creatorId})
+          PrefetchHooks Function({
+            bool groupId,
+            bool creatorPublicId,
+            bool acceptedByPublicId,
+          })
         > {
   $$QuestsTableTableManager(_$AppDatabase db, $QuestsTable table)
     : super(
@@ -3600,10 +3558,10 @@ class $$QuestsTableTableManager
                 Value<QuestType> type = const Value.absent(),
                 Value<bool> inclusive = const Value.absent(),
                 Value<QuestStatus> status = const Value.absent(),
-                Value<int> creatorId = const Value.absent(),
+                Value<String> creatorPublicId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-                Value<String?> acceptedById = const Value.absent(),
+                Value<String?> acceptedByPublicId = const Value.absent(),
               }) => QuestsCompanion(
                 id: id,
                 groupId: groupId,
@@ -3617,10 +3575,10 @@ class $$QuestsTableTableManager
                 type: type,
                 inclusive: inclusive,
                 status: status,
-                creatorId: creatorId,
+                creatorPublicId: creatorPublicId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                acceptedById: acceptedById,
+                acceptedByPublicId: acceptedByPublicId,
               ),
           createCompanionCallback:
               ({
@@ -3636,10 +3594,10 @@ class $$QuestsTableTableManager
                 Value<QuestType> type = const Value.absent(),
                 required bool inclusive,
                 Value<QuestStatus> status = const Value.absent(),
-                required int creatorId,
+                required String creatorPublicId,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-                Value<String?> acceptedById = const Value.absent(),
+                Value<String?> acceptedByPublicId = const Value.absent(),
               }) => QuestsCompanion.insert(
                 id: id,
                 groupId: groupId,
@@ -3653,10 +3611,10 @@ class $$QuestsTableTableManager
                 type: type,
                 inclusive: inclusive,
                 status: status,
-                creatorId: creatorId,
+                creatorPublicId: creatorPublicId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                acceptedById: acceptedById,
+                acceptedByPublicId: acceptedByPublicId,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -3664,60 +3622,78 @@ class $$QuestsTableTableManager
                     (e.readTable(table), $$QuestsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({groupId = false, creatorId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (groupId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.groupId,
-                                referencedTable: $$QuestsTableReferences
-                                    ._groupIdTable(db),
-                                referencedColumn: $$QuestsTableReferences
-                                    ._groupIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-                    if (creatorId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.creatorId,
-                                referencedTable: $$QuestsTableReferences
-                                    ._creatorIdTable(db),
-                                referencedColumn: $$QuestsTableReferences
-                                    ._creatorIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                groupId = false,
+                creatorPublicId = false,
+                acceptedByPublicId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (groupId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.groupId,
+                                    referencedTable: $$QuestsTableReferences
+                                        ._groupIdTable(db),
+                                    referencedColumn: $$QuestsTableReferences
+                                        ._groupIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (creatorPublicId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.creatorPublicId,
+                                    referencedTable: $$QuestsTableReferences
+                                        ._creatorPublicIdTable(db),
+                                    referencedColumn: $$QuestsTableReferences
+                                        ._creatorPublicIdTable(db)
+                                        .publicId,
+                                  )
+                                  as T;
+                        }
+                        if (acceptedByPublicId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.acceptedByPublicId,
+                                    referencedTable: $$QuestsTableReferences
+                                        ._acceptedByPublicIdTable(db),
+                                    referencedColumn: $$QuestsTableReferences
+                                        ._acceptedByPublicIdTable(db)
+                                        .publicId,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3734,7 +3710,11 @@ typedef $$QuestsTableProcessedTableManager =
       $$QuestsTableUpdateCompanionBuilder,
       (Quest, $$QuestsTableReferences),
       Quest,
-      PrefetchHooks Function({bool groupId, bool creatorId})
+      PrefetchHooks Function({
+        bool groupId,
+        bool creatorPublicId,
+        bool acceptedByPublicId,
+      })
     >;
 
 class $AppDatabaseManager {

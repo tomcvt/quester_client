@@ -1,5 +1,8 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/http/api_client.dart';
+import 'package:quester_client/core/providers/core_providers.dart';
+import 'package:quester_client/core/services/app_initializer.dart';
 
 import '../utils/logger_util.dart';
 
@@ -9,11 +12,14 @@ class SyncService {
 
   SyncService(this._db, this._apiClient);
 
-  Future<void> syncNewQuests(String groupPublicId) async {
+  Future<Quest?> syncNewQuests(
+    String groupPublicId,
+    String questPublicId,
+  ) async {
     final group = await _db.groupsDao.groupFromPublicId(groupPublicId);
     if (group == null) {
       logger.e('Group with public id $groupPublicId not found');
-      return;
+      return null;
     }
     final lastUpdateTime = await _db.questsDao.getLatestUpdateTimeForGroup(
       group.id,
@@ -23,5 +29,19 @@ class SyncService {
       lastUpdateTime,
     );
     await _db.questsDao.insertQuestsFromSync(group.id, questsResponse.quests);
+    return await _db.questsDao.getByPublicId(questPublicId);
+  }
+
+  Future<void> syncAllQuests() async {
+    final groups = await _db.groupsDao.getAllGroups();
+    for (final group in groups) {
+      await syncNewQuests(group.publicId, '');
+    }
   }
 }
+
+final syncServiceProvider = Provider<SyncService>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  final apiClient = ref.watch(apiClientProvider);
+  return SyncService(db, apiClient);
+});

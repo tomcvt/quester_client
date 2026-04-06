@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/services/fcm_handler.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'core/router/router.dart';
 
 class MyApp extends ConsumerWidget {
@@ -8,10 +10,13 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
+    final router = ref.read(routerProvider);
 
     ref.listen(incomingQuestProvider, (_, next) {
       next.whenData((nudge) {
+        logger.d(
+          'Received quest nudge: ${nudge.type} for group ${nudge.groupId} and quest ${nudge.questId}',
+        );
         if (nudge == null) return;
         final ctx = rootNavigatorKey.currentContext;
         if (ctx == null) return;
@@ -51,8 +56,7 @@ class _QuestNudgeDialog extends StatelessWidget {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              // TODO: navigate to quest details
-              // context.go('/groups/${nudge.groupId}/quests/${nudge.questId}');
+              context.go('/groups/${nudge.groupId}/quests/${nudge.questId}');
             },
             child: const Text('Zobacz'),
           ),

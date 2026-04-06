@@ -59,10 +59,12 @@ extension GroupTypeX on GroupType {
 }
 
 class Users extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get publicId => text()();
+  TextColumn get publicId => text().unique()();
   TextColumn get username => text().nullable()();
   //TextColumn get avatarUrl => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {publicId};
 
   @override
   List<Set<Column>> get uniqueKeys => [
@@ -171,12 +173,13 @@ class Quests extends Table {
   TextColumn get status => textEnum<QuestStatus>().withDefault(
     Constant(QuestStatus.started.value),
   )();
-  IntColumn get creatorId => integer().references(Users, #id)();
+  TextColumn get creatorPublicId => text().references(Users, #publicId)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(
     currentDateAndTime,
   )(); // update on change logic in code
-  TextColumn get acceptedById => text().nullable()();
+  TextColumn get acceptedByPublicId =>
+      text().nullable().references(Users, #publicId)();
 
   //indexes
   @override

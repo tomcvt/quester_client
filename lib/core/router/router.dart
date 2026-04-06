@@ -1,11 +1,14 @@
 // lib/core/router/router.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
+import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/dev/dev_data_seeder.dart';
 import 'package:quester_client/features/auth/setup_profile_screen.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
 import 'package:quester_client/features/profile/profile_screen.dart';
@@ -30,6 +33,7 @@ class _RouterNotifier extends ChangeNotifier {
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
+final shellNavigatorKey = GlobalKey<NavigatorState>();
 
 // RouterProvider so we can access router anywhere if needed
 final routerProvider = Provider<GoRouter>((ref) {
@@ -72,33 +76,173 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null; // proceed
     },
     routes: [
-      GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
-      GoRoute(path: '/groups', builder: (_, __) => const UserGroupsScreen()),
-      GoRoute(
-        path: '/setup-profile',
-        builder: (_, __) => const SetupProfileScreen(),
-      ),
-      GoRoute(
-        path: '/profile',
-        builder: (_, __) => const ProfileScreen(),
-      ), // TODO: implement ProfileScreen
-      GoRoute(
-        path: '/groups/:groupId',
-        builder: (context, state) {
-          final groupId = state.pathParameters['groupId']!;
-          return GroupHomeScreen(groupId: groupId);
+      ShellRoute(
+        navigatorKey: shellNavigatorKey,
+        builder: (context, state, child) {
+          return Scaffold(
+            body: Stack(
+              children: [
+                child,
+                if (kDebugMode)
+                  Positioned(
+                    bottom: 24,
+                    left: 16,
+                    child: const _DebugSpeedDial(),
+                  ),
+              ],
+            ),
+          );
         },
-      ),
-      GoRoute(
-        path: '/groups/:groupId/quests/:questId',
-        builder: (context, state) {
-          final groupId = state.pathParameters['groupId']!;
-          final questId = state.pathParameters['questId']!;
-          return QuestDetailsScreen(groupId: groupId, questId: questId);
-        },
+        routes: [
+          GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
+          GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+          GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
+          GoRoute(
+            path: '/groups',
+            builder: (_, __) => const UserGroupsScreen(),
+          ),
+          GoRoute(
+            path: '/setup-profile',
+            builder: (_, __) => const SetupProfileScreen(),
+          ),
+          GoRoute(
+            path: '/profile',
+            builder: (_, __) => const ProfileScreen(),
+          ), // TODO: implement ProfileScreen
+          GoRoute(
+            path: '/groups/:groupId',
+            builder: (context, state) {
+              final groupId = state.pathParameters['groupId']!;
+              return GroupHomeScreen(groupId: groupId);
+            },
+          ),
+          GoRoute(
+            path: '/groups/:groupId/quests/:questId',
+            builder: (context, state) {
+              final groupId = state.pathParameters['groupId']!;
+              final questId = state.pathParameters['questId']!;
+              return QuestDetailsScreen(groupId: groupId, questId: questId);
+            },
+          ),
+        ],
       ),
     ],
   );
 });
+
+class _DebugSpeedDial extends ConsumerStatefulWidget {
+  const _DebugSpeedDial();
+
+  @override
+  _DebugSpeedDialState createState() => _DebugSpeedDialState();
+}
+
+class _DebugSpeedDialState extends ConsumerState<_DebugSpeedDial> {
+  bool _open = false;
+
+  void _toggle() => setState(() => _open = !_open);
+
+  @override
+  Widget build(BuildContext context) {
+    final syncService = ref.read(syncServiceProvider);
+    final actions = <({String label, IconData icon, VoidCallback onTap})>[
+      /*
+    (
+      label: 'Seed data',
+      icon: Icons.storage,
+      onTap: () => DevDataSeeder.seed(),
+    ),
+    (
+      label: 'Clear DB',
+      icon: Icons.delete_sweep,
+      onTap: () => DevDataSeeder.clear(),
+    ),
+    (
+      label: 'Fake nudge',
+      icon: Icons.notifications,
+      onTap: () => DevDataSeeder.simulateFcm(),
+    ),*/
+      (
+        label: 'Reset quests',
+        icon: Icons.refresh,
+        onTap: () => DevDataSeeder.clearQuests(AppInitializer.db),
+      ),
+      (
+        label: 'Sync quests data',
+        icon: Icons.sync,
+        onTap: () async {
+          await syncService.syncAllQuests();
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Sync complete')));
+          }
+        },
+      ),
+    ];
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_open) _DebugMenu(actions: actions, onActionTap: (_) => _toggle()),
+        const SizedBox(height: 8),
+        FloatingActionButton(
+          heroTag: 'debug_fab',
+          onPressed: _toggle,
+          child: Icon(_open ? Icons.close : Icons.bug_report),
+        ),
+      ],
+    );
+  }
+}
+
+class _DebugMenu extends StatelessWidget {
+  final List<({String label, IconData icon, VoidCallback onTap})> actions;
+  final ValueChanged<int> onActionTap;
+
+  const _DebugMenu({required this.actions, required this.onActionTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 4,
+      borderRadius: BorderRadius.circular(12),
+      child: IntrinsicWidth(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (i, action) in actions.indexed)
+              InkWell(
+                onTap: () {
+                  action.onTap();
+                  onActionTap(i);
+                },
+                borderRadius: _borderRadius(i, actions.length),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(action.icon, size: 18),
+                      const SizedBox(width: 12),
+                      Text(action.label),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  BorderRadius _borderRadius(int index, int total) {
+    const r = Radius.circular(12);
+    if (total == 1) return BorderRadius.all(r);
+    if (index == 0) return BorderRadius.vertical(top: r);
+    if (index == total - 1) return BorderRadius.vertical(bottom: r);
+    return BorderRadius.zero;
+  }
+}

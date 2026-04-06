@@ -11,8 +11,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/database/connection/connection.dart';
 import 'package:quester_client/core/http/api_client.dart';
+import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/services/notification_display_service.dart';
 import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
@@ -60,11 +62,20 @@ Future<void> _handleMessage(RemoteMessage message) async {
   final type = data['type'];
   final groupPublicId = data['group_public_id'];
   final questPublicId = data['quest_public_id'];
+  logger.d(
+    'Received FCM message: type=$type, groupPublicId=$groupPublicId, questPublicId=$questPublicId',
+  );
 
   if (type == null || groupPublicId == null || questPublicId == null) return;
 
-  final executor = await openConnection();
-  final db = AppDatabase(executor);
+  final bool ownDb = !AppInitializer.isInitialized;
+  final AppDatabase db;
+  if (AppInitializer.isInitialized) {
+    db = AppInitializer.db;
+  } else {
+    final executor = await openConnection();
+    db = AppDatabase(executor);
+  }
 
   final apiClient = ApiClient(
     apiBaseUrl,
@@ -76,27 +87,61 @@ Future<void> _handleMessage(RemoteMessage message) async {
   try {
     switch (type) {
       case 'QUEST_CREATED':
-        await syncService.syncNewQuests(groupPublicId);
-        final quest = await db.questsDao.getByPublicId(questPublicId);
-        if (quest != null && !kIsWeb) {
-          await NotificationDisplayService.showQuestNotification(quest);
+        final newQuest = await syncService.syncNewQuests(
+          groupPublicId,
+          questPublicId,
+        );
+        if (newQuest != null) {
+          logger.i('New quest synced: ${newQuest.name}');
+        } else {
+          logger.e('Failed to sync new quest with public id $questPublicId');
+          break;
+        }
+        if (!kIsWeb) {
+          await NotificationDisplayService.showQuestNotification(newQuest);
         }
         _incomingQuestController.add(
           QuestNudge(
             type: type,
-            questId: questPublicId,
-            groupId: groupPublicId,
+            questId: newQuest.id.toString(),
+            groupId: newQuest.groupId.toString(),
           ),
         );
       case 'QUEST_TAKEN':
-        await syncService.syncNewQuests(groupPublicId);
-        final quest = await db.questsDao.getByPublicId(questPublicId);
-        if (quest != null && !kIsWeb) {
-          await NotificationDisplayService.cancelQuestNotification(quest.id);
+        final newQuest = await syncService.syncNewQuests(
+          groupPublicId,
+          questPublicId,
+        );
+        if (newQuest != null) {
+          logger.i('Quest updated (taken): ${newQuest.name}');
+        } else {
+          logger.e(
+            'Failed to sync updated quest with public id $questPublicId',
+          );
+          break;
         }
+        if (!kIsWeb) {
+          await NotificationDisplayService.cancelQuestNotification(newQuest.id);
+        }
+        if (newQuest.acceptedByPublicId == null) {
+          logger.w(
+            'Received QUEST_TAKEN for quest ${newQuest.publicId} but acceptedByPublicId is null',
+          );
+        }
+        final username = await db.usersDao
+            .getUserByPublicId(newQuest.acceptedByPublicId ?? '')
+            .then((u) => u?.username ?? 'Someone');
+        _incomingQuestController.add(
+          QuestNudge(
+            type: type,
+            questId: newQuest.id.toString(),
+            groupId: newQuest.groupId.toString(),
+            takenByUsername: username,
+          ),
+        );
     }
   } finally {
-    await db.close();
+    if (ownDb) await db.close();
   }
 }
 
@@ -112,9 +157,11 @@ class QuestNudge {
   final String type; // QUEST_CREATED / QUEST_CANCELLED
   final String questId;
   final String groupId;
+  String? takenByUsername;
   QuestNudge({
     required this.type,
     required this.questId,
     required this.groupId,
+    this.takenByUsername,
   });
 }

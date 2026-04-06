@@ -12,7 +12,7 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
 
   Future<int> insertQuest(QuestsCompanion quest) => into(quests).insert(quest);
 
-  Future<Quest?> questFromId(int id) =>
+  Future<Quest?> getById(int id) =>
       (select(quests)..where((q) => q.id.equals(id))).getSingleOrNull();
   Future<Quest?> getByPublicId(String publicId) => (select(
     quests,
@@ -65,7 +65,7 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
           type: Value(quest.type),
           inclusive: Value(quest.inclusive),
           status: Value(quest.status),
-          creatorId: Value(1),
+          creatorPublicId: Value(quest.creatorPublicId),
           createdAt: Value(quest.createdAt),
           updatedAt: Value(quest.updatedAt),
         );
@@ -138,6 +138,10 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
           (q) => OrderingTerm(expression: q.updatedAt, mode: OrderingMode.desc),
         ]))
         .watch();
+  }
+
+  Future<void> clear() async {
+    await delete(quests).go();
   }
 
   // Add your DAO methods here

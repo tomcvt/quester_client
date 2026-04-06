@@ -126,15 +126,15 @@ class QuestsService {
       type: Value(questResponse.type),
       inclusive: Value(questResponse.inclusive),
       status: Value(questResponse.status),
-      creatorId: Value(
-        1,
+      creatorPublicId: Value(
+        questResponse.creatorPublicId,
       ), //TODO - fetch actual user id later/ or change to public id
       createdAt: Value(questResponse.createdAt),
       updatedAt: Value(questResponse.updatedAt),
     );
 
     final id = await _questsDao.insertQuest(newQuest);
-    final createdQuest = await _questsDao.questFromId(id);
+    final createdQuest = await _questsDao.getById(id);
     logger.d('Quest inserted into local DB: ${createdQuest.toString()}');
     final fetchedQuests = await _apiClient.syncGroupQuests(group.publicId);
     logger.d('Fetched quests from backend: ${fetchedQuests.toString()}');
@@ -168,18 +168,18 @@ class QuestsService {
       type: Value(type),
       inclusive: Value(inclusive),
       status: Value(status),
-      creatorId: Value(
-        1,
+      creatorPublicId: Value(
+        AppInitializer.sessionData.publicId,
       ), //TODO - fetch actual user id later/ or change to public id
       createdAt: Value(DateTime.now()),
     );
     final id = await _questsDao.insertQuest(newQuest);
-    final createdQuest = await _questsDao.questFromId(id);
+    final createdQuest = await _questsDao.getById(id);
     return createdQuest;
   }
 
   Future<Quest?> acceptQuest(int questId, {bool offline = false}) async {
-    final quest = await _questsDao.questFromId(questId);
+    final quest = await _questsDao.getById(questId);
     if (quest == null) {
       logger.e('Quest with id $questId not found');
       return null;
@@ -194,7 +194,7 @@ class QuestsService {
     }
     final updatedQuest = quest.copyWith(
       status: QuestStatus.accepted,
-      acceptedById: Value(AppInitializer.installationId),
+      acceptedByPublicId: Value(AppInitializer.sessionData.publicId),
     );
     await _questsDao.updateQuest(updatedQuest);
     logger.d('Quest with id $questId accepted');

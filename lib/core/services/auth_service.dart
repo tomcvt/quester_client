@@ -31,6 +31,10 @@ class AuthService {
   }) async {
     try {
       final sessionData = await authenticate(installationId, fcmToken);
+      if (sessionData.sessionToken.isEmpty) {
+        logger.w('No session token received during authentication');
+        return const SessionData.empty();
+      }
       logger.i('Authentication successful, token stored securely');
       return sessionData;
     } catch (e) {
@@ -46,9 +50,11 @@ class AuthService {
     final installationId = await _installationIdService
         .getOrCreateInstallationId();
     var apiKey = await _secureStorage.read(key: _apiKey);
+    logger.d('Retrieved API key from secure storage: $apiKey');
     if (apiKey == null || apiKey.isEmpty) {
       await registerAndSave(installationId, null, '');
     }
+    //TODO add fallback if incorrect token
     apiKey = await _secureStorage.read(key: _apiKey);
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('API key is missing after registration');
@@ -60,11 +66,10 @@ class AuthService {
       fcmToken,
     );
     //TODO -handle case of server has key user doesnt. for now we assume
-    /*
+
     if (authResponse.sessionToken.isEmpty) {
-      await registerAndSave(installationId, username, password)
+      await registerAndSave(installationId, null, '');
     }
-    */
     _apiClient.setSessionToken(authResponse.sessionToken);
     logger.d(
       'Setting session token in API client: ${authResponse.sessionToken}',

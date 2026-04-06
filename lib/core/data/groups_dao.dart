@@ -76,4 +76,9 @@ class GroupsDao extends DatabaseAccessor<AppDatabase> with _$GroupsDaoMixin {
 
   Future<int> deleteGroupById(int id) =>
       (delete(groups)..where((g) => g.id.equals(id))).go();
+
+  Future<List<Group>> getAllGroups() async {
+    final result = await select(groups).get();
+    return result;
+  }
 }

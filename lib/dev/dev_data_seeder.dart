@@ -17,4 +17,13 @@ class DevDataSeeder {
     //TODO mock group
     await groupService.createMockGroupWithUser("Group 1");
   }
+
+  static Future<void> clearQuests(AppDatabase db) async {
+    await db.questsDao.clear();
+  }
+
+  static Future<void> reset(AppDatabase db, String installationId) async {
+    await clearQuests(db);
+    await seed(db, installationId);
+  }
 }
