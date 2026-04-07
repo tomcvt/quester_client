@@ -8,16 +8,10 @@ import 'core_providers.dart';
 class AuthNotifier extends AsyncNotifier<SessionData> {
   @override
   Future<SessionData> build() async {
-    // orchestrates, delegates to service
-    final SessionData sessionData = await ref
-        .watch(authServiceProvider)
-        .initialize(
-          AppInitializer.installationId,
-          fcmToken: AppInitializer.fcmToken,
-        );
-    return sessionData;
+    // AppInitializer.init() already ran auth before runApp — just expose the result.
+    // This avoids a second authenticate call on every app start.
+    return AppInitializer.sessionData;
   }
-  //TODO bool -> session data and observe that in UI, handle errors, etc.
 
   Future<void> login(String username, String password) async {
     state = const AsyncValue.loading();
@@ -30,10 +24,18 @@ class AuthNotifier extends AsyncNotifier<SessionData> {
   Future<void> logout() async {
     state = const AsyncValue.loading();
     await ref.read(authServiceProvider).logout();
-    state = const AsyncValue.data(const SessionData.empty());
+    state = const AsyncValue.data(SessionData.empty());
   }
 }
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, SessionData>(
   AuthNotifier.new,
 );
+
+/// Convenience provider — use this in UI instead of drilling into authProvider.
+/// Returns null while auth is loading or when not logged in.
+final currentUserPublicIdProvider = Provider<String?>((ref) {
+  return ref
+      .watch(authProvider)
+      .maybeWhen(data: (session) => session.publicId, orElse: () => null);
+});

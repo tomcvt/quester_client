@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:quester_client/core/providers/profile_providers.dart'; // usernameProvider
+import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/features/profile/profile_actions_notifier.dart';
 
 class SetupProfileScreen extends ConsumerWidget {
@@ -9,19 +9,9 @@ class SetupProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(profileActionsProvider);
-
-    ref.listen(usernameProvider, (prev, next) {
-      if (next != null) {
-        if (next.isNotEmpty) {
-          context.go('/home');
-        }
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(title: const Text('Setup Profile')),
-      body: const Center(child: const _ProfileSetupForm()),
+      body: const Center(child: _ProfileSetupForm()),
     );
   }
 }
@@ -38,7 +28,20 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<void>>(profileActionsProvider, (previous, next) {
+      if (previous?.isLoading == true && !next.isLoading && !next.hasError) {
+        final username = ref.read(usernameProvider);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Welcome, $username!')));
+        if (username != null) {
+          context.go('/home');
+        }
+      }
+    });
+
     final state = ref.watch(profileActionsProvider);
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
@@ -67,9 +70,9 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
   }
 
   void _saveUsername() {
+    FocusScope.of(context).unfocus();
     final username = _usernameController.text.trim();
-    if (username.isNotEmpty) {
-      ref.read(profileActionsProvider.notifier).changeUsername(username);
-    }
+    if (username.isEmpty) return;
+    ref.read(profileActionsProvider.notifier).changeUsername(username);
   }
 }

@@ -56,11 +56,14 @@ class QuestsService {
   Future<Quest?> createQuest({
     required int groupId,
     required String name,
-    required String? data,
-    required String? deadline,
+    required String? description,
+    required DateTime? date,
+    required DateTime? deadlineStart,
+    required DateTime? deadlineEnd,
     required String? address,
     required String? contactNumber,
     required String? contactInfo,
+    required String? data,
     required QuestType type,
     required bool inclusive,
     required QuestStatus status,
@@ -70,11 +73,14 @@ class QuestsService {
       return await createOfflineQuest(
         groupId: groupId,
         name: name,
-        data: data,
-        deadline: deadline,
+        description: description,
+        date: date,
+        deadlineStart: deadlineStart,
+        deadlineEnd: deadlineEnd,
         address: address,
         contactNumber: contactNumber,
         contactInfo: contactInfo,
+        data: data,
         type: type,
         inclusive: inclusive,
         status: status,
@@ -102,11 +108,14 @@ class QuestsService {
     final questResponse = await _apiClient.createQuest(
       groupPublicId: group.publicId,
       name: name,
-      data: data,
-      deadline: deadline,
+      description: description,
+      date: date,
+      deadlineStart: deadlineStart,
+      deadlineEnd: deadlineEnd,
       address: address,
       contactNumber: contactNumber,
       contactInfo: contactInfo,
+      data: data,
       type: type,
       inclusive: inclusive,
       status: status,
@@ -118,17 +127,18 @@ class QuestsService {
       groupId: Value(groupId),
       publicId: Value(questResponse.publicId),
       name: Value(questResponse.name),
-      data: Value(questResponse.data),
-      deadline: Value(questResponse.deadline),
+      description: Value(questResponse.description),
+      date: Value(questResponse.date),
+      deadlineStart: Value(questResponse.deadlineStart),
+      deadlineEnd: Value(questResponse.deadlineEnd),
       address: Value(questResponse.address),
       contactNumber: Value(questResponse.contactNumber),
       contactInfo: Value(questResponse.contactInfo),
+      data: Value(questResponse.data),
       type: Value(questResponse.type),
       inclusive: Value(questResponse.inclusive),
       status: Value(questResponse.status),
-      creatorPublicId: Value(
-        questResponse.creatorPublicId,
-      ), //TODO - fetch actual user id later/ or change to public id
+      creatorPublicId: Value(questResponse.creatorPublicId),
       createdAt: Value(questResponse.createdAt),
       updatedAt: Value(questResponse.updatedAt),
     );
@@ -147,11 +157,14 @@ class QuestsService {
   Future<Quest?> createOfflineQuest({
     required int groupId,
     required String name,
-    required String? data,
-    required String? deadline,
+    required String? description,
+    required DateTime? date,
+    required DateTime? deadlineStart,
+    required DateTime? deadlineEnd,
     required String? address,
     required String? contactNumber,
     required String? contactInfo,
+    required String? data,
     required QuestType type,
     required bool inclusive,
     required QuestStatus status,
@@ -160,17 +173,18 @@ class QuestsService {
       groupId: Value(groupId),
       publicId: Value(Uuid().v4()),
       name: Value(name),
-      data: Value(data),
-      deadline: Value(deadline),
+      description: Value(description),
+      date: Value(date),
+      deadlineStart: Value(deadlineStart),
+      deadlineEnd: Value(deadlineEnd),
       address: Value(address),
       contactNumber: Value(contactNumber),
       contactInfo: Value(contactInfo),
+      data: Value(data),
       type: Value(type),
       inclusive: Value(inclusive),
       status: Value(status),
-      creatorPublicId: Value(
-        AppInitializer.sessionData.publicId,
-      ), //TODO - fetch actual user id later/ or change to public id
+      creatorPublicId: Value(AppInitializer.sessionData.publicId),
       createdAt: Value(DateTime.now()),
     );
     final id = await _questsDao.insertQuest(newQuest);
@@ -192,11 +206,51 @@ class QuestsService {
     } else {
       logger.d('Offline quest acceptance, skipping API call');
     }
+    logger.d(
+      "publicId = ${quest.publicId}, sessionPublicId = ${AppInitializer.sessionData.publicId}",
+    );
     final updatedQuest = quest.copyWith(
       status: QuestStatus.accepted,
       acceptedByPublicId: Value(AppInitializer.sessionData.publicId),
     );
     await _questsDao.updateQuest(updatedQuest);
     logger.d('Quest with id $questId accepted');
+    return updatedQuest;
+  }
+
+  Future<Quest?> completeQuest(int questId, {bool offline = false}) async {
+    final quest = await _questsDao.getById(questId);
+    if (quest == null) {
+      logger.e('Quest with id $questId not found');
+      return null;
+    }
+    final updateResponse = offline
+        ? null
+        : await _apiClient.completeQuest(quest.publicId);
+    if (updateResponse != null) {
+      logger.d('Quest completed on backend: ${updateResponse.toString()}');
+    } else {
+      logger.d('Offline quest completion, skipping API call');
+    }
+    final updatedQuest = quest.copyWith(status: QuestStatus.completed);
+    await _questsDao.updateQuest(updatedQuest);
+    logger.d('Quest with id $questId completed');
+    return updatedQuest;
+  }
+
+  Future<void> deleteQuest(int questId) async {
+    final quest = await _questsDao.getById(questId);
+    if (quest == null) {
+      logger.e('Quest with id $questId not found');
+      return;
+    }
+    try {
+      await _apiClient.deleteQuest(quest.publicId);
+      logger.d('Quest with id $questId deleted on backend');
+      await _questsDao.deleteQuest(questId);
+      logger.d('Quest with id $questId deleted from local DB');
+    } catch (e) {
+      logger.e('Failed to delete quest on backend: $e');
+    }
   }
 }

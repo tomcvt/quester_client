@@ -45,7 +45,8 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
                   expression: q.updatedAt,
                   mode: OrderingMode.desc,
                 ),
-              ]))
+              ])
+              ..limit(1))
             .getSingleOrNull();
     return result?.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
   }
@@ -60,12 +61,19 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
           groupId: Value(groupId),
           publicId: Value(quest.publicId),
           name: Value(quest.name),
-          data: Value(quest.data),
+          description: Value(quest.description),
+          date: Value(quest.date),
+          deadlineStart: Value(quest.deadlineStart),
+          deadlineEnd: Value(quest.deadlineEnd),
+          address: Value(quest.address),
+          contactNumber: Value(quest.contactNumber),
           contactInfo: Value(quest.contactInfo),
+          data: Value(quest.data),
           type: Value(quest.type),
           inclusive: Value(quest.inclusive),
           status: Value(quest.status),
           creatorPublicId: Value(quest.creatorPublicId),
+          acceptedByPublicId: Value(quest.acceptedByPublicId),
           createdAt: Value(quest.createdAt),
           updatedAt: Value(quest.updatedAt),
         );
@@ -142,6 +150,10 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
 
   Future<void> clear() async {
     await delete(quests).go();
+  }
+
+  Future<int> deleteQuest(int id) async {
+    return await (delete(quests)..where((q) => q.id.equals(id))).go();
   }
 
   // Add your DAO methods here

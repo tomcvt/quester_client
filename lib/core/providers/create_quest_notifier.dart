@@ -5,6 +5,26 @@ import 'package:quester_client/core/providers/service_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
 
+/*
+NEW SCHEMA:
+class CreateQuestRequest(BaseModel):
+    group_public_id: uuid.UUID
+    name: str
+    description: str | None = None
+    date: datetime | None = None
+    deadline_start: datetime | None = None
+    deadline_end: datetime | None = None
+    address: str | None = None
+    contact_number: str | None = None
+    contact_info: str | None = None
+    data: str | None = None
+    type: QuestType
+    inclusive: bool
+    status: QuestStatus
+    creator_public_id: uuid.UUID
+    accepted_by_public_id: uuid.UUID | None = None'
+    */
+
 class CreateQuestNotifier extends AsyncNotifier<Quest?> {
   @override
   Future<Quest?> build() async => null; // idle on start
@@ -12,11 +32,14 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
   Future<Quest?> createQuest({
     required int groupId,
     required String name,
-    required String? data,
-    required String? deadline,
+    required String? description,
+    required DateTime? date,
+    required DateTime? deadlineStart,
+    required DateTime? deadlineEnd,
     required String? address,
     required String? contactNumber,
     required String? contactInfo,
+    required String? data,
     required QuestType type,
     required bool inclusive,
     required QuestStatus status,
@@ -29,11 +52,14 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
         final quest = await questsService.createQuest(
           groupId: groupId,
           name: name,
-          data: data,
-          deadline: deadline,
+          description: description,
+          date: date,
+          deadlineStart: deadlineStart,
+          deadlineEnd: deadlineEnd,
           address: address,
           contactNumber: contactNumber,
           contactInfo: contactInfo,
+          data: data,
           type: type,
           inclusive: inclusive,
           status: status,

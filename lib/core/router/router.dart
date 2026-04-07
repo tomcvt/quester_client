@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
+import 'package:quester_client/core/services/fcm_handler.dart';
 import 'package:quester_client/core/services/sync_service.dart';
 import 'package:quester_client/dev/dev_data_seeder.dart';
 import 'package:quester_client/features/auth/setup_profile_screen.dart';
@@ -45,7 +46,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     // refreshListenable = "re-run redirect whenever this fires"
     refreshListenable: notifier,
     redirect: (context, state) {
-      final authState = ref.watch(authProvider);
+      final authState = ref.read(authProvider);
       final sessionData = authState.maybeWhen(
         data: (data) => data,
         orElse: () => const SessionData.empty(),
@@ -79,21 +80,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) {
-          return Scaffold(
-            body: Stack(
-              children: [
-                child,
-                if (kDebugMode)
-                  Positioned(
-                    bottom: 24,
-                    left: 16,
-                    child: const _DebugSpeedDial(),
-                  ),
-              ],
-            ),
-          );
+          return _ShellScaffold(child: child);
         },
         routes: [
+          GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
           GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
           GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
           GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
@@ -129,6 +119,68 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _ShellScaffold extends ConsumerWidget {
+  final Widget child;
+  const _ShellScaffold({required this.child});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(incomingQuestProvider, (_, next) {
+      next.whenData((nudge) {
+        if (nudge == null) return;
+        showDialog(
+          context: context,
+          builder: (_) => _QuestNudgeDialog(nudge: nudge),
+        );
+      });
+    });
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          child,
+          if (kDebugMode)
+            Positioned(bottom: 24, left: 16, child: const _DebugSpeedDial()),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuestNudgeDialog extends StatelessWidget {
+  final QuestNudge nudge;
+
+  const _QuestNudgeDialog({required this.nudge});
+
+  @override
+  Widget build(BuildContext context) {
+    final isCreated = nudge.type == 'QUEST_CREATED';
+
+    return AlertDialog(
+      title: Text(isCreated ? 'Nowe zadanie!' : 'Zadanie zajęte'),
+      content: Text(
+        isCreated
+            ? 'Pojawiło się nowe zadanie w grupie.'
+            : 'Ktoś przyjął zadanie.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('OK'),
+        ),
+        if (isCreated)
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.go('/groups/${nudge.groupId}/quests/${nudge.questId}');
+            },
+            child: const Text('Zobacz'),
+          ),
+      ],
+    );
+  }
+}
 
 class _DebugSpeedDial extends ConsumerStatefulWidget {
   const _DebugSpeedDial();

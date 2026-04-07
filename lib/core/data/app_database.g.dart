@@ -413,7 +413,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
   static const VerificationMeta _usernameMeta = const VerificationMeta(
     'username',
@@ -426,8 +425,19 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _phoneNumberMeta = const VerificationMeta(
+    'phoneNumber',
+  );
   @override
-  List<GeneratedColumn> get $columns => [publicId, username];
+  late final GeneratedColumn<String> phoneNumber = GeneratedColumn<String>(
+    'phone_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [publicId, username, phoneNumber];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -454,15 +464,20 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
       );
     }
+    if (data.containsKey('phone_number')) {
+      context.handle(
+        _phoneNumberMeta,
+        phoneNumber.isAcceptableOrUnknown(
+          data['phone_number']!,
+          _phoneNumberMeta,
+        ),
+      );
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {publicId};
-  @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {publicId},
-  ];
   @override
   User map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -474,6 +489,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       username: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}username'],
+      ),
+      phoneNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone_number'],
       ),
     );
   }
@@ -487,13 +506,17 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
 class User extends DataClass implements Insertable<User> {
   final String publicId;
   final String? username;
-  const User({required this.publicId, this.username});
+  final String? phoneNumber;
+  const User({required this.publicId, this.username, this.phoneNumber});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['public_id'] = Variable<String>(publicId);
     if (!nullToAbsent || username != null) {
       map['username'] = Variable<String>(username);
+    }
+    if (!nullToAbsent || phoneNumber != null) {
+      map['phone_number'] = Variable<String>(phoneNumber);
     }
     return map;
   }
@@ -504,6 +527,9 @@ class User extends DataClass implements Insertable<User> {
       username: username == null && nullToAbsent
           ? const Value.absent()
           : Value(username),
+      phoneNumber: phoneNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phoneNumber),
     );
   }
 
@@ -515,6 +541,7 @@ class User extends DataClass implements Insertable<User> {
     return User(
       publicId: serializer.fromJson<String>(json['publicId']),
       username: serializer.fromJson<String?>(json['username']),
+      phoneNumber: serializer.fromJson<String?>(json['phoneNumber']),
     );
   }
   @override
@@ -523,20 +550,26 @@ class User extends DataClass implements Insertable<User> {
     return <String, dynamic>{
       'publicId': serializer.toJson<String>(publicId),
       'username': serializer.toJson<String?>(username),
+      'phoneNumber': serializer.toJson<String?>(phoneNumber),
     };
   }
 
   User copyWith({
     String? publicId,
     Value<String?> username = const Value.absent(),
+    Value<String?> phoneNumber = const Value.absent(),
   }) => User(
     publicId: publicId ?? this.publicId,
     username: username.present ? username.value : this.username,
+    phoneNumber: phoneNumber.present ? phoneNumber.value : this.phoneNumber,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
       publicId: data.publicId.present ? data.publicId.value : this.publicId,
       username: data.username.present ? data.username.value : this.username,
+      phoneNumber: data.phoneNumber.present
+          ? data.phoneNumber.value
+          : this.phoneNumber,
     );
   }
 
@@ -544,43 +577,50 @@ class User extends DataClass implements Insertable<User> {
   String toString() {
     return (StringBuffer('User(')
           ..write('publicId: $publicId, ')
-          ..write('username: $username')
+          ..write('username: $username, ')
+          ..write('phoneNumber: $phoneNumber')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(publicId, username);
+  int get hashCode => Object.hash(publicId, username, phoneNumber);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is User &&
           other.publicId == this.publicId &&
-          other.username == this.username);
+          other.username == this.username &&
+          other.phoneNumber == this.phoneNumber);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
   final Value<String> publicId;
   final Value<String?> username;
+  final Value<String?> phoneNumber;
   final Value<int> rowid;
   const UsersCompanion({
     this.publicId = const Value.absent(),
     this.username = const Value.absent(),
+    this.phoneNumber = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
     required String publicId,
     this.username = const Value.absent(),
+    this.phoneNumber = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : publicId = Value(publicId);
   static Insertable<User> custom({
     Expression<String>? publicId,
     Expression<String>? username,
+    Expression<String>? phoneNumber,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (publicId != null) 'public_id': publicId,
       if (username != null) 'username': username,
+      if (phoneNumber != null) 'phone_number': phoneNumber,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -588,11 +628,13 @@ class UsersCompanion extends UpdateCompanion<User> {
   UsersCompanion copyWith({
     Value<String>? publicId,
     Value<String?>? username,
+    Value<String?>? phoneNumber,
     Value<int>? rowid,
   }) {
     return UsersCompanion(
       publicId: publicId ?? this.publicId,
       username: username ?? this.username,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -606,6 +648,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (username.present) {
       map['username'] = Variable<String>(username.value);
     }
+    if (phoneNumber.present) {
+      map['phone_number'] = Variable<String>(phoneNumber.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -617,6 +662,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     return (StringBuffer('UsersCompanion(')
           ..write('publicId: $publicId, ')
           ..write('username: $username, ')
+          ..write('phoneNumber: $phoneNumber, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1047,21 +1093,53 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _dataMeta = const VerificationMeta('data');
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
   @override
-  late final GeneratedColumn<String> data = GeneratedColumn<String>(
-    'data',
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _deadlineMeta = const VerificationMeta(
-    'deadline',
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deadlineStartMeta = const VerificationMeta(
+    'deadlineStart',
   );
   @override
-  late final GeneratedColumn<String> deadline = GeneratedColumn<String>(
-    'deadline',
+  late final GeneratedColumn<DateTime> deadlineStart =
+      GeneratedColumn<DateTime>(
+        'deadline_start',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _deadlineEndMeta = const VerificationMeta(
+    'deadlineEnd',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deadlineEnd = GeneratedColumn<DateTime>(
+    'deadline_end',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dataMeta = const VerificationMeta('data');
+  @override
+  late final GeneratedColumn<String> data = GeneratedColumn<String>(
+    'data',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -1192,8 +1270,11 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     groupId,
     publicId,
     name,
+    description,
+    date,
+    deadlineStart,
+    deadlineEnd,
     data,
-    deadline,
     address,
     contactNumber,
     contactInfo,
@@ -1244,16 +1325,43 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    }
+    if (data.containsKey('deadline_start')) {
+      context.handle(
+        _deadlineStartMeta,
+        deadlineStart.isAcceptableOrUnknown(
+          data['deadline_start']!,
+          _deadlineStartMeta,
+        ),
+      );
+    }
+    if (data.containsKey('deadline_end')) {
+      context.handle(
+        _deadlineEndMeta,
+        deadlineEnd.isAcceptableOrUnknown(
+          data['deadline_end']!,
+          _deadlineEndMeta,
+        ),
+      );
+    }
     if (data.containsKey('data')) {
       context.handle(
         _dataMeta,
         this.data.isAcceptableOrUnknown(data['data']!, _dataMeta),
-      );
-    }
-    if (data.containsKey('deadline')) {
-      context.handle(
-        _deadlineMeta,
-        deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta),
       );
     }
     if (data.containsKey('address')) {
@@ -1349,13 +1457,25 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      ),
+      deadlineStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deadline_start'],
+      ),
+      deadlineEnd: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deadline_end'],
+      ),
       data: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}data'],
-      ),
-      deadline: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}deadline'],
       ),
       address: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1420,8 +1540,11 @@ class Quest extends DataClass implements Insertable<Quest> {
   final int groupId;
   final String publicId;
   final String name;
+  final String? description;
+  final DateTime? date;
+  final DateTime? deadlineStart;
+  final DateTime? deadlineEnd;
   final String? data;
-  final String? deadline;
   final String? address;
   final String? contactNumber;
   final String? contactInfo;
@@ -1437,8 +1560,11 @@ class Quest extends DataClass implements Insertable<Quest> {
     required this.groupId,
     required this.publicId,
     required this.name,
+    this.description,
+    this.date,
+    this.deadlineStart,
+    this.deadlineEnd,
     this.data,
-    this.deadline,
     this.address,
     this.contactNumber,
     this.contactInfo,
@@ -1457,11 +1583,20 @@ class Quest extends DataClass implements Insertable<Quest> {
     map['group_id'] = Variable<int>(groupId);
     map['public_id'] = Variable<String>(publicId);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || date != null) {
+      map['date'] = Variable<DateTime>(date);
+    }
+    if (!nullToAbsent || deadlineStart != null) {
+      map['deadline_start'] = Variable<DateTime>(deadlineStart);
+    }
+    if (!nullToAbsent || deadlineEnd != null) {
+      map['deadline_end'] = Variable<DateTime>(deadlineEnd);
+    }
     if (!nullToAbsent || data != null) {
       map['data'] = Variable<String>(data);
-    }
-    if (!nullToAbsent || deadline != null) {
-      map['deadline'] = Variable<String>(deadline);
     }
     if (!nullToAbsent || address != null) {
       map['address'] = Variable<String>(address);
@@ -1496,10 +1631,17 @@ class Quest extends DataClass implements Insertable<Quest> {
       groupId: Value(groupId),
       publicId: Value(publicId),
       name: Value(name),
-      data: data == null && nullToAbsent ? const Value.absent() : Value(data),
-      deadline: deadline == null && nullToAbsent
+      description: description == null && nullToAbsent
           ? const Value.absent()
-          : Value(deadline),
+          : Value(description),
+      date: date == null && nullToAbsent ? const Value.absent() : Value(date),
+      deadlineStart: deadlineStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadlineStart),
+      deadlineEnd: deadlineEnd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadlineEnd),
+      data: data == null && nullToAbsent ? const Value.absent() : Value(data),
       address: address == null && nullToAbsent
           ? const Value.absent()
           : Value(address),
@@ -1531,8 +1673,11 @@ class Quest extends DataClass implements Insertable<Quest> {
       groupId: serializer.fromJson<int>(json['groupId']),
       publicId: serializer.fromJson<String>(json['publicId']),
       name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      date: serializer.fromJson<DateTime?>(json['date']),
+      deadlineStart: serializer.fromJson<DateTime?>(json['deadlineStart']),
+      deadlineEnd: serializer.fromJson<DateTime?>(json['deadlineEnd']),
       data: serializer.fromJson<String?>(json['data']),
-      deadline: serializer.fromJson<String?>(json['deadline']),
       address: serializer.fromJson<String?>(json['address']),
       contactNumber: serializer.fromJson<String?>(json['contactNumber']),
       contactInfo: serializer.fromJson<String?>(json['contactInfo']),
@@ -1559,8 +1704,11 @@ class Quest extends DataClass implements Insertable<Quest> {
       'groupId': serializer.toJson<int>(groupId),
       'publicId': serializer.toJson<String>(publicId),
       'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'date': serializer.toJson<DateTime?>(date),
+      'deadlineStart': serializer.toJson<DateTime?>(deadlineStart),
+      'deadlineEnd': serializer.toJson<DateTime?>(deadlineEnd),
       'data': serializer.toJson<String?>(data),
-      'deadline': serializer.toJson<String?>(deadline),
       'address': serializer.toJson<String?>(address),
       'contactNumber': serializer.toJson<String?>(contactNumber),
       'contactInfo': serializer.toJson<String?>(contactInfo),
@@ -1583,8 +1731,11 @@ class Quest extends DataClass implements Insertable<Quest> {
     int? groupId,
     String? publicId,
     String? name,
+    Value<String?> description = const Value.absent(),
+    Value<DateTime?> date = const Value.absent(),
+    Value<DateTime?> deadlineStart = const Value.absent(),
+    Value<DateTime?> deadlineEnd = const Value.absent(),
     Value<String?> data = const Value.absent(),
-    Value<String?> deadline = const Value.absent(),
     Value<String?> address = const Value.absent(),
     Value<String?> contactNumber = const Value.absent(),
     Value<String?> contactInfo = const Value.absent(),
@@ -1600,8 +1751,13 @@ class Quest extends DataClass implements Insertable<Quest> {
     groupId: groupId ?? this.groupId,
     publicId: publicId ?? this.publicId,
     name: name ?? this.name,
+    description: description.present ? description.value : this.description,
+    date: date.present ? date.value : this.date,
+    deadlineStart: deadlineStart.present
+        ? deadlineStart.value
+        : this.deadlineStart,
+    deadlineEnd: deadlineEnd.present ? deadlineEnd.value : this.deadlineEnd,
     data: data.present ? data.value : this.data,
-    deadline: deadline.present ? deadline.value : this.deadline,
     address: address.present ? address.value : this.address,
     contactNumber: contactNumber.present
         ? contactNumber.value
@@ -1623,8 +1779,17 @@ class Quest extends DataClass implements Insertable<Quest> {
       groupId: data.groupId.present ? data.groupId.value : this.groupId,
       publicId: data.publicId.present ? data.publicId.value : this.publicId,
       name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      date: data.date.present ? data.date.value : this.date,
+      deadlineStart: data.deadlineStart.present
+          ? data.deadlineStart.value
+          : this.deadlineStart,
+      deadlineEnd: data.deadlineEnd.present
+          ? data.deadlineEnd.value
+          : this.deadlineEnd,
       data: data.data.present ? data.data.value : this.data,
-      deadline: data.deadline.present ? data.deadline.value : this.deadline,
       address: data.address.present ? data.address.value : this.address,
       contactNumber: data.contactNumber.present
           ? data.contactNumber.value
@@ -1653,8 +1818,11 @@ class Quest extends DataClass implements Insertable<Quest> {
           ..write('groupId: $groupId, ')
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('date: $date, ')
+          ..write('deadlineStart: $deadlineStart, ')
+          ..write('deadlineEnd: $deadlineEnd, ')
           ..write('data: $data, ')
-          ..write('deadline: $deadline, ')
           ..write('address: $address, ')
           ..write('contactNumber: $contactNumber, ')
           ..write('contactInfo: $contactInfo, ')
@@ -1675,8 +1843,11 @@ class Quest extends DataClass implements Insertable<Quest> {
     groupId,
     publicId,
     name,
+    description,
+    date,
+    deadlineStart,
+    deadlineEnd,
     data,
-    deadline,
     address,
     contactNumber,
     contactInfo,
@@ -1696,8 +1867,11 @@ class Quest extends DataClass implements Insertable<Quest> {
           other.groupId == this.groupId &&
           other.publicId == this.publicId &&
           other.name == this.name &&
+          other.description == this.description &&
+          other.date == this.date &&
+          other.deadlineStart == this.deadlineStart &&
+          other.deadlineEnd == this.deadlineEnd &&
           other.data == this.data &&
-          other.deadline == this.deadline &&
           other.address == this.address &&
           other.contactNumber == this.contactNumber &&
           other.contactInfo == this.contactInfo &&
@@ -1715,8 +1889,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
   final Value<int> groupId;
   final Value<String> publicId;
   final Value<String> name;
+  final Value<String?> description;
+  final Value<DateTime?> date;
+  final Value<DateTime?> deadlineStart;
+  final Value<DateTime?> deadlineEnd;
   final Value<String?> data;
-  final Value<String?> deadline;
   final Value<String?> address;
   final Value<String?> contactNumber;
   final Value<String?> contactInfo;
@@ -1732,8 +1909,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.groupId = const Value.absent(),
     this.publicId = const Value.absent(),
     this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.date = const Value.absent(),
+    this.deadlineStart = const Value.absent(),
+    this.deadlineEnd = const Value.absent(),
     this.data = const Value.absent(),
-    this.deadline = const Value.absent(),
     this.address = const Value.absent(),
     this.contactNumber = const Value.absent(),
     this.contactInfo = const Value.absent(),
@@ -1750,8 +1930,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     required int groupId,
     required String publicId,
     required String name,
+    this.description = const Value.absent(),
+    this.date = const Value.absent(),
+    this.deadlineStart = const Value.absent(),
+    this.deadlineEnd = const Value.absent(),
     this.data = const Value.absent(),
-    this.deadline = const Value.absent(),
     this.address = const Value.absent(),
     this.contactNumber = const Value.absent(),
     this.contactInfo = const Value.absent(),
@@ -1772,8 +1955,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Expression<int>? groupId,
     Expression<String>? publicId,
     Expression<String>? name,
+    Expression<String>? description,
+    Expression<DateTime>? date,
+    Expression<DateTime>? deadlineStart,
+    Expression<DateTime>? deadlineEnd,
     Expression<String>? data,
-    Expression<String>? deadline,
     Expression<String>? address,
     Expression<String>? contactNumber,
     Expression<String>? contactInfo,
@@ -1790,8 +1976,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       if (groupId != null) 'group_id': groupId,
       if (publicId != null) 'public_id': publicId,
       if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (date != null) 'date': date,
+      if (deadlineStart != null) 'deadline_start': deadlineStart,
+      if (deadlineEnd != null) 'deadline_end': deadlineEnd,
       if (data != null) 'data': data,
-      if (deadline != null) 'deadline': deadline,
       if (address != null) 'address': address,
       if (contactNumber != null) 'contact_number': contactNumber,
       if (contactInfo != null) 'contact_info': contactInfo,
@@ -1811,8 +2000,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Value<int>? groupId,
     Value<String>? publicId,
     Value<String>? name,
+    Value<String?>? description,
+    Value<DateTime?>? date,
+    Value<DateTime?>? deadlineStart,
+    Value<DateTime?>? deadlineEnd,
     Value<String?>? data,
-    Value<String?>? deadline,
     Value<String?>? address,
     Value<String?>? contactNumber,
     Value<String?>? contactInfo,
@@ -1829,8 +2021,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       groupId: groupId ?? this.groupId,
       publicId: publicId ?? this.publicId,
       name: name ?? this.name,
+      description: description ?? this.description,
+      date: date ?? this.date,
+      deadlineStart: deadlineStart ?? this.deadlineStart,
+      deadlineEnd: deadlineEnd ?? this.deadlineEnd,
       data: data ?? this.data,
-      deadline: deadline ?? this.deadline,
       address: address ?? this.address,
       contactNumber: contactNumber ?? this.contactNumber,
       contactInfo: contactInfo ?? this.contactInfo,
@@ -1859,11 +2054,20 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (deadlineStart.present) {
+      map['deadline_start'] = Variable<DateTime>(deadlineStart.value);
+    }
+    if (deadlineEnd.present) {
+      map['deadline_end'] = Variable<DateTime>(deadlineEnd.value);
+    }
     if (data.present) {
       map['data'] = Variable<String>(data.value);
-    }
-    if (deadline.present) {
-      map['deadline'] = Variable<String>(deadline.value);
     }
     if (address.present) {
       map['address'] = Variable<String>(address.value);
@@ -1909,8 +2113,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
           ..write('groupId: $groupId, ')
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('date: $date, ')
+          ..write('deadlineStart: $deadlineStart, ')
+          ..write('deadlineEnd: $deadlineEnd, ')
           ..write('data: $data, ')
-          ..write('deadline: $deadline, ')
           ..write('address: $address, ')
           ..write('contactNumber: $contactNumber, ')
           ..write('contactInfo: $contactInfo, ')
@@ -2362,12 +2569,14 @@ typedef $$UsersTableCreateCompanionBuilder =
     UsersCompanion Function({
       required String publicId,
       Value<String?> username,
+      Value<String?> phoneNumber,
       Value<int> rowid,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
     UsersCompanion Function({
       Value<String> publicId,
       Value<String?> username,
+      Value<String?> phoneNumber,
       Value<int> rowid,
     });
 
@@ -2417,6 +2626,11 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get phoneNumber => $composableBuilder(
+    column: $table.phoneNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> groupMembersRefs(
     Expression<bool> Function($$GroupMembersTableFilterComposer f) f,
   ) {
@@ -2461,6 +2675,11 @@ class $$UsersTableOrderingComposer
     column: $table.username,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get phoneNumber => $composableBuilder(
+    column: $table.phoneNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UsersTableAnnotationComposer
@@ -2477,6 +2696,11 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<String> get username =>
       $composableBuilder(column: $table.username, builder: (column) => column);
+
+  GeneratedColumn<String> get phoneNumber => $composableBuilder(
+    column: $table.phoneNumber,
+    builder: (column) => column,
+  );
 
   Expression<T> groupMembersRefs<T extends Object>(
     Expression<T> Function($$GroupMembersTableAnnotationComposer a) f,
@@ -2534,20 +2758,24 @@ class $$UsersTableTableManager
               ({
                 Value<String> publicId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
+                Value<String?> phoneNumber = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion(
                 publicId: publicId,
                 username: username,
+                phoneNumber: phoneNumber,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String publicId,
                 Value<String?> username = const Value.absent(),
+                Value<String?> phoneNumber = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion.insert(
                 publicId: publicId,
                 username: username,
+                phoneNumber: phoneNumber,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -3008,8 +3236,11 @@ typedef $$QuestsTableCreateCompanionBuilder =
       required int groupId,
       required String publicId,
       required String name,
+      Value<String?> description,
+      Value<DateTime?> date,
+      Value<DateTime?> deadlineStart,
+      Value<DateTime?> deadlineEnd,
       Value<String?> data,
-      Value<String?> deadline,
       Value<String?> address,
       Value<String?> contactNumber,
       Value<String?> contactInfo,
@@ -3027,8 +3258,11 @@ typedef $$QuestsTableUpdateCompanionBuilder =
       Value<int> groupId,
       Value<String> publicId,
       Value<String> name,
+      Value<String?> description,
+      Value<DateTime?> date,
+      Value<DateTime?> deadlineStart,
+      Value<DateTime?> deadlineEnd,
       Value<String?> data,
-      Value<String?> deadline,
       Value<String?> address,
       Value<String?> contactNumber,
       Value<String?> contactInfo,
@@ -3126,13 +3360,28 @@ class $$QuestsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get data => $composableBuilder(
-    column: $table.data,
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get deadline => $composableBuilder(
-    column: $table.deadline,
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deadlineStart => $composableBuilder(
+    column: $table.deadlineStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deadlineEnd => $composableBuilder(
+    column: $table.deadlineEnd,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get data => $composableBuilder(
+    column: $table.data,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3272,13 +3521,28 @@ class $$QuestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get data => $composableBuilder(
-    column: $table.data,
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get deadline => $composableBuilder(
-    column: $table.deadline,
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deadlineStart => $composableBuilder(
+    column: $table.deadlineStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deadlineEnd => $composableBuilder(
+    column: $table.deadlineEnd,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get data => $composableBuilder(
+    column: $table.data,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3410,11 +3674,26 @@ class $$QuestsTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deadlineStart => $composableBuilder(
+    column: $table.deadlineStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get deadlineEnd => $composableBuilder(
+    column: $table.deadlineEnd,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get data =>
       $composableBuilder(column: $table.data, builder: (column) => column);
-
-  GeneratedColumn<String> get deadline =>
-      $composableBuilder(column: $table.deadline, builder: (column) => column);
 
   GeneratedColumn<String> get address =>
       $composableBuilder(column: $table.address, builder: (column) => column);
@@ -3550,8 +3829,11 @@ class $$QuestsTableTableManager
                 Value<int> groupId = const Value.absent(),
                 Value<String> publicId = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<DateTime?> date = const Value.absent(),
+                Value<DateTime?> deadlineStart = const Value.absent(),
+                Value<DateTime?> deadlineEnd = const Value.absent(),
                 Value<String?> data = const Value.absent(),
-                Value<String?> deadline = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String?> contactNumber = const Value.absent(),
                 Value<String?> contactInfo = const Value.absent(),
@@ -3567,8 +3849,11 @@ class $$QuestsTableTableManager
                 groupId: groupId,
                 publicId: publicId,
                 name: name,
+                description: description,
+                date: date,
+                deadlineStart: deadlineStart,
+                deadlineEnd: deadlineEnd,
                 data: data,
-                deadline: deadline,
                 address: address,
                 contactNumber: contactNumber,
                 contactInfo: contactInfo,
@@ -3586,8 +3871,11 @@ class $$QuestsTableTableManager
                 required int groupId,
                 required String publicId,
                 required String name,
+                Value<String?> description = const Value.absent(),
+                Value<DateTime?> date = const Value.absent(),
+                Value<DateTime?> deadlineStart = const Value.absent(),
+                Value<DateTime?> deadlineEnd = const Value.absent(),
                 Value<String?> data = const Value.absent(),
-                Value<String?> deadline = const Value.absent(),
                 Value<String?> address = const Value.absent(),
                 Value<String?> contactNumber = const Value.absent(),
                 Value<String?> contactInfo = const Value.absent(),
@@ -3603,8 +3891,11 @@ class $$QuestsTableTableManager
                 groupId: groupId,
                 publicId: publicId,
                 name: name,
+                description: description,
+                date: date,
+                deadlineStart: deadlineStart,
+                deadlineEnd: deadlineEnd,
                 data: data,
-                deadline: deadline,
                 address: address,
                 contactNumber: contactNumber,
                 contactInfo: contactInfo,

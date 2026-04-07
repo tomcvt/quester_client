@@ -18,6 +18,20 @@ class QuestActionsNotifier extends AsyncNotifier<void> {
       await ref.read(questsServiceProvider).acceptQuest(questId);
     });
   }
+
+  Future<void> completeQuest(int questId) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(questsServiceProvider).completeQuest(questId);
+    });
+  }
+
+  Future<void> deleteQuest(int questId) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(questsServiceProvider).deleteQuest(questId);
+    });
+  }
 }
 
 final questActionsNotifierProvider =

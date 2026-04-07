@@ -24,11 +24,24 @@ class SyncService {
     final lastUpdateTime = await _db.questsDao.getLatestUpdateTimeForGroup(
       group.id,
     );
+    logger.d(
+      'Starting quest sync for group $groupPublicId (id: ${group.id}) with last update time $lastUpdateTime',
+    );
+    // Subtract 1 second from lastUpdateTime to ensure we get any quests that were updated at the exact last update time
+    final adjustedLastUpdateTime = lastUpdateTime.subtract(
+      const Duration(seconds: 1),
+    );
     final questsResponse = await _apiClient.syncGroupQuestsSince(
       groupPublicId,
-      lastUpdateTime,
+      adjustedLastUpdateTime,
+    );
+    logger.d(
+      'Syncing quests for group $groupPublicId since $adjustedLastUpdateTime, received ${questsResponse.quests.length} quests',
     );
     await _db.questsDao.insertQuestsFromSync(group.id, questsResponse.quests);
+    logger.d(
+      'Finished syncing quests for group $groupPublicId. Total quests synced: ${questsResponse.quests.length}',
+    );
     return await _db.questsDao.getByPublicId(questPublicId);
   }
 
@@ -37,6 +50,26 @@ class SyncService {
     for (final group in groups) {
       await syncNewQuests(group.publicId, '');
     }
+  }
+
+  Future<Quest?> deleteQuest(String groupPublicId, String questPublicId) async {
+    final group = await _db.groupsDao.groupFromPublicId(groupPublicId);
+    if (group == null) {
+      logger.e('Group with public id $groupPublicId not found');
+      return null;
+    }
+    final quest = await _db.questsDao.getByPublicId(questPublicId);
+    if (quest == null) {
+      logger.e('Quest with public id $questPublicId not found');
+      return null;
+    }
+    final deletedCount = await _db.questsDao.deleteQuest(quest.id);
+    if (deletedCount == 0) {
+      logger.e('Failed to delete quest with id ${quest.id} from database');
+    } else {
+      logger.d('Deleted quest with id ${quest.id} from database');
+    }
+    return quest;
   }
 }
 

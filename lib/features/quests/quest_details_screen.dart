@@ -30,6 +30,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/data_tables.dart';
+import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 
 // ─── Provider ────────────────────────────────────────────────────────────────
@@ -43,6 +44,64 @@ final questDetailsProvider = StreamProvider.autoDispose
       return ref
           .watch(questsDaoProvider)
           .watchByGroupAndId(int.parse(groupId), int.parse(questId));
+    });
+
+final questCreatorProvider = FutureProvider.autoDispose.family<User?, String>((
+  ref,
+  questId,
+) async {
+  final quest = await ref.watch(questsDaoProvider).getById(int.parse(questId));
+  if (quest == null) return null;
+  return ref.watch(usersDaoProvider).getByPublicId(quest.creatorPublicId);
+});
+
+final questAcceptedByProvider = FutureProvider.autoDispose
+    .family<User?, String>((ref, questId) async {
+      final quest = await ref
+          .watch(questsDaoProvider)
+          .getById(int.parse(questId));
+      if (quest == null || quest.acceptedByPublicId == null) return null;
+      return ref
+          .watch(usersDaoProvider)
+          .getByPublicId(quest.acceptedByPublicId!);
+    });
+
+typedef QuestDetailsData = ({Quest quest, User? creator, User? acceptedBy});
+
+final questDetailsCombinedProvider = Provider.autoDispose
+    .family<AsyncValue<QuestDetailsData?>, (String, String)>((ref, params) {
+      final (groupId, questId) = params;
+      final questAsync = ref.watch(questDetailsProvider((groupId, questId)));
+      final creatorAsync = ref.watch(questCreatorProvider(questId));
+      final acceptedByAsync = ref.watch(questAcceptedByProvider(questId));
+
+      // Propagate loading/error from any source
+      if (questAsync.isLoading ||
+          creatorAsync.isLoading ||
+          acceptedByAsync.isLoading) {
+        return const AsyncValue.loading();
+      }
+      if (questAsync.hasError) {
+        return AsyncValue.error(questAsync.error!, questAsync.stackTrace!);
+      }
+      if (creatorAsync.hasError) {
+        return AsyncValue.error(creatorAsync.error!, creatorAsync.stackTrace!);
+      }
+      if (acceptedByAsync.hasError) {
+        return AsyncValue.error(
+          acceptedByAsync.error!,
+          acceptedByAsync.stackTrace!,
+        );
+      }
+
+      final quest = questAsync.requireValue;
+      if (quest == null) return const AsyncValue.data(null);
+
+      return AsyncValue.data((
+        quest: quest,
+        creator: creatorAsync.requireValue,
+        acceptedBy: acceptedByAsync.requireValue,
+      ));
     });
 
 // ─── Screen ──────────────────────────────────────────────────────────────────
@@ -59,29 +118,34 @@ class QuestDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final questAsync = ref.watch(questDetailsProvider((groupId, questId)));
+    final combinedAsync = ref.watch(
+      questDetailsCombinedProvider((groupId, questId)),
+    );
 
     return Scaffold(
-      // extendBodyBehindAppBar — lets the card content scroll under the AppBar
-      // for the "immersive header" effect. The AppBar becomes translucent.
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: _BackButton(groupId: groupId),
       ),
-      body: questAsync.when(
+      body: combinedAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => const Center(child: Text('Error loading quest')),
-        data: (quest) {
-          if (quest == null) {
+        data: (data) {
+          if (data == null) {
             return const Center(child: Text('Quest not found'));
           }
-          return _QuestDetailsBody(quest: quest, groupId: groupId);
+          return _QuestDetailsBody(
+            quest: data.quest,
+            creator: data.creator,
+            acceptedBy: data.acceptedBy,
+            groupId: groupId,
+          );
         },
       ),
-      bottomNavigationBar: questAsync.asData?.value != null
-          ? _QuestActionBar(quest: questAsync.asData!.value!)
+      bottomNavigationBar: combinedAsync.asData?.value != null
+          ? _QuestActionBar(quest: combinedAsync.asData!.value!.quest)
           : null,
     );
   }
@@ -118,9 +182,16 @@ class _BackButton extends StatelessWidget {
 
 class _QuestDetailsBody extends StatelessWidget {
   final Quest quest;
+  final User? creator;
+  final User? acceptedBy;
   final String groupId;
 
-  const _QuestDetailsBody({required this.quest, required this.groupId});
+  const _QuestDetailsBody({
+    required this.quest,
+    required this.creator,
+    required this.acceptedBy,
+    required this.groupId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +237,7 @@ class _QuestDetailsBody extends StatelessWidget {
                     color: colorScheme.onSurface,
                   ),
                 ),
-                if (quest.deadline != null) ...[
+                if (quest.deadlineStart != null) ...[
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -177,7 +248,26 @@ class _QuestDetailsBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        quest.deadline!,
+                        'Start: ${_dateToHourMinute(quest.deadlineStart!)}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (quest.deadlineEnd != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule_outlined,
+                        size: 16,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Deadline: ${_dateToHourMinute(quest.deadlineEnd!)}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -247,6 +337,52 @@ class _QuestDetailsBody extends StatelessWidget {
                     Text(quest.data!, style: theme.textTheme.bodyMedium),
                   ],
                 ),
+              // Creator card — only shown when creator info is available
+              if (creator != null)
+                _InfoCard(
+                  children: [
+                    _CardHeader(
+                      icon: Icons.person_outline,
+                      label: 'Created by',
+                    ),
+                    _TappableRow(
+                      icon: Icons.person,
+                      label: creator!.username ?? 'Unknown',
+                      onTap: () => context.go(
+                        '/users/${creator!.publicId}',
+                      ), //TODO implement
+                    ),
+                    if (creator!.phoneNumber != null)
+                      _TappableRow(
+                        icon: Icons.phone_outlined,
+                        label: creator!.phoneNumber!,
+                        onTap: () => _launch('tel:${creator!.phoneNumber}'),
+                      ),
+                  ],
+                ),
+              // Accepted by card — only shown when acceptedBy info is available
+              if (acceptedBy != null)
+                _InfoCard(
+                  children: [
+                    _CardHeader(
+                      icon: Icons.person_outline,
+                      label: 'Accepted by',
+                    ),
+                    _TappableRow(
+                      icon: Icons.person,
+                      label: acceptedBy!.username ?? 'Unknown',
+                      onTap: () => context.go(
+                        '/users/${acceptedBy!.publicId}',
+                      ), //TODO implement
+                    ),
+                    if (acceptedBy!.phoneNumber != null)
+                      _TappableRow(
+                        icon: Icons.phone_outlined,
+                        label: acceptedBy!.phoneNumber!,
+                        onTap: () => _launch('tel:${acceptedBy!.phoneNumber}'),
+                      ),
+                  ],
+                ),
 
               // Inclusive flag — only shown when creator is also participating
               if (quest.inclusive)
@@ -303,6 +439,12 @@ class _QuestDetailsBody extends StatelessWidget {
     return 'https://maps.apple.com/?q=$encoded';
   }
 
+  String _dateToHourMinute(DateTime date) {
+    final hours = date.hour.toString().padLeft(2, '0');
+    final minutes = date.minute.toString().padLeft(2, '0');
+    return '$hours:$minutes';
+  }
+
   // ── Launch ─────────────────────────────────────────────────────────────────
   //
   // launchUrl is async but we don't await it in the UI callback — fire and
@@ -349,26 +491,48 @@ class _QuestActionBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final isLoading = ref.watch(questActionsNotifierProvider).isLoading;
-    // Only STARTED quests can be accepted.
+    final currentUserPublicId = ref.watch(currentUserPublicIdProvider);
+
+    final isAcceptedByMe =
+        quest.acceptedByPublicId != null &&
+        quest.acceptedByPublicId == currentUserPublicId;
+
     final canAccept = quest.status == QuestStatus.started && !isLoading;
+    final canComplete =
+        quest.status == QuestStatus.accepted && isAcceptedByMe && !isLoading;
+
+    final (icon, label, onPressed) = switch (true) {
+      _ when canComplete => (
+        Icons.check_circle_outline,
+        'Complete Quest',
+        () => ref
+            .read(questActionsNotifierProvider.notifier)
+            .completeQuest(quest.id),
+      ),
+      _ when canAccept => (
+        Icons.person_add_outlined,
+        'Accept Quest',
+        () => ref
+            .read(questActionsNotifierProvider.notifier)
+            .acceptQuest(quest.id),
+      ),
+      _ => (Icons.info_outline, quest.status.label, null as VoidCallback?),
+    };
 
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: FilledButton.icon(
-          // FilledButton is Material 3 — solid background, highest emphasis.
-          // Use for the single most important action on a screen.
-          onPressed: canAccept
-              ? () => ref
-                    .read(questActionsNotifierProvider.notifier)
-                    .acceptQuest(quest.id)
-              : null,
-          icon: const Icon(Icons.check_circle_outline),
-          label: Text(canAccept ? 'Accept Quest' : quest.status.label),
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(52),
-            backgroundColor: canAccept ? colorScheme.primary : null,
-          ),
+          onPressed: isLoading ? null : onPressed,
+          icon: isLoading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(icon),
+          label: Text(label),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
         ),
       ),
     );

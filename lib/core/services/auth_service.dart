@@ -17,6 +17,7 @@ class AuthService {
   static const String _sessionToken = 'session_token';
   static const String _publicIdKey = 'public_id';
   static const String _usernameKey = 'username';
+  static const String _phoneNumberKey = 'phone_number';
 
   AuthService(
     this._installationIdService,
@@ -80,9 +81,11 @@ class AuthService {
     );
     await _secureStorage.write(key: _publicIdKey, value: authResponse.publicId);
     await _prefs.setString(_usernameKey, authResponse.username ?? '');
+    await _prefs.setString(_phoneNumberKey, authResponse.phoneNumber ?? '');
     return SessionData(
       sessionToken: authResponse.sessionToken,
       username: authResponse.username,
+      phoneNumber: authResponse.phoneNumber,
       publicId: authResponse.publicId,
       fcmToken: authResponse.fcmToken,
     );
@@ -112,11 +115,17 @@ class AuthService {
     );
     //how to handle case where username is null? for now we just store empty string, but maybe we should generate a random username or something?
     await _prefs.setString(_usernameKey, registrationResponse.username ?? '');
+    await _prefs.setString(
+      _phoneNumberKey,
+      registrationResponse.phoneNumber ?? '',
+    );
     logger.d('Registered: ${registrationResponse.toString()}');
     return registrationResponse;
   }
 
   String? getUsername() => AppInitializer.sessionData.username;
+
+  String? getPhoneNumber() => AppInitializer.sessionData.phoneNumber;
 
   Future<String?> changeUsername(String newUsername) async {
     final publicId = await _secureStorage.read(key: _publicIdKey);
@@ -140,6 +149,24 @@ class AuthService {
     return newUsername;
   }
 
+  Future<String?> changePhoneNumber(String newPhoneNumber) async {
+    final publicId = await _secureStorage.read(key: _publicIdKey);
+    if (publicId == null) {
+      throw Exception('Public ID not found in secure storage');
+    }
+    //TODO add phone number validation
+    bool didSucceed = await _apiClient.changePhoneNumber(newPhoneNumber);
+    if (!didSucceed) {
+      throw Exception('Failed to change phone number');
+    }
+    await _prefs.setString(_phoneNumberKey, newPhoneNumber);
+    AppInitializer.sessionData = AppInitializer.sessionData.copyWith(
+      phoneNumber: newPhoneNumber,
+    );
+    logger.d('Phone number changed successfully to: $newPhoneNumber');
+    return newPhoneNumber;
+  }
+
   Future<SessionData> login(String username, String password) async {
     await Future.delayed(const Duration(seconds: 1));
     return AppInitializer.sessionData;
@@ -148,6 +175,8 @@ class AuthService {
   Future<void> logout() async {
     await Future.delayed(const Duration(seconds: 1));
     await _secureStorage.delete(key: _sessionToken);
+    await _prefs.remove(_usernameKey);
+    await _prefs.remove(_phoneNumberKey);
   }
 
   bool _allowedUsername(String username) {

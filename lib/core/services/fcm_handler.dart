@@ -129,7 +129,7 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
         }
         final username = await db.usersDao
-            .getUserByPublicId(newQuest.acceptedByPublicId ?? '')
+            .getByPublicId(newQuest.acceptedByPublicId ?? '')
             .then((u) => u?.username ?? 'Someone');
         _incomingQuestController.add(
           QuestNudge(
@@ -139,6 +139,19 @@ Future<void> _handleMessage(RemoteMessage message) async {
             takenByUsername: username,
           ),
         );
+      case 'QUEST_DELETED':
+        final deletedQuest = await syncService.deleteQuest(
+          groupPublicId,
+          questPublicId,
+        );
+        if (deletedQuest != null) {
+          logger.i('Quest deleted: ${deletedQuest.name}');
+        } else {
+          logger.e(
+            'Failed to sync deleted quest with public id $questPublicId',
+          );
+          break;
+        }
     }
   } finally {
     if (ownDb) await db.close();

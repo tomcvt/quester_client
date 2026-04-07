@@ -59,17 +59,13 @@ extension GroupTypeX on GroupType {
 }
 
 class Users extends Table {
-  TextColumn get publicId => text().unique()();
+  TextColumn get publicId => text()();
   TextColumn get username => text().nullable()();
+  TextColumn get phoneNumber => text().nullable()();
   //TextColumn get avatarUrl => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {publicId};
-
-  @override
-  List<Set<Column>> get uniqueKeys => [
-    {publicId},
-  ];
 }
 
 //-- GroupMembers
@@ -162,8 +158,11 @@ class Quests extends Table {
   IntColumn get groupId => integer().references(Groups, #id)();
   TextColumn get publicId => text()();
   TextColumn get name => text()();
+  TextColumn get description => text().nullable()();
+  DateTimeColumn get date => dateTime().nullable()();
+  DateTimeColumn get deadlineStart => dateTime().nullable()();
+  DateTimeColumn get deadlineEnd => dateTime().nullable()();
   TextColumn get data => text().nullable()();
-  TextColumn get deadline => text().nullable()();
   TextColumn get address => text().nullable()();
   TextColumn get contactNumber => text().nullable()();
   TextColumn get contactInfo => text().nullable()();

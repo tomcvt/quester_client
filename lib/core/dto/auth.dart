@@ -46,12 +46,14 @@ class AuthenticationRequest {
 class AuthenticationResponse {
   final String sessionToken;
   final String? username;
+  final String? phoneNumber;
   final String publicId;
   final String fcmToken;
 
   AuthenticationResponse({
     required this.sessionToken,
     this.username,
+    this.phoneNumber,
     required this.publicId,
     required this.fcmToken,
   });
@@ -60,6 +62,7 @@ class AuthenticationResponse {
     return AuthenticationResponse(
       sessionToken: json['session_token'] as String,
       username: json['username'] as String?,
+      phoneNumber: json['phone_number'] as String?,
       publicId: json['public_id'] as String,
       fcmToken: json['fcm_token'] as String,
     );
@@ -70,12 +73,14 @@ class RegistrationResponse {
   final String sessionToken;
   final String apiKey;
   final String? username;
+  final String? phoneNumber;
   final String publicId;
 
   RegistrationResponse({
     required this.sessionToken,
     required this.apiKey,
     this.username,
+    this.phoneNumber,
     required this.publicId,
   });
 
@@ -84,13 +89,14 @@ class RegistrationResponse {
       sessionToken: json['session_token'] as String,
       apiKey: json['api_key'] as String,
       username: json['username'] as String?,
+      phoneNumber: json['phone_number'] as String?,
       publicId: json['public_id'] as String,
     );
   }
 
   @override
   String toString() {
-    return 'RegistrationResponse(sessionToken: $sessionToken, apiKey: $apiKey, username: $username, publicId: $publicId)';
+    return 'RegistrationResponse(sessionToken: $sessionToken, apiKey: $apiKey, username: $username, phoneNumber: $phoneNumber, publicId: $publicId)';
   }
 }
 

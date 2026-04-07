@@ -128,28 +128,36 @@ class ApiClient {
   Future<CreateQuestResponse> createQuest({
     required String groupPublicId,
     required String name,
-    required String? data,
-    required String? deadline,
+    required String? description,
+    required DateTime? date,
+    required DateTime? deadlineStart,
+    required DateTime? deadlineEnd,
     required String? address,
     required String? contactNumber,
     required String? contactInfo,
+    required String? data,
     required QuestType type,
     required bool inclusive,
     required QuestStatus status,
     required String creatorPublicId,
+    String? acceptedByPublicId,
   }) async {
     final createQuestRequest = CreateQuestRequest(
       groupPublicId: groupPublicId,
       name: name,
-      data: data,
-      deadline: deadline,
+      description: description,
+      date: date,
+      deadlineStart: deadlineStart,
+      deadlineEnd: deadlineEnd,
       address: address,
       contactNumber: contactNumber,
       contactInfo: contactInfo,
+      data: data,
       type: type,
       inclusive: inclusive,
       status: status,
       creatorPublicId: creatorPublicId,
+      acceptedByPublicId: acceptedByPublicId,
     );
     try {
       final response = await _dio.post(
@@ -256,6 +264,18 @@ class ApiClient {
     }
   }
 
+  Future<bool> changePhoneNumber(String newPhoneNumber) async {
+    try {
+      final response = await _dio.post(
+        '/users/change-phone-number',
+        data: {'phone_number': newPhoneNumber},
+      );
+      return true;
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to change phone number');
+    }
+  }
+
   Future<UsersSyncResponse> fetchUsersByPublicIds(List<String> list) async {
     try {
       final response = await _dio.post(
@@ -265,6 +285,24 @@ class ApiClient {
       return UsersSyncResponse.fromJson(response.data);
     } on DioException catch (e) {
       _throwFromDio(e, 'Failed to fetch users by public IDs');
+    }
+  }
+
+  Future<bool> completeQuest(String publicId) async {
+    try {
+      final response = await _dio.post('/quests/$publicId/complete');
+      return true;
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to complete quest');
+    }
+  }
+
+  Future<bool> deleteQuest(String publicId) async {
+    try {
+      final response = await _dio.delete('/quests/$publicId');
+      return true;
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to delete quest');
     }
   }
 }

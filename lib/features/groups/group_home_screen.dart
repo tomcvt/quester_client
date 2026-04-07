@@ -306,7 +306,7 @@ class _QuestTile extends StatelessWidget {
     var statusMeta = _StatusMeta.from(quest.status);
     return ListTile(
       title: Text(
-        '${quest.name}   ${quest.deadline != null ? '(${quest.deadline})' : ''}',
+        '${quest.name}   ${quest.deadlineStart != null ? '(${_dateTimeHoursAndMinutes(quest.deadlineStart!)})' : ''}',
       ),
       subtitle: Text(quest.status.label),
       leading: Icon(statusMeta.icon, color: statusMeta.color),
@@ -317,6 +317,12 @@ class _QuestTile extends StatelessWidget {
       },
     );
   }
+}
+
+String _dateTimeHoursAndMinutes(DateTime date) {
+  final hours = date.hour.toString().padLeft(2, '0');
+  final minutes = date.minute.toString().padLeft(2, '0');
+  return '$hours:$minutes';
 }
 
 class _SettingsSubScreen extends ConsumerWidget {
@@ -454,8 +460,9 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
   late final TextEditingController _contactNumberController;
   late final TextEditingController _contactInfoController;
   late final TextEditingController _addressController;
-  TimeOfDay?
-  _deadline; // no controller needed for TimeOfDay — it's not a text field
+  DateTime? _selectedDate;
+  TimeOfDay? _deadlineStart;
+  TimeOfDay? _deadlineEnd;
 
   @override
   void initState() {
@@ -489,9 +496,10 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
             context,
           ).showDebugSnackBar('Failed to create quest: $e'),
         },
-        // Success: close dialog. No context.mounted check needed here because
-        // ref.listen is only called while the widget is alive — Riverpod handles it.
-        data: (_) => Navigator.of(context).pop(),
+        // Success: close dialog only if previous state was loading (i.e. a real submission completed).
+        data: (_) {
+          if (previous?.isLoading == true) Navigator.of(context).pop();
+        },
       );
     });
 
@@ -509,23 +517,92 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Quest name'),
                 keyboardType: TextInputType.text,
-                textInputAction:
-                    TextInputAction.next, // moves focus to next field
+                textInputAction: TextInputAction.next,
               ),
-              ActionChip(
+              const SizedBox(height: 8),
+              // Date picker — calendar style, no dates before today
+              OutlinedButton.icon(
+                icon: const Icon(Icons.calendar_today_outlined, size: 18),
                 label: Text(
-                  _deadline == null ? 'Set time' : _deadline!.format(context),
+                  _selectedDate == null
+                      ? 'Pick date'
+                      : '${_selectedDate!.day.toString().padLeft(2, '0')}.${_selectedDate!.month.toString().padLeft(2, '0')}.${_selectedDate!.year}',
                 ),
                 onPressed: () async {
-                  final now = TimeOfDay.now();
-                  final picked = await showTimePicker(
+                  final now = DateTime.now();
+                  final picked = await showDatePicker(
                     context: context,
-                    initialTime: now,
+                    initialDate: _selectedDate ?? now,
+                    firstDate: now,
+                    lastDate: DateTime(now.year + 5),
                   );
-                  if (picked != null) {
-                    setState(() => _deadline = picked);
-                  }
+                  if (picked != null) setState(() => _selectedDate = picked);
                 },
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    'Start time:',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  ActionChip(
+                    label: Text(
+                      _deadlineStart == null
+                          ? 'Set start time'
+                          : _deadlineStart!.format(context),
+                    ),
+                    onPressed: _selectedDate == null
+                        ? null
+                        : () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: _deadlineStart ?? TimeOfDay.now(),
+                              builder: (context, child) => MediaQuery(
+                                data: MediaQuery.of(
+                                  context,
+                                ).copyWith(alwaysUse24HourFormat: true),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null)
+                              setState(() => _deadlineStart = picked);
+                          },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text(
+                    'End time:',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  ActionChip(
+                    label: Text(
+                      _deadlineEnd == null
+                          ? 'Set end time'
+                          : _deadlineEnd!.format(context),
+                    ),
+                    onPressed: _selectedDate == null
+                        ? null
+                        : () async {
+                            final picked = await showTimePicker(
+                              context: context,
+                              initialTime: _deadlineEnd ?? TimeOfDay.now(),
+                              builder: (context, child) => MediaQuery(
+                                data: MediaQuery.of(
+                                  context,
+                                ).copyWith(alwaysUse24HourFormat: true),
+                                child: child!,
+                              ),
+                            );
+                            if (picked != null)
+                              setState(() => _deadlineEnd = picked);
+                          },
+                  ),
+                ],
               ),
               TextField(
                 controller: _addressController,
@@ -559,7 +636,7 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
               //const SizedBox(height: 12),
               TextField(
                 controller: _detailsController,
-                decoration: const InputDecoration(labelText: 'Details'),
+                decoration: const InputDecoration(labelText: 'Description'),
                 maxLines: 3,
               ),
               FilterChip(
@@ -596,38 +673,41 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
     );
   }
 
-  // Plain void — fire and forget. Notifier owns the state transitions.
-  // No await, no setState, no context.mounted needed.
+  DateTime? _toDateTime(DateTime? date, TimeOfDay? time) {
+    if (date == null || time == null) return null;
+    return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+
   void _submit() {
     final name = _nameController.text.trim();
-    final details = _detailsController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showDebugSnackBar('Quest name cannot be empty');
       return;
     }
-    final currentGroupId = widget.groupId;
-    final deadlineAsString = _deadline != null
-        ? '${_deadline!.hour}:${_deadline!.minute}'
-        : null;
     ref
         .read(createQuestProvider.notifier)
         .createQuest(
-          groupId: int.parse(currentGroupId),
+          groupId: int.parse(widget.groupId),
           name: name,
-          data: details.isEmpty ? null : details,
-          inclusive: _inclusive,
+          description: _detailsController.text.trim().isEmpty
+              ? null
+              : _detailsController.text.trim(),
+          date: _selectedDate,
+          deadlineStart: _toDateTime(_selectedDate, _deadlineStart),
+          deadlineEnd: _toDateTime(_selectedDate, _deadlineEnd),
+          address: _addressController.text.trim().isEmpty
+              ? null
+              : _addressController.text.trim(),
           contactNumber: _contactNumberController.text.trim().isEmpty
               ? null
               : _contactNumberController.text.trim(),
           contactInfo: _contactInfoController.text.trim().isEmpty
               ? null
               : _contactInfoController.text.trim(),
-          address: _addressController.text.trim().isEmpty
-              ? null
-              : _addressController.text.trim(),
-          deadline: deadlineAsString,
+          data: null,
+          inclusive: _inclusive,
           type: QuestType.job,
           status: QuestStatus.started,
         );

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/services/fcm_handler.dart';
 import 'firebase_options.dart';
 import 'package:quester_client/core/providers/core_providers.dart';

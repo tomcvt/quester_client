@@ -11,3 +11,14 @@ class UsernameNotifier extends Notifier<String?> {
 final usernameProvider = NotifierProvider<UsernameNotifier, String?>(
   UsernameNotifier.new,
 );
+
+class PhoneNumberNotifier extends Notifier<String?> {
+  @override
+  String? build() => AppInitializer.sessionData.phoneNumber;
+
+  void set(String newPhoneNumber) => state = newPhoneNumber;
+}
+
+final phoneNumberProvider = NotifierProvider<PhoneNumberNotifier, String?>(
+  PhoneNumberNotifier.new,
+);

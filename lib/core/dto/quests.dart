@@ -33,43 +33,55 @@ class CreateQuestResponse(BaseModel):
 class CreateQuestRequest {
   final String groupPublicId;
   final String name;
-  final String? data;
-  final String? deadline;
+  final String? description;
+  final DateTime? date;
+  final DateTime? deadlineStart;
+  final DateTime? deadlineEnd;
   final String? address;
   final String? contactNumber;
   final String? contactInfo;
+  final String? data;
   final QuestType type;
   final bool inclusive;
   final QuestStatus status;
   final String creatorPublicId;
+  final String? acceptedByPublicId;
 
   CreateQuestRequest({
     required this.groupPublicId,
     required this.name,
-    this.data,
-    this.deadline,
+    this.description,
+    this.date,
+    this.deadlineStart,
+    this.deadlineEnd,
     this.address,
     this.contactNumber,
     this.contactInfo,
+    this.data,
     this.type = QuestType.job,
     this.inclusive = true,
     this.status = QuestStatus.started,
     required this.creatorPublicId,
+    this.acceptedByPublicId,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'group_public_id': groupPublicId,
       'name': name,
-      'data': data,
-      'deadline': deadline,
+      'description': description,
+      'date': date?.toIso8601String(),
+      'deadline_start': deadlineStart?.toIso8601String(),
+      'deadline_end': deadlineEnd?.toIso8601String(),
       'address': address,
       'contact_number': contactNumber,
       'contact_info': contactInfo,
+      'data': data,
       'type': type.apiValue,
       'inclusive': inclusive,
       'status': status.apiValue,
       'creator_public_id': creatorPublicId,
+      'accepted_by_public_id': acceptedByPublicId,
     };
   }
 }
@@ -77,49 +89,65 @@ class CreateQuestRequest {
 class CreateQuestResponse {
   final String publicId;
   final String name;
-  final String? data;
-  final String? deadline;
+  final String? description;
+  final DateTime? date;
+  final DateTime? deadlineStart;
+  final DateTime? deadlineEnd;
   final String? address;
   final String? contactNumber;
   final String? contactInfo;
+  final String? data;
   final QuestType type;
   final bool inclusive;
   final QuestStatus status;
   final String creatorPublicId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? acceptedByPublicId;
 
   CreateQuestResponse({
     required this.publicId,
     required this.name,
-    this.data,
-    this.deadline,
+    this.description,
+    this.date,
+    this.deadlineStart,
+    this.deadlineEnd,
     this.address,
     this.contactNumber,
     this.contactInfo,
+    this.data,
     required this.type,
     required this.inclusive,
     required this.status,
     required this.creatorPublicId,
     required this.createdAt,
     required this.updatedAt,
+    this.acceptedByPublicId,
   });
 
   factory CreateQuestResponse.fromJson(Map<String, dynamic> json) {
     return CreateQuestResponse(
       publicId: json['public_id'],
       name: json['name'],
-      data: json['data'],
-      deadline: json['deadline'],
+      description: json['description'],
+      date: json['date'] != null ? DateTime.parse(json['date']) : null,
+      deadlineStart: json['deadline_start'] != null
+          ? DateTime.parse(json['deadline_start'])
+          : null,
+      deadlineEnd: json['deadline_end'] != null
+          ? DateTime.parse(json['deadline_end'])
+          : null,
       address: json['address'],
       contactNumber: json['contact_number'],
       contactInfo: json['contact_info'],
+      data: json['data'],
       type: QuestTypeX.fromString(json['type']),
       inclusive: json['inclusive'],
       status: QuestStatusX.fromString(json['status']),
       creatorPublicId: json['creator_public_id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      acceptedByPublicId: json['accepted_by_public_id'],
     );
   }
 }
@@ -150,33 +178,41 @@ class QuestSyncDTO {
   final String groupPublicId;
   final String publicId;
   final String name;
-  final String? data;
-  final String? deadline;
+  final String? description;
+  final DateTime? date;
+  final DateTime? deadlineStart;
+  final DateTime? deadlineEnd;
   final String? address;
   final String? contactNumber;
   final String? contactInfo;
+  final String? data;
   final QuestType type;
   final bool inclusive;
   final QuestStatus status;
   final String creatorPublicId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? acceptedByPublicId;
 
   QuestSyncDTO({
     required this.groupPublicId,
     required this.publicId,
     required this.name,
-    this.data,
-    this.deadline,
+    this.description,
+    this.date,
+    this.deadlineStart,
+    this.deadlineEnd,
     this.address,
     this.contactNumber,
     this.contactInfo,
+    this.data,
     required this.type,
     required this.inclusive,
     required this.status,
     required this.creatorPublicId,
     required this.createdAt,
     required this.updatedAt,
+    this.acceptedByPublicId,
   });
 
   factory QuestSyncDTO.fromJson(Map<String, dynamic> json) {
@@ -184,17 +220,25 @@ class QuestSyncDTO {
       groupPublicId: json['group_public_id'],
       publicId: json['public_id'],
       name: json['name'],
-      data: json['data'],
-      deadline: json['deadline'],
+      description: json['description'],
+      date: json['date'] != null ? DateTime.parse(json['date']) : null,
+      deadlineStart: json['deadline_start'] != null
+          ? DateTime.parse(json['deadline_start'])
+          : null,
+      deadlineEnd: json['deadline_end'] != null
+          ? DateTime.parse(json['deadline_end'])
+          : null,
       address: json['address'],
       contactNumber: json['contact_number'],
       contactInfo: json['contact_info'],
+      data: json['data'],
       type: QuestTypeX.fromString(json['type']),
       inclusive: json['inclusive'],
       status: QuestStatusX.fromString(json['status']),
       creatorPublicId: json['creator_public_id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
+      acceptedByPublicId: json['accepted_by_public_id'],
     );
   }
 }
