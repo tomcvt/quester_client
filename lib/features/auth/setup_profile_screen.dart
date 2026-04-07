@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/features/profile/profile_actions_notifier.dart';
 
 class SetupProfileScreen extends ConsumerWidget {
@@ -9,9 +11,13 @@ class SetupProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final prefsAsync = ref.watch(sharedPreferencesProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Setup Profile')),
-      body: const Center(child: _ProfileSetupForm()),
+      body: prefsAsync.maybeWhen(
+        data: (_) => const Center(child: _ProfileSetupForm()),
+        orElse: () => const Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }
@@ -52,6 +58,13 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
               controller: _usernameController,
               decoration: const InputDecoration(labelText: 'Choose a username'),
             ),
+            if (state.hasError) ...[
+              const SizedBox(height: 8),
+              Text(
+                state.error.toString(),
+                style: const TextStyle(color: Colors.red),
+              ),
+            ],
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: state.isLoading ? null : _saveUsername,
@@ -73,6 +86,7 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
     FocusScope.of(context).unfocus();
     final username = _usernameController.text.trim();
     if (username.isEmpty) return;
+    logger.d('Saving username: $username');
     ref.read(profileActionsProvider.notifier).changeUsername(username);
   }
 }
