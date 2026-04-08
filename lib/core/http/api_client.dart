@@ -243,10 +243,10 @@ class ApiClient {
     }
   }
 
-  Future<bool?> acceptQuest(String publicId) async {
+  Future<QuestSyncDTO?> acceptQuest(String publicId) async {
     try {
       final response = await _dio.post('/quests/$publicId/accept');
-      return true;
+      return QuestSyncDTO.fromJson(response.data);
     } on DioException catch (e) {
       _throwFromDio(e, 'Failed to accept quest');
     }

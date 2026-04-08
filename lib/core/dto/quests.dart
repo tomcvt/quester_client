@@ -241,6 +241,10 @@ class QuestSyncDTO {
       acceptedByPublicId: json['accepted_by_public_id'],
     );
   }
+  @override
+  String toString() {
+    return 'QuestSyncDTO(publicId: $publicId, name: $name, status: $status, acceptedBy: $acceptedByPublicId)';
+  }
 }
 
 class QuestsSyncResponse {

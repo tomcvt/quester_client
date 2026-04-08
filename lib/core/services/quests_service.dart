@@ -198,21 +198,35 @@ class QuestsService {
       logger.e('Quest with id $questId not found');
       return null;
     }
-    final updateResponse = offline
+    final updatedQuestResponse = offline
         ? null
         : await _apiClient.acceptQuest(quest.publicId);
-    if (updateResponse != null) {
-      logger.d('Quest accepted on backend: ${updateResponse.toString()}');
+    if (updatedQuestResponse != null) {
+      logger.d('Quest accepted on backend: ${updatedQuestResponse.toString()}');
     } else {
       logger.d('Offline quest acceptance, skipping API call');
     }
     logger.d(
       "publicId = ${quest.publicId}, sessionPublicId = ${AppInitializer.sessionData.publicId}",
     );
-    final updatedQuest = quest.copyWith(
-      status: QuestStatus.accepted,
-      acceptedByPublicId: Value(AppInitializer.sessionData.publicId),
-    );
+    Quest updatedQuest = quest;
+    //TODO update from quest response instead of just changing status and acceptedByPublicId, in case there are other changes
+    if (!offline) {
+      final acceptedByPublicId = updatedQuestResponse?.acceptedByPublicId;
+      if (acceptedByPublicId == null) {
+        logger.e('API response missing acceptedByPublicId');
+        return null;
+      }
+      updatedQuest = quest.copyWith(
+        status: QuestStatus.accepted,
+        acceptedByPublicId: Value(acceptedByPublicId),
+      );
+    } else {
+      updatedQuest = quest.copyWith(
+        status: QuestStatus.accepted,
+        acceptedByPublicId: Value(AppInitializer.sessionData.publicId),
+      );
+    }
     await _questsDao.updateQuest(updatedQuest);
     logger.d('Quest with id $questId accepted');
     return updatedQuest;
@@ -244,13 +258,9 @@ class QuestsService {
       logger.e('Quest with id $questId not found');
       return;
     }
-    try {
-      await _apiClient.deleteQuest(quest.publicId);
-      logger.d('Quest with id $questId deleted on backend');
-      await _questsDao.deleteQuest(questId);
-      logger.d('Quest with id $questId deleted from local DB');
-    } catch (e) {
-      logger.e('Failed to delete quest on backend: $e');
-    }
+    await _apiClient.deleteQuest(quest.publicId);
+    logger.d('Quest with id $questId deleted on backend');
+    await _questsDao.deleteQuest(questId);
+    logger.d('Quest with id $questId deleted from local DB');
   }
 }

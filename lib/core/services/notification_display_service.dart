@@ -1,5 +1,7 @@
 // lib/core/services/notification_display_service.dart
 
+import 'dart:ui';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:quester_client/core/data/app_database.dart';
 
@@ -11,18 +13,28 @@ class NotificationDisplayService {
     await _plugin.initialize(
       settings: const InitializationSettings(android: android),
     );
-
-    // Create the channel once — Android ignores duplicate creates
-    const channel = AndroidNotificationChannel(
-      'quests', // id
-      'Active Quests', // name shown in system settings
-      importance: Importance.high,
-    );
-    await _plugin
+    final androidImpl = _plugin
         .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(channel);
+        >();
+    // Create the channel once — Android ignores duplicate creates
+    const questsChannel = AndroidNotificationChannel(
+      'quests', // id
+      'Active Quests', // name shown in system settings
+      enableLights: true,
+      ledColor: Color(0xFFFF8B28),
+      importance: Importance.high,
+    );
+    //androidAlarmSound = AndroidNotificationSound()
+    const standardChannel = AndroidNotificationChannel(
+      'standard-notifications',
+      'Key Notifications',
+      importance: Importance.high,
+      enableLights: true,
+      ledColor: Color.fromARGB(255, 40, 234, 255),
+    );
+    await androidImpl?.createNotificationChannel(questsChannel);
+    await androidImpl?.createNotificationChannel(standardChannel);
   }
 
   static Future<void> showQuestNotification(Quest quest) async {
@@ -46,5 +58,21 @@ class NotificationDisplayService {
 
   static Future<void> cancelQuestNotification(int questLocalId) async {
     await _plugin.cancel(id: questLocalId);
+  }
+
+  static Future<void> showYourQuestTakenNotification(Quest quest) async {
+    await _plugin.show(
+      id: quest.id + 1000000, // offset to avoid collision with active quest IDs
+      title: 'Your quest was taken!',
+      body: '${quest.name} has been accepted by someone.',
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'standard-notifications',
+          'Key Notifications',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
   }
 }

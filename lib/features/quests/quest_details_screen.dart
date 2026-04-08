@@ -38,70 +38,27 @@ import 'package:quester_client/core/providers/data_providers.dart';
 // Key is (groupId, questId) — both as internal int strings from route params.
 // Note: watchById(questId) would also work since the quest row already contains
 // groupId. The groupId here is kept for the back-navigation call only.
-final questDetailsProvider = StreamProvider.autoDispose
-    .family<Quest?, (String, String)>((ref, params) {
-      final (groupId, questId) = params;
-      return ref
-          .watch(questsDaoProvider)
-          .watchByGroupAndId(int.parse(groupId), int.parse(questId));
-    });
-
-final questCreatorProvider = FutureProvider.autoDispose.family<User?, String>((
-  ref,
-  questId,
-) async {
-  final quest = await ref.watch(questsDaoProvider).getById(int.parse(questId));
-  if (quest == null) return null;
-  return ref.watch(usersDaoProvider).getByPublicId(quest.creatorPublicId);
-});
-
-final questAcceptedByProvider = FutureProvider.autoDispose
-    .family<User?, String>((ref, questId) async {
-      final quest = await ref
-          .watch(questsDaoProvider)
-          .getById(int.parse(questId));
-      if (quest == null || quest.acceptedByPublicId == null) return null;
-      return ref
-          .watch(usersDaoProvider)
-          .getByPublicId(quest.acceptedByPublicId!);
-    });
-
 typedef QuestDetailsData = ({Quest quest, User? creator, User? acceptedBy});
 
-final questDetailsCombinedProvider = Provider.autoDispose
-    .family<AsyncValue<QuestDetailsData?>, (String, String)>((ref, params) {
+final questDetailsCombinedProvider = StreamProvider.autoDispose
+    .family<QuestDetailsData?, (String, String)>((ref, params) async* {
       final (groupId, questId) = params;
-      final questAsync = ref.watch(questDetailsProvider((groupId, questId)));
-      final creatorAsync = ref.watch(questCreatorProvider(questId));
-      final acceptedByAsync = ref.watch(questAcceptedByProvider(questId));
+      final questStream = ref
+          .watch(questsDaoProvider)
+          .watchByGroupAndId(int.parse(groupId), int.parse(questId));
+      final usersDao = ref.watch(usersDaoProvider);
 
-      // Propagate loading/error from any source
-      if (questAsync.isLoading ||
-          creatorAsync.isLoading ||
-          acceptedByAsync.isLoading) {
-        return const AsyncValue.loading();
+      await for (final quest in questStream) {
+        if (quest == null) {
+          yield null;
+          continue;
+        }
+        final creator = await usersDao.getByPublicId(quest.creatorPublicId);
+        final acceptedBy = quest.acceptedByPublicId != null
+            ? await usersDao.getByPublicId(quest.acceptedByPublicId!)
+            : null;
+        yield (quest: quest, creator: creator, acceptedBy: acceptedBy);
       }
-      if (questAsync.hasError) {
-        return AsyncValue.error(questAsync.error!, questAsync.stackTrace!);
-      }
-      if (creatorAsync.hasError) {
-        return AsyncValue.error(creatorAsync.error!, creatorAsync.stackTrace!);
-      }
-      if (acceptedByAsync.hasError) {
-        return AsyncValue.error(
-          acceptedByAsync.error!,
-          acceptedByAsync.stackTrace!,
-        );
-      }
-
-      final quest = questAsync.requireValue;
-      if (quest == null) return const AsyncValue.data(null);
-
-      return AsyncValue.data((
-        quest: quest,
-        creator: creatorAsync.requireValue,
-        acceptedBy: acceptedByAsync.requireValue,
-      ));
     });
 
 // ─── Screen ──────────────────────────────────────────────────────────────────

@@ -122,12 +122,15 @@ Future<void> _handleMessage(RemoteMessage message) async {
         }
         if (!kIsWeb) {
           await NotificationDisplayService.cancelQuestNotification(newQuest.id);
+          //TODO notification one time who took it
         }
         if (newQuest.acceptedByPublicId == null) {
           logger.w(
             'Received QUEST_TAKEN for quest ${newQuest.publicId} but acceptedByPublicId is null',
           );
         }
+      //we dont have to interrupt user with this
+      /*
         final username = await db.usersDao
             .getByPublicId(newQuest.acceptedByPublicId ?? '')
             .then((u) => u?.username ?? 'Someone');
@@ -139,6 +142,7 @@ Future<void> _handleMessage(RemoteMessage message) async {
             takenByUsername: username,
           ),
         );
+        */
       case 'QUEST_DELETED':
         final deletedQuest = await syncService.deleteQuest(
           groupPublicId,
@@ -152,6 +156,36 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
           break;
         }
+      case 'YOUR_QUEST_TAKEN':
+        //inform the quest creator that their quest was taken by someone
+        final newQuest = await syncService.syncNewQuests(
+          groupPublicId,
+          questPublicId,
+        );
+        if (newQuest != null) {
+          logger.i('Your quest was taken: ${newQuest.name}');
+        } else {
+          logger.e(
+            'Failed to sync updated quest with public id $questPublicId',
+          );
+          break;
+        }
+        if (!kIsWeb) {
+          await NotificationDisplayService.showYourQuestTakenNotification(
+            newQuest,
+          );
+        }
+        final username = await db.usersDao
+            .getByPublicId(newQuest.acceptedByPublicId ?? '')
+            .then((u) => u?.username ?? 'Someone');
+        _incomingQuestController.add(
+          QuestNudge(
+            type: type,
+            questId: newQuest.id.toString(),
+            groupId: newQuest.groupId.toString(),
+            takenByUsername: username,
+          ),
+        );
     }
   } finally {
     if (ownDb) await db.close();

@@ -156,27 +156,46 @@ class _QuestNudgeDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCreated = nudge.type == 'QUEST_CREATED';
+    final type = nudge.type;
+
+    final (nTitle, nContent, nActionLabel, nActionOnTap) = switch (type) {
+      'QUEST_CREATED' => (
+        'New Quest!',
+        'A new quest has appeared in your group.',
+        'View',
+        () {
+          Navigator.of(context).pop();
+          context.go('/groups/${nudge.groupId}/quests/${nudge.questId}');
+        },
+      ),
+      'YOUR_QUEST_TAKEN' => (
+        'Your quest was taken!',
+        'Someone accepted your quest.',
+        'View',
+        () {
+          Navigator.of(context).pop();
+          context.go('/groups/${nudge.groupId}/quests/${nudge.questId}');
+        },
+      ),
+      _ => (
+        'Notification',
+        'You have a new notification.',
+        'OK',
+        () {
+          Navigator.of(context).pop();
+        },
+      ),
+    };
 
     return AlertDialog(
-      title: Text(isCreated ? 'Nowe zadanie!' : 'Zadanie zajęte'),
-      content: Text(
-        isCreated
-            ? 'Pojawiło się nowe zadanie w grupie.'
-            : 'Ktoś przyjął zadanie.',
-      ),
+      title: Text(nTitle),
+      content: Text(nContent),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('OK'),
         ),
-        if (isCreated)
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/groups/${nudge.groupId}/quests/${nudge.questId}');
-            },
-            child: const Text('Zobacz'),
-          ),
+        TextButton(onPressed: nActionOnTap, child: Text(nActionLabel)),
       ],
     );
   }
