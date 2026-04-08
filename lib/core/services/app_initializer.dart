@@ -11,9 +11,11 @@ import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/dev/dev_data_seeder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:quester_client/core/services/auth_service.dart';
 import 'package:uuid/uuid.dart';
 import 'auth_service.dart';
 import 'installation_id_service.dart';
+import 'package:quester_client/core/constants/const.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
 
 class AppInitializer {
@@ -33,8 +35,6 @@ class AppInitializer {
 
   //TODO think about what is really static and final
 
-  static const String _apiBaseUrlKey = 'api_base_url';
-
   static String? getCurrentUserPublicId() {
     return sessionData.publicId;
   }
@@ -52,7 +52,7 @@ class AppInitializer {
     final installationIdService = InstallationIdService(prefs);
     installationId = await installationIdService.getOrCreateInstallationId();
     fcmToken = await getFcmToken(prefs);
-    prefs.setString(_apiBaseUrlKey, config.apiBaseUrl);
+    prefs.setString(apiBaseUrlKey, config.apiBaseUrl);
     prefs.setString('installation_id', installationId);
     apiClient = ApiClient(config.apiBaseUrl, installationId);
     //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful

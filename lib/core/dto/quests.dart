@@ -259,4 +259,9 @@ class QuestsSyncResponse {
           .toList(),
     );
   }
+
+  @override
+  String toString() {
+    return 'QuestsSyncResponse(quests: $quests)';
+  }
 }

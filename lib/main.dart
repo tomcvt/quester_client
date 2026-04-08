@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/services/fcm_handler.dart';
+import 'package:quester_client/core/services/notification_display_service.dart';
 import 'firebase_options.dart';
 import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
@@ -48,6 +49,8 @@ void main() async {
   await AppInitializer.init(buildConfig);
   logger.d('DB: ${AppInitializer.db}');
   await FirebaseMessaging.instance.requestPermission();
+
+  await NotificationDisplayService.init();
 
   FirebaseMessaging.onBackgroundMessage(
     firebaseMessagingBackgroundHandler,

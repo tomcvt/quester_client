@@ -27,9 +27,9 @@ class SyncService {
     logger.d(
       'Starting quest sync for group $groupPublicId (id: ${group.id}) with last update time $lastUpdateTime',
     );
-    // Subtract 1 second from lastUpdateTime to ensure we get any quests that were updated at the exact last update time
+    // Subtract 10 seconds from lastUpdateTime to ensure we get any quests that were updated at the exact last update time
     final adjustedLastUpdateTime = lastUpdateTime.subtract(
-      const Duration(seconds: 1),
+      const Duration(seconds: 10),
     );
     final questsResponse = await _apiClient.syncGroupQuestsSince(
       groupPublicId,
@@ -37,6 +37,9 @@ class SyncService {
     );
     logger.d(
       'Syncing quests for group $groupPublicId since $adjustedLastUpdateTime, received ${questsResponse.quests.length} quests',
+    );
+    logger.d(
+      'Payload: ${questsResponse.quests.map((q) => '${q.toString()}\n').join()}',
     );
     await _db.questsDao.insertQuestsFromSync(group.id, questsResponse.quests);
     logger.d(

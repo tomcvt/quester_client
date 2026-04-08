@@ -4,6 +4,7 @@ import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:quester_client/core/constants/const.dart';
 import 'installation_id_service.dart';
 import '../utils/logger_util.dart';
 
@@ -12,13 +13,13 @@ class AuthService {
   final ApiClient _apiClient;
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
-
+  /*
   static const String _apiKey = 'x-api-key';
-  static const String _sessionToken = 'session_token';
+  static const String _sessionTokenKey = 'session_token';
   static const String _publicIdKey = 'public_id';
   static const String _usernameKey = 'username';
   static const String _phoneNumberKey = 'phone_number';
-
+*/
   AuthService(
     this._installationIdService,
     this._apiClient,
@@ -50,13 +51,13 @@ class AuthService {
   ) async {
     final installationId = await _installationIdService
         .getOrCreateInstallationId();
-    var apiKey = await _secureStorage.read(key: _apiKey);
+    var apiKey = await _secureStorage.read(key: apiKeyKey);
     logger.d('Retrieved API key from secure storage: $apiKey');
     if (apiKey == null || apiKey.isEmpty) {
       await registerAndSave(installationId, null, '');
     }
     //TODO add fallback if incorrect token
-    apiKey = await _secureStorage.read(key: _apiKey);
+    apiKey = await _secureStorage.read(key: apiKeyKey);
     if (apiKey == null || apiKey.isEmpty) {
       throw Exception('API key is missing after registration');
     }
@@ -76,12 +77,12 @@ class AuthService {
       'Setting session token in API client: ${authResponse.sessionToken}',
     );
     await _secureStorage.write(
-      key: _sessionToken,
+      key: sessionTokenKey,
       value: authResponse.sessionToken,
     );
-    await _secureStorage.write(key: _publicIdKey, value: authResponse.publicId);
-    await _prefs.setString(_usernameKey, authResponse.username ?? '');
-    await _prefs.setString(_phoneNumberKey, authResponse.phoneNumber ?? '');
+    await _secureStorage.write(key: publicIdKey, value: authResponse.publicId);
+    await _prefs.setString(usernameKey, authResponse.username ?? '');
+    await _prefs.setString(phoneNumberKey, authResponse.phoneNumber ?? '');
     return SessionData(
       sessionToken: authResponse.sessionToken,
       username: authResponse.username,
@@ -102,21 +103,21 @@ class AuthService {
       password,
     );
     await _secureStorage.write(
-      key: _apiKey,
+      key: apiKeyKey,
       value: registrationResponse.apiKey,
     );
     await _secureStorage.write(
-      key: _sessionToken,
+      key: sessionTokenKey,
       value: registrationResponse.sessionToken,
     );
     await _secureStorage.write(
-      key: _publicIdKey,
+      key: publicIdKey,
       value: registrationResponse.publicId,
     );
     //how to handle case where username is null? for now we just store empty string, but maybe we should generate a random username or something?
-    await _prefs.setString(_usernameKey, registrationResponse.username ?? '');
+    await _prefs.setString(usernameKey, registrationResponse.username ?? '');
     await _prefs.setString(
-      _phoneNumberKey,
+      phoneNumberKey,
       registrationResponse.phoneNumber ?? '',
     );
     logger.d('Registered: ${registrationResponse.toString()}');
@@ -128,7 +129,7 @@ class AuthService {
   String? getPhoneNumber() => AppInitializer.sessionData.phoneNumber;
 
   Future<String?> changeUsername(String newUsername) async {
-    final publicId = await _secureStorage.read(key: _publicIdKey);
+    final publicId = await _secureStorage.read(key: publicIdKey);
     if (publicId == null) {
       throw Exception('Public ID not found in secure storage');
     }
@@ -141,7 +142,7 @@ class AuthService {
     if (!didSucceed) {
       throw Exception('Failed to change username');
     }
-    await _prefs.setString(_usernameKey, newUsername);
+    await _prefs.setString(usernameKey, newUsername);
     AppInitializer.sessionData = AppInitializer.sessionData.copyWith(
       username: newUsername,
     );
@@ -150,7 +151,7 @@ class AuthService {
   }
 
   Future<String?> changePhoneNumber(String newPhoneNumber) async {
-    final publicId = await _secureStorage.read(key: _publicIdKey);
+    final publicId = await _secureStorage.read(key: publicIdKey);
     if (publicId == null) {
       throw Exception('Public ID not found in secure storage');
     }
@@ -159,7 +160,7 @@ class AuthService {
     if (!didSucceed) {
       throw Exception('Failed to change phone number');
     }
-    await _prefs.setString(_phoneNumberKey, newPhoneNumber);
+    await _prefs.setString(phoneNumberKey, newPhoneNumber);
     AppInitializer.sessionData = AppInitializer.sessionData.copyWith(
       phoneNumber: newPhoneNumber,
     );
@@ -174,9 +175,9 @@ class AuthService {
 
   Future<void> logout() async {
     await Future.delayed(const Duration(seconds: 1));
-    await _secureStorage.delete(key: _sessionToken);
-    await _prefs.remove(_usernameKey);
-    await _prefs.remove(_phoneNumberKey);
+    await _secureStorage.delete(key: sessionTokenKey);
+    await _prefs.remove(usernameKey);
+    await _prefs.remove(phoneNumberKey);
   }
 
   bool _allowedUsername(String username) {

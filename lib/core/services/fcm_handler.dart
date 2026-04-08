@@ -15,6 +15,7 @@ import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/services/notification_display_service.dart';
 import 'package:quester_client/core/services/sync_service.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
+import 'package:quester_client/core/constants/const.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
@@ -56,14 +57,16 @@ Future<void> _handleMessage(RemoteMessage message) async {
   final apiBaseUrl =
       prefs.getString('api_base_url') ?? 'http://localhost:8100/api/v1/';
   final installationId = prefs.getString('installation_id') ?? '';
-  final sessionToken = await secureStorage.read(key: 'session_token') ?? '';
+  final sessionToken = await secureStorage.read(key: sessionTokenKey) ?? '';
+  final myPublicId = await secureStorage.read(key: publicIdKey) ?? '';
 
   final data = message.data;
   final type = data['type'];
   final groupPublicId = data['group_public_id'];
   final questPublicId = data['quest_public_id'];
+  final acceptedByPublicId = data['accepted_by_public_id'];
   logger.d(
-    'Received FCM message: type=$type, groupPublicId=$groupPublicId, questPublicId=$questPublicId',
+    'Received FCM message: type=$type, \n groupPublicId=$groupPublicId, \n questPublicId=$questPublicId, \n acceptedByPublicId=$acceptedByPublicId',
   );
 
   if (type == null || groupPublicId == null || questPublicId == null) return;
@@ -86,7 +89,7 @@ Future<void> _handleMessage(RemoteMessage message) async {
 
   try {
     switch (type) {
-      case 'QUEST_CREATED':
+      case questCreated:
         final newQuest = await syncService.syncNewQuests(
           groupPublicId,
           questPublicId,
@@ -107,7 +110,7 @@ Future<void> _handleMessage(RemoteMessage message) async {
             groupId: newQuest.groupId.toString(),
           ),
         );
-      case 'QUEST_TAKEN':
+      case questTaken:
         final newQuest = await syncService.syncNewQuests(
           groupPublicId,
           questPublicId,
@@ -120,30 +123,21 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
           break;
         }
+        //TODO make sure server fires this to EVERYONE including source
         if (!kIsWeb) {
           await NotificationDisplayService.cancelQuestNotification(newQuest.id);
-          //TODO notification one time who took it
+          if (newQuest.acceptedByPublicId == myPublicId) {
+            await NotificationDisplayService.showYouDoQuestNotification(
+              newQuest,
+            );
+          }
         }
         if (newQuest.acceptedByPublicId == null) {
           logger.w(
             'Received QUEST_TAKEN for quest ${newQuest.publicId} but acceptedByPublicId is null',
           );
         }
-      //we dont have to interrupt user with this
-      /*
-        final username = await db.usersDao
-            .getByPublicId(newQuest.acceptedByPublicId ?? '')
-            .then((u) => u?.username ?? 'Someone');
-        _incomingQuestController.add(
-          QuestNudge(
-            type: type,
-            questId: newQuest.id.toString(),
-            groupId: newQuest.groupId.toString(),
-            takenByUsername: username,
-          ),
-        );
-        */
-      case 'QUEST_DELETED':
+      case questDeleted:
         final deletedQuest = await syncService.deleteQuest(
           groupPublicId,
           questPublicId,
@@ -156,7 +150,7 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
           break;
         }
-      case 'YOUR_QUEST_TAKEN':
+      case yourQuestTaken:
         //inform the quest creator that their quest was taken by someone
         final newQuest = await syncService.syncNewQuests(
           groupPublicId,
@@ -170,14 +164,21 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
           break;
         }
-        if (!kIsWeb) {
-          await NotificationDisplayService.showYourQuestTakenNotification(
-            newQuest,
-          );
-        }
         final username = await db.usersDao
             .getByPublicId(newQuest.acceptedByPublicId ?? '')
             .then((u) => u?.username ?? 'Someone');
+        if (!kIsWeb) {
+          await NotificationDisplayService.showYourQuestTakenNotification(
+            newQuest,
+            username,
+          );
+          if (newQuest.acceptedByPublicId == myPublicId) {
+            await NotificationDisplayService.showYouDoQuestNotification(
+              newQuest,
+            );
+          }
+        }
+        //TODO later worry about inclusive quests (creator takes it too) and show different message in that case
         _incomingQuestController.add(
           QuestNudge(
             type: type,
@@ -186,6 +187,51 @@ Future<void> _handleMessage(RemoteMessage message) async {
             takenByUsername: username,
           ),
         );
+      case questCompleted:
+        final newQuest = await syncService.syncNewQuests(
+          groupPublicId,
+          questPublicId,
+        );
+        if (newQuest != null) {
+          logger.i('Quest completed: ${newQuest.name}');
+        } else {
+          logger.e(
+            'Failed to sync completed quest with public id $questPublicId',
+          );
+          break;
+        }
+        final username = await db.usersDao
+            .getByPublicId(newQuest.acceptedByPublicId ?? '')
+            .then((u) => u?.username ?? 'Someone');
+        if (!kIsWeb) {
+          await NotificationDisplayService.cancelQuestNotification(newQuest.id);
+          //takes care of both quests type and ongoing notification
+        }
+      case yourQuestCompleted:
+        final newQuest = await syncService.syncNewQuests(
+          groupPublicId,
+          questPublicId,
+        );
+        if (newQuest != null) {
+          logger.i('Your quest was completed: ${newQuest.name}');
+        } else {
+          logger.e(
+            'Failed to sync updated quest with public id $questPublicId',
+          );
+          break;
+        }
+        final username = await db.usersDao
+            .getByPublicId(newQuest.acceptedByPublicId ?? '')
+            .then((u) => u?.username ?? 'Someone');
+        if (!kIsWeb) {
+          await NotificationDisplayService.showYourQuestCompletedOneTimeNotification(
+            newQuest,
+            username,
+          );
+        }
+
+      default:
+        logger.w('Received FCM message with unknown type: $type');
     }
   } finally {
     if (ownDb) await db.close();
