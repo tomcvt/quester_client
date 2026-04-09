@@ -2140,6 +2140,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UsersTable users = $UsersTable(this);
   late final $GroupMembersTable groupMembers = $GroupMembersTable(this);
   late final $QuestsTable quests = $QuestsTable(this);
+  late final Index groupMembersUserPublicIdIdx = Index(
+    'group_members_user_public_id_idx',
+    'CREATE INDEX group_members_user_public_id_idx ON group_members (user_public_id)',
+  );
   late final Index questsGroupStatusUpdatedIdx = Index(
     'quests_group_status_updated_idx',
     'CREATE INDEX quests_group_status_updated_idx ON quests (group_id, status, updated_at)',
@@ -2159,6 +2163,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     users,
     groupMembers,
     quests,
+    groupMembersUserPublicIdIdx,
     questsGroupStatusUpdatedIdx,
   ];
 }
@@ -2606,6 +2611,52 @@ final class $$UsersTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$QuestsTable, List<Quest>> _createdQuestsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.quests,
+    aliasName: $_aliasNameGenerator(
+      db.users.publicId,
+      db.quests.creatorPublicId,
+    ),
+  );
+
+  $$QuestsTableProcessedTableManager get createdQuests {
+    final manager = $$QuestsTableTableManager($_db, $_db.quests).filter(
+      (f) => f.creatorPublicId.publicId.sqlEquals(
+        $_itemColumn<String>('public_id')!,
+      ),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_createdQuestsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$QuestsTable, List<Quest>> _acceptedQuestsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.quests,
+    aliasName: $_aliasNameGenerator(
+      db.users.publicId,
+      db.quests.acceptedByPublicId,
+    ),
+  );
+
+  $$QuestsTableProcessedTableManager get acceptedQuests {
+    final manager = $$QuestsTableTableManager($_db, $_db.quests).filter(
+      (f) => f.acceptedByPublicId.publicId.sqlEquals(
+        $_itemColumn<String>('public_id')!,
+      ),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_acceptedQuestsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
@@ -2647,6 +2698,56 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
           }) => $$GroupMembersTableFilterComposer(
             $db: $db,
             $table: $db.groupMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> createdQuests(
+    Expression<bool> Function($$QuestsTableFilterComposer f) f,
+  ) {
+    final $$QuestsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.publicId,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.creatorPublicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableFilterComposer(
+            $db: $db,
+            $table: $db.quests,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> acceptedQuests(
+    Expression<bool> Function($$QuestsTableFilterComposer f) f,
+  ) {
+    final $$QuestsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.publicId,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.acceptedByPublicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableFilterComposer(
+            $db: $db,
+            $table: $db.quests,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2726,6 +2827,56 @@ class $$UsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> createdQuests<T extends Object>(
+    Expression<T> Function($$QuestsTableAnnotationComposer a) f,
+  ) {
+    final $$QuestsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.publicId,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.creatorPublicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.quests,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> acceptedQuests<T extends Object>(
+    Expression<T> Function($$QuestsTableAnnotationComposer a) f,
+  ) {
+    final $$QuestsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.publicId,
+      referencedTable: $db.quests,
+      getReferencedColumn: (t) => t.acceptedByPublicId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$QuestsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.quests,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -2741,7 +2892,11 @@ class $$UsersTableTableManager
           $$UsersTableUpdateCompanionBuilder,
           (User, $$UsersTableReferences),
           User,
-          PrefetchHooks Function({bool groupMembersRefs})
+          PrefetchHooks Function({
+            bool groupMembersRefs,
+            bool createdQuests,
+            bool acceptedQuests,
+          })
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -2784,33 +2939,81 @@ class $$UsersTableTableManager
                     (e.readTable(table), $$UsersTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({groupMembersRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (groupMembersRefs) db.groupMembers],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (groupMembersRefs)
-                    await $_getPrefetchedData<User, $UsersTable, GroupMember>(
-                      currentTable: table,
-                      referencedTable: $$UsersTableReferences
-                          ._groupMembersRefsTable(db),
-                      managerFromTypedResult: (p0) => $$UsersTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).groupMembersRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.userPublicId == item.publicId,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({
+                groupMembersRefs = false,
+                createdQuests = false,
+                acceptedQuests = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (groupMembersRefs) db.groupMembers,
+                    if (createdQuests) db.quests,
+                    if (acceptedQuests) db.quests,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (groupMembersRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          GroupMember
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._groupMembersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).groupMembersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userPublicId == item.publicId,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (createdQuests)
+                        await $_getPrefetchedData<User, $UsersTable, Quest>(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._createdQuestsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).createdQuests,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.creatorPublicId == item.publicId,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (acceptedQuests)
+                        await $_getPrefetchedData<User, $UsersTable, Quest>(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._acceptedQuestsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).acceptedQuests,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.acceptedByPublicId == item.publicId,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2827,7 +3030,11 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableUpdateCompanionBuilder,
       (User, $$UsersTableReferences),
       User,
-      PrefetchHooks Function({bool groupMembersRefs})
+      PrefetchHooks Function({
+        bool groupMembersRefs,
+        bool createdQuests,
+        bool acceptedQuests,
+      })
     >;
 typedef $$GroupMembersTableCreateCompanionBuilder =
     GroupMembersCompanion Function({

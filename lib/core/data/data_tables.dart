@@ -58,6 +58,8 @@ extension GroupTypeX on GroupType {
       GroupType.values.firstWhere((e) => e.name == s.toLowerCase());
 }
 
+// Users table schema
+// REFERENCE: PRIMARY KEY
 class Users extends Table {
   TextColumn get publicId => text()();
   TextColumn get username => text().nullable()();
@@ -95,6 +97,7 @@ extension MemberRoleX on MemberRole {
 //   - profile screen exists
 //   - user appears in multiple independent contexts
 //   - username changes need to propagate consistently
+@TableIndex(name: 'group_members_user_public_id_idx', columns: {#userPublicId})
 class GroupMembers extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get groupId => integer().references(Groups, #id)();
@@ -149,6 +152,8 @@ class Quest(Base):
 
     //TODO refactor 
 */
+// Quests table schema
+// REFERENCE: TABLE
 @TableIndex(
   name: 'quests_group_status_updated_idx',
   columns: {#groupId, #status, #updatedAt},
@@ -172,11 +177,13 @@ class Quests extends Table {
   TextColumn get status => textEnum<QuestStatus>().withDefault(
     Constant(QuestStatus.started.value),
   )();
+  @ReferenceName('createdQuests')
   TextColumn get creatorPublicId => text().references(Users, #publicId)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(
     currentDateAndTime,
   )(); // update on change logic in code
+  @ReferenceName('acceptedQuests')
   TextColumn get acceptedByPublicId =>
       text().nullable().references(Users, #publicId)();
 
