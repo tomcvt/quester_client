@@ -77,10 +77,10 @@ class SyncService {
   }
 
   Future<void> syncUsersAndGroupMembers(
-    String groupPublicId, 
-    {String? addedUserPublicId,
-    String? removedUserPublicId}
-    ) async {
+    String groupPublicId, {
+    String? addedUserPublicId,
+    String? removedUserPublicId,
+  }) async {
     final group = await _db.groupsDao.groupFromPublicId(groupPublicId);
     if (group == null) {
       logger.e('Group with public id $groupPublicId not found');
@@ -88,9 +88,13 @@ class SyncService {
     }
     final membersResponse = await _apiClient.syncGroupMembers(groupPublicId);
 
+    //we get addedpublicId if we dont find group member with that public id in local db,
+
     if (addedUserPublicId != null) {
       logger.d('User with public id $addedUserPublicId added to db from sync');
-      final newUserInList = await _apiClient.fetchUsersByPublicIds(List.of([addedUserPublicId]));
+      final newUserInList = await _apiClient.fetchUsersByPublicIds(
+        List.of([addedUserPublicId]),
+      );
       final newUser = newUserInList.users.first;
       await _db.usersDao.insertUsersFromSync(List.of([newUser]));
     }
@@ -99,12 +103,19 @@ class SyncService {
       membersResponse.members,
     );
     if (removedUserPublicId != null) {
-      logger.d('User with public id $removedUserPublicId removed from db from sync');
+      logger.d(
+        'User with public id $removedUserPublicId removed from db from sync',
+      );
       await _db.groupMembersDao.deleteMember(group.id, removedUserPublicId);
+      //TODO - consider deleting user from users table if they are not a member of any groups anymore, but need to check references first
+      //long lookup if not indexed, so, just add index we dont microoptimize client side, waste of compute
     }
   }
+
   //actully useless becase we get notif about one user so we just fetch that
-  Future<List<String>> diffNewUsersPublicIds(List<GroupMemberSyncDTO> fetchedMembersResponseMembers) async {
+  Future<List<String>> diffNewUsersPublicIds(
+    List<GroupMemberSyncDTO> fetchedMembersResponseMembers,
+  ) async {
     final usersPublicIds = fetchedMembersResponseMembers
         .map((m) => m.userPublicId)
         .toSet();
@@ -112,6 +123,7 @@ class SyncService {
         .getExistingPublicIdsForUsers(usersPublicIds);
     final newUsersPublicIds = usersPublicIds.difference(existingUsersPublicIds);
     return newUsersPublicIds.toList();
+  }
 }
 
 final syncServiceProvider = Provider<SyncService>((ref) {
