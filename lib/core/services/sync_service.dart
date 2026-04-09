@@ -89,6 +89,8 @@ class SyncService {
     final membersResponse = await _apiClient.syncGroupMembers(groupPublicId);
 
     //we get addedpublicId if we dont find group member with that public id in local db,
+    //we fetch and insert user if user is not present, RETHINK
+    final isPresent = await _db.usersDao.getByPublicId(addedUserPublicId ?? '');
 
     if (addedUserPublicId != null) {
       logger.d('User with public id $addedUserPublicId added to db from sync');
