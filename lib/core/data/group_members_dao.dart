@@ -54,34 +54,43 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> insertMembersFromSync(
+    int groupId,
+    List<GroupMemberSyncDTO> members,
+  ) async {
+    await batch((batch) {
+      for (final member in members) {
+        final companion = GroupMembersCompanion(
+          groupId: Value(groupId),
+          userPublicId: Value(member.userPublicId),
+          role: Value(member.role),
+          updatedAt: Value(member.updatedAt),
+        );
+        batch.insert(
+          groupMembers,
+          companion,
+          onConflict: DoUpdate(
+            (old) => companion,
+            target: [groupMembers.groupId, groupMembers.userPublicId],
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> insertMembersFromSyncWithPublicId(
     String groupPublicId,
     List<GroupMemberSyncDTO> members,
   ) async {
     final group = await (select(
       groups,
     )..where((g) => g.publicId.equals(groupPublicId))).getSingleOrNull();
-
     if (group == null) {
       throw Exception('Group with publicId "$groupPublicId" not found');
     }
-
-    final groupId = group.id;
-
-    await batch((batch) {
-      batch.insertAllOnConflictUpdate(
-        groupMembers,
-        members.map((member) {
-          return GroupMembersCompanion(
-            groupId: Value(groupId),
-            userPublicId: Value(member.userPublicId),
-            role: Value(member.role),
-            updatedAt: Value(member.updatedAt),
-          );
-        }).toList(),
-      );
-    });
+    await insertMembersFromSync(group.id, members);
   }
 
+  //TODO check references for conflicts
   Future<GroupMember> insertMember(
     int groupId,
     String userPublicId,
@@ -102,6 +111,14 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
       role: role,
       updatedAt: DateTime.now(),
     );
+  }
+
+  Future<void> deleteMember(int groupId, String userPublicId) async {
+    await (delete(groupMembers)..where(
+          (m) =>
+              m.groupId.equals(groupId) & m.userPublicId.equals(userPublicId),
+        ))
+        .go();
   }
 
   Future<int> deleteMembersForGroup(int groupId) =>

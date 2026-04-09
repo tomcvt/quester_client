@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/data/app_database.dart';
+import 'package:quester_client/core/dto/groups.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
@@ -74,6 +75,43 @@ class SyncService {
     }
     return quest;
   }
+
+  Future<void> syncUsersAndGroupMembers(
+    String groupPublicId, 
+    {String? addedUserPublicId,
+    String? removedUserPublicId}
+    ) async {
+    final group = await _db.groupsDao.groupFromPublicId(groupPublicId);
+    if (group == null) {
+      logger.e('Group with public id $groupPublicId not found');
+      return;
+    }
+    final membersResponse = await _apiClient.syncGroupMembers(groupPublicId);
+
+    if (addedUserPublicId != null) {
+      logger.d('User with public id $addedUserPublicId added to db from sync');
+      final newUserInList = await _apiClient.fetchUsersByPublicIds(List.of([addedUserPublicId]));
+      final newUser = newUserInList.users.first;
+      await _db.usersDao.insertUsersFromSync(List.of([newUser]));
+    }
+    await _db.groupMembersDao.insertMembersFromSync(
+      group.id,
+      membersResponse.members,
+    );
+    if (removedUserPublicId != null) {
+      logger.d('User with public id $removedUserPublicId removed from db from sync');
+      await _db.groupMembersDao.deleteMember(group.id, removedUserPublicId);
+    }
+  }
+  //actully useless becase we get notif about one user so we just fetch that
+  Future<List<String>> diffNewUsersPublicIds(List<GroupMemberSyncDTO> fetchedMembersResponseMembers) async {
+    final usersPublicIds = fetchedMembersResponseMembers
+        .map((m) => m.userPublicId)
+        .toSet();
+    final Set<String> existingUsersPublicIds = await _db.usersDao
+        .getExistingPublicIdsForUsers(usersPublicIds);
+    final newUsersPublicIds = usersPublicIds.difference(existingUsersPublicIds);
+    return newUsersPublicIds.toList();
 }
 
 final syncServiceProvider = Provider<SyncService>((ref) {

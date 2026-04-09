@@ -7,9 +7,15 @@ const String phoneNumberKey = 'phone_number';
 const String apiBaseUrlKey = 'api_base_url';
 
 //Event types for FCM messages
+//Quest events
 const String questCreated = 'QUEST_CREATED';
 const String questTaken = 'QUEST_TAKEN';
 const String questDeleted = 'QUEST_DELETED';
 const String yourQuestTaken = 'YOUR_QUEST_TAKEN';
 const String questCompleted = 'QUEST_COMPLETED';
 const String yourQuestCompleted = 'YOUR_QUEST_COMPLETED';
+
+//User events
+const String userJoinedGroup = 'USER_JOINED_GROUP';
+const String userLeftGroup = 'USER_LEFT_GROUP';
+const String userRoleChanged = 'USER_ROLE_CHANGED'; //for now only this one used

@@ -148,10 +148,10 @@ class GroupsService {
 
     final newUsersPublicIds = usersPublicIds.difference(existingUsersPublicIds);
     */
-    final newUsersPublicIds = usersPublicIds;
+    final newUsersPublicIds = usersPublicIds.toList();
 
     final fetchedUsersResponse = await _apiClient.fetchUsersByPublicIds(
-      newUsersPublicIds.toList(),
+      newUsersPublicIds,
     );
     final fetchedUsers = fetchedUsersResponse.users;
     logger.d('Fetched users from backend: ${fetchedUsers.toString()}');
