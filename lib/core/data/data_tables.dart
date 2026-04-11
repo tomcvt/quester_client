@@ -72,7 +72,7 @@ class Users extends Table {
 
 //-- GroupMembers
 
-enum MemberRole { owner, member }
+enum MemberRole { owner, member, admin }
 
 extension MemberRoleX on MemberRole {
   String get value => name;
@@ -85,6 +85,8 @@ extension MemberRoleX on MemberRole {
         return 'Owner';
       case MemberRole.member:
         return 'Member';
+      case MemberRole.admin:
+        return 'Admin';
       default:
         return name;
     }
@@ -98,6 +100,10 @@ extension MemberRoleX on MemberRole {
 //   - user appears in multiple independent contexts
 //   - username changes need to propagate consistently
 @TableIndex(name: 'group_members_user_public_id_idx', columns: {#userPublicId})
+@TableIndex(
+  name: 'group_members_group_id_public_id_idx',
+  columns: {#groupId, #userPublicId},
+)
 class GroupMembers extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get groupId => integer().references(Groups, #id)();

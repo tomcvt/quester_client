@@ -12,6 +12,7 @@ import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/providers/group_actions_notifier.dart';
 import 'package:quester_client/core/providers/service_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
+import 'package:quester_client/features/groups/quest_tile.dart';
 
 // ─── Domain ──────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,20 @@ final groupMembersProvider = StreamProvider.autoDispose
       return ref
           .watch(groupMembersDaoProvider)
           .watchMembersWithUserForGroupExcluding(
+            int.parse(groupId),
+            meUserPublicId,
+          );
+    });
+
+final meGroupMemberProvider = StreamProvider.autoDispose
+    .family<GroupMemberWithUser?, String>((ref, groupId) {
+      final meUserPublicId = AppInitializer.getCurrentUserPublicId();
+      if (meUserPublicId == null) {
+        return Stream.value(null); // No user logged in, so no membership
+      }
+      return ref
+          .watch(groupMembersDaoProvider)
+          .watchMemberWithUserByGroupAndUser(
             int.parse(groupId),
             meUserPublicId,
           );
@@ -253,8 +268,11 @@ class _TasksSubScreen extends ConsumerWidget {
                 ? const Center(child: Text('No quests here yet.'))
                 : ListView.builder(
                     itemCount: quests.length,
-                    itemBuilder: (context, index) =>
-                        _QuestTile(quest: quests[index]),
+                    itemBuilder: (context, index) => QuestTile(
+                      quest: quests[index],
+                      canDelete: true, // Replace with actual permission logic
+                      canHide: true, // Replace with actual permission logic
+                    ),
                   ),
           ),
         ),
@@ -598,8 +616,9 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
                                 child: child!,
                               ),
                             );
-                            if (picked != null)
+                            if (picked != null) {
                               setState(() => _deadlineEnd = picked);
+                            }
                           },
                   ),
                 ],

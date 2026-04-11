@@ -31,6 +31,26 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
+  Stream<GroupMemberWithUser?> watchMemberWithUserByGroupAndUser(
+    int groupId,
+    String userPublicId,
+  ) {
+    final query =
+        select(groupMembers).join([
+          innerJoin(users, users.publicId.equalsExp(groupMembers.userPublicId)),
+        ])..where(
+          groupMembers.groupId.equals(groupId) &
+              groupMembers.userPublicId.equals(userPublicId),
+        );
+
+    return query.watchSingleOrNull().map((row) {
+      if (row == null) return null;
+      final member = row.readTable(groupMembers);
+      final user = row.readTable(users);
+      return GroupMemberWithUser(groupMember: member, user: user);
+    });
+  }
+
   Stream<List<GroupMemberWithUser>> watchMembersWithUserForGroupExcluding(
     int groupId,
     String excludeUserPublicId,
