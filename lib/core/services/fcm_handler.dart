@@ -152,6 +152,17 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
           break;
         }
+        if (!kIsWeb) {
+          if (acceptedByPublicId == myPublicId) {
+            await NotificationDisplayService.questInProgressDeletedNotification(
+              deletedQuest,
+            );
+          } else {
+            await NotificationDisplayService.cancelQuestNotification(
+              deletedQuest.id,
+            );
+          }
+        }
       case yourQuestTaken:
         //inform the quest creator that their quest was taken by someone
         final newQuest = await syncService.syncNewQuests(
@@ -244,7 +255,17 @@ Future<void> _handleMessage(RemoteMessage message) async {
             'Failed to parse role change, meaning user likely left the group. roleChange=$roleChange',
           );
         }
-        await syncService.syncUsersAndGroupMembers(groupPublicId);
+        if (hasLeft) {
+          await syncService.syncUsersAndGroupMembers(
+            groupPublicId,
+            removedUserPublicId: myPublicId,
+          );
+        } else {
+          await syncService.syncUsersAndGroupMembers(
+            groupPublicId,
+            addedUserPublicId: myPublicId,
+          );
+        }
       default:
         logger.w('Received FCM message with unknown type: $type');
     }

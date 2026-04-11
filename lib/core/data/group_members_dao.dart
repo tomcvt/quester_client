@@ -121,6 +121,15 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
         .go();
   }
 
+  Future<bool> isMemberOfAnyGroup(String userPublicId) async {
+    final result =
+        await (select(groupMembers)
+              ..where((m) => m.userPublicId.equals(userPublicId))
+              ..limit(1))
+            .getSingleOrNull();
+    return result != null;
+  }
+
   Future<int> deleteMembersForGroup(int groupId) =>
       (delete(groupMembers)..where((m) => m.groupId.equals(groupId))).go();
 }

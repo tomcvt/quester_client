@@ -91,6 +91,8 @@ class NotificationDisplayService {
           'Active Quests',
           importance: Importance.high,
           priority: Priority.high,
+          ongoing: true, // non-dismissable by user
+          autoCancel: false,
         ),
       ),
     );
@@ -104,6 +106,22 @@ class NotificationDisplayService {
       id: quest.id,
       title: 'Your quest was completed!',
       body: '${quest.name} done by $completedByUsername!',
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'standard-notifications',
+          'Key Notifications',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
+
+  static Future<void> questInProgressDeletedNotification(Quest quest) async {
+    await _plugin.show(
+      id: quest.id,
+      title: 'CANCELED: ${quest.name}',
+      body: 'A quest you are doing was deleted by the creator.',
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'standard-notifications',

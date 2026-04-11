@@ -60,7 +60,7 @@ class GroupsService {
     );
     logger.d('Fetched members from backend: ${fetchedMembers.toString()}');
 
-    await _groupMembersDao.insertMembersFromSync(
+    await _groupMembersDao.insertMembersFromSyncWithPublicId(
       groupResponse.publicId,
       fetchedMembers.members,
     );
@@ -162,7 +162,7 @@ class GroupsService {
       'Users inserted/updated in local DB: ${fetchedUsers.map((u) => u.publicId).toList()}',
     );
 
-    await _groupMembersDao.insertMembersFromSync(
+    await _groupMembersDao.insertMembersFromSyncWithPublicId(
       groupResponse.publicId,
       fetchedMembersResponse.members,
     );

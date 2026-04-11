@@ -39,4 +39,8 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
       }
     });
   }
+
+  Future<void> deleteUserByPublicId(String publicId) async {
+    await (delete(users)..where((u) => u.publicId.equals(publicId))).go();
+  }
 }
