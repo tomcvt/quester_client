@@ -90,9 +90,11 @@ class SyncService {
 
     //we get addedpublicId if we dont find group member with that public id in local db,
     //we fetch and insert user if user is not present, RETHINK
-    final isPresent = await _db.usersDao.getByPublicId(addedUserPublicId ?? '');
+    final userPresent = await _db.usersDao.getByPublicId(
+      addedUserPublicId ?? '',
+    );
 
-    if (addedUserPublicId != null) {
+    if (addedUserPublicId != null && userPresent == null) {
       logger.d('User with public id $addedUserPublicId added to db from sync');
       final newUserInList = await _apiClient.fetchUsersByPublicIds(
         List.of([addedUserPublicId]),
@@ -111,6 +113,16 @@ class SyncService {
       await _db.groupMembersDao.deleteMember(group.id, removedUserPublicId);
       //TODO - consider deleting user from users table if they are not a member of any groups anymore, but need to check references first
       //long lookup if not indexed, so, just add index we dont microoptimize client side, waste of compute
+      final isMember = await _db.groupMembersDao.isMemberOfAnyGroup(
+        removedUserPublicId,
+      );
+
+      if (!isMember) {
+        logger.d(
+          'User with public id $removedUserPublicId is not a member of any groups, deleting from users table',
+        );
+        await _db.usersDao.deleteUserByPublicId(removedUserPublicId);
+      }
     }
   }
 
