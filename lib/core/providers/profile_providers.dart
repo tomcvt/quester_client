@@ -5,7 +5,9 @@ class UsernameNotifier extends Notifier<String?> {
   @override
   String? build() => AppInitializer.sessionData.username;
 
-  void set(String newUsername) => state = newUsername;
+  void set(String newUsername) {
+    state = newUsername;
+  }
 }
 
 final usernameProvider = NotifierProvider<UsernameNotifier, String?>(
@@ -16,7 +18,9 @@ class PhoneNumberNotifier extends Notifier<String?> {
   @override
   String? build() => AppInitializer.sessionData.phoneNumber;
 
-  void set(String newPhoneNumber) => state = newPhoneNumber;
+  void set(String newPhoneNumber) {
+    state = newPhoneNumber;
+  }
 }
 
 final phoneNumberProvider = NotifierProvider<PhoneNumberNotifier, String?>(

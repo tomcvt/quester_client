@@ -9,10 +9,12 @@ import 'package:quester_client/core/data/data_objects.dart';
 import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/providers/create_quest_notifier.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
-import 'package:quester_client/core/providers/group_actions_notifier.dart';
+import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/features/groups/group_actions_notifier.dart';
 import 'package:quester_client/core/providers/service_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/features/groups/quest_tile.dart';
+import 'package:quester_client/l10n/app_localizations.dart';
 
 // ─── Domain ──────────────────────────────────────────────────────────────────
 
@@ -131,7 +133,7 @@ class GroupHomeScreen extends ConsumerWidget {
         // about the destination and runs redirect guards.
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/groups'),
+          onPressed: () => context.pop(),
         ),
         title: groupDetailsAsync.when(
           loading: () => const Text('Loading...'),
@@ -254,6 +256,11 @@ class _TasksSubScreen extends ConsumerWidget {
     // Reads the already-alive stream instance — no cold start because
     // GroupHomeScreen is already watching it silently above.
     final questsAsync = ref.watch(questsProvider((groupId, filter)));
+    final meAsyncValue = ref
+        .watch(meGroupMemberProvider(groupId))
+        .whenData(
+          (member) => member?.groupMember,
+        ); // Extract GroupMember from wrapper
 
     return Column(
       children: [
@@ -270,7 +277,10 @@ class _TasksSubScreen extends ConsumerWidget {
                     itemCount: quests.length,
                     itemBuilder: (context, index) => QuestTile(
                       quest: quests[index],
-                      canDelete: true, // Replace with actual permission logic
+                      canDelete: _canDeleteQuest(
+                        quests[index],
+                        meAsyncValue.value,
+                      ),
                       canHide: true, // Replace with actual permission logic
                     ),
                   ),
@@ -278,6 +288,14 @@ class _TasksSubScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  bool _canDeleteQuest(Quest quest, GroupMember? me) {
+    if (me?.role == MemberRole.owner || me?.role == MemberRole.admin) {
+      return true;
+    }
+    if (quest.creatorPublicId == me?.userPublicId) return true;
+    return false;
   }
 }
 
@@ -313,36 +331,6 @@ class _TaskFilterBar extends ConsumerWidget {
   }
 }
 
-// ─── Quest Tile ───────────────────────────────────────────────────────────────
-
-class _QuestTile extends StatelessWidget {
-  final Quest quest;
-  const _QuestTile({required this.quest});
-
-  @override
-  Widget build(BuildContext context) {
-    var statusMeta = _StatusMeta.from(quest.status);
-    return ListTile(
-      title: Text(
-        '${quest.name}   ${quest.deadlineStart != null ? '(${_dateTimeHoursAndMinutes(quest.deadlineStart!)})' : ''}',
-      ),
-      subtitle: Text(quest.status.label),
-      leading: Icon(statusMeta.icon, color: statusMeta.color),
-      trailing: const Icon(Icons.chevron_right),
-      tileColor: statusMeta.color.withOpacity(0.1),
-      onTap: () {
-        context.push('/groups/${quest.groupId}/quests/${quest.id}');
-      },
-    );
-  }
-}
-
-String _dateTimeHoursAndMinutes(DateTime date) {
-  final hours = date.hour.toString().padLeft(2, '0');
-  final minutes = date.minute.toString().padLeft(2, '0');
-  return '$hours:$minutes';
-}
-
 class _SettingsSubScreen extends ConsumerWidget {
   final String groupId;
   const _SettingsSubScreen({required this.groupId});
@@ -366,6 +354,12 @@ class _SettingsSubScreen extends ConsumerWidget {
           ),
           child: const Text('Leave Group'),
         ),
+        OutlinedButton(
+          onPressed: () {
+            ref.read(groupActionsProvider.notifier).syncGroupMembers(groupId);
+          },
+          child: const Text('Sync Users Now (for testing)'),
+        ),
       ],
     );
   }
@@ -384,7 +378,14 @@ class _LeaveGroupDialog extends ConsumerWidget {
         error: (e, _) => ScaffoldMessenger.of(
           context,
         ).showDebugSnackBar('Failed to leave group: $e'),
-        data: (_) => context.go('/groups'),
+        data: (_) {
+          ScaffoldMessenger.of(
+            context,
+          ).showDebugSnackBar('Successfully left group');
+          // Navigate back to group list after leaving — pop dialog first, then go().
+          Navigator.of(context).pop();
+          context.go('/groups');
+        },
       );
     });
 
@@ -523,8 +524,9 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
 
     final state = ref.watch(createQuestProvider);
 
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('New Quest'),
+      title: Text(l10n.createQuestDialogTitle),
       content: SizedBox(
         width: double.maxFinite, // prevents dialog from being too narrow
         child: SingleChildScrollView(
@@ -533,7 +535,9 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
             children: [
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Quest name'),
+                decoration: InputDecoration(
+                  labelText: l10n.createQuestNameLabel,
+                ),
                 keyboardType: TextInputType.text,
                 textInputAction: TextInputAction.next,
               ),
@@ -543,8 +547,8 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
                 icon: const Icon(Icons.calendar_today_outlined, size: 18),
                 label: Text(
                   _selectedDate == null
-                      ? 'Pick date'
-                      : '${_selectedDate!.day.toString().padLeft(2, '0')}.${_selectedDate!.month.toString().padLeft(2, '0')}.${_selectedDate!.year}',
+                      ? l10n.createQuestPickDate
+                      : _formatDate(_selectedDate)!,
                 ),
                 onPressed: () async {
                   final now = DateTime.now();
@@ -561,15 +565,15 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
               Row(
                 children: [
                   Text(
-                    'Start time:',
+                    l10n.createQuestStartTime,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(width: 8),
                   ActionChip(
                     label: Text(
                       _deadlineStart == null
-                          ? 'Set start time'
-                          : _deadlineStart!.format(context),
+                          ? l10n.createQuestSetStartTime
+                          : _formatTimeOfDay(_deadlineStart)!,
                     ),
                     onPressed: _selectedDate == null
                         ? null
@@ -593,15 +597,15 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
               Row(
                 children: [
                   Text(
-                    'End time:',
+                    l10n.createQuestEndTime,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(width: 8),
                   ActionChip(
                     label: Text(
                       _deadlineEnd == null
-                          ? 'Set end time'
-                          : _deadlineEnd!.format(context),
+                          ? l10n.createQuestSetEndTime
+                          : _formatTimeOfDay(_deadlineEnd)!,
                     ),
                     onPressed: _selectedDate == null
                         ? null
@@ -625,17 +629,17 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
               ),
               TextField(
                 controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  prefixIcon: Icon(Icons.location_on_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.createQuestAddressLabel,
+                  prefixIcon: const Icon(Icons.location_on_outlined),
                 ),
                 keyboardType: TextInputType.streetAddress,
               ),
               TextField(
                 controller: _contactNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'Contact number',
-                  prefixIcon: Icon(Icons.phone_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.createQuestContactNumberLabel,
+                  prefixIcon: const Icon(Icons.phone_outlined),
                 ),
                 keyboardType: TextInputType.phone,
                 // Digits and + only — input formatter is the right layer for this,
@@ -646,20 +650,22 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
               ),
               TextField(
                 controller: _contactInfoController,
-                decoration: const InputDecoration(
-                  labelText: 'Contact info',
-                  prefixIcon: Icon(Icons.contact_mail_outlined),
+                decoration: InputDecoration(
+                  labelText: l10n.createQuestContactInfoLabel,
+                  prefixIcon: const Icon(Icons.contact_mail_outlined),
                 ),
                 keyboardType: TextInputType.text,
               ),
               //const SizedBox(height: 12),
               TextField(
                 controller: _detailsController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(
+                  labelText: l10n.createQuestDescriptionLabel,
+                ),
                 maxLines: 3,
               ),
               FilterChip(
-                label: const Text('Me too'),
+                label: Text(l10n.createQuestMeToo),
                 selected: _inclusive,
                 // When selected: show tick. When not: show person icon.
                 // avatar appears on the LEFT of the label — that's FilterChip's slot for leading icon
@@ -675,7 +681,7 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
       actions: [
         TextButton(
           onPressed: state.isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           // Disable button during loading — same pattern as AddGroupDialog.
@@ -686,7 +692,7 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Create'),
+              : Text(l10n.create),
         ),
       ],
     );
@@ -695,6 +701,16 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
   DateTime? _toDateTime(DateTime? date, TimeOfDay? time) {
     if (date == null || time == null) return null;
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  }
+
+  String? _formatDate(DateTime? dateTime) {
+    if (dateTime == null) return null;
+    return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year}';
+  }
+
+  String? _formatTimeOfDay(TimeOfDay? time) {
+    if (time == null) return null;
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   void _submit() {
@@ -731,44 +747,4 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
           status: QuestStatus.started,
         );
   }
-}
-
-class _StatusMeta {
-  final Color color;
-  final IconData icon;
-  final String label;
-
-  const _StatusMeta({
-    required this.color,
-    required this.icon,
-    required this.label,
-  });
-
-  factory _StatusMeta.from(QuestStatus status) => switch (status) {
-    QuestStatus.started => _StatusMeta(
-      color: Colors.orange,
-      icon: Icons.play_circle_outline,
-      label: 'Open',
-    ),
-    QuestStatus.accepted => _StatusMeta(
-      color: Colors.blue,
-      icon: Icons.person_outlined,
-      label: 'Accepted',
-    ),
-    QuestStatus.completed => _StatusMeta(
-      color: Colors.green,
-      icon: Icons.check_circle_outline,
-      label: 'Done',
-    ),
-    QuestStatus.deleted => _StatusMeta(
-      color: Colors.red,
-      icon: Icons.cancel_outlined,
-      label: 'Cancelled',
-    ),
-    QuestStatus.timedOut => _StatusMeta(
-      color: Colors.grey,
-      icon: Icons.timer_off_outlined,
-      label: 'Timed Out',
-    ),
-  };
 }

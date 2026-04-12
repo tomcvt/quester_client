@@ -16,6 +16,11 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
     return query.watch();
   }
 
+  Future<List<GroupMember>> getMembersForGroup(int groupId) {
+    final query = select(groupMembers)..where((m) => m.groupId.equals(groupId));
+    return query.get();
+  }
+
   // use inner join and first ensure users are updated before emitting members stream
   Stream<List<GroupMemberWithUser>> watchMembersWithUserForGroup(int groupId) {
     final query = select(groupMembers).join([

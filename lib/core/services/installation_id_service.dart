@@ -26,8 +26,9 @@ class InstallationIdService {
         newId = "00000000-0000-0000-0000-000000000002";
       } else if (Platform.isAndroid) {
         newId = "00000000-0000-0000-0000-000000000001";
+      } else {
+        newId = "00000000-0000-0000-0000-000000000009";
       }
-      newId = "00000000-0000-0000-0000-000000000009";
     }
     await prefs.setString(_installationIdKey, newId);
     return newId;

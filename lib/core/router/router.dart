@@ -129,10 +129,15 @@ class _ShellScaffold extends ConsumerWidget {
     ref.listen(incomingQuestProvider, (_, next) {
       next.whenData((nudge) {
         if (nudge == null) return;
-        showDialog(
-          context: context,
-          builder: (_) => _QuestNudgeDialog(nudge: nudge),
-        );
+        // Delay long enough for any in-progress dialog close animation to
+        // finish (~300 ms) before pushing the nudge on top.
+        Future.delayed(const Duration(milliseconds: 350), () {
+          if (!context.mounted) return;
+          showDialog(
+            context: context,
+            builder: (_) => _QuestNudgeDialog(nudge: nudge),
+          );
+        });
       });
     });
 

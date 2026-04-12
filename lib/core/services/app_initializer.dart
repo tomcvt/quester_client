@@ -66,6 +66,7 @@ class AppInitializer {
       installationId,
       fcmToken: fcmToken,
     );
+    logger.i('Installation ID: $installationId');
     logger.i('Session data: ${sessionData.toString()}');
     db = await AppDatabase.open(buildConfig: buildConfig);
     deviceId = await _getDeviceId();

@@ -76,7 +76,8 @@ class SyncService {
     return quest;
   }
 
-  Future<void> syncUsersAndGroupMembers(
+  @Deprecated("Wrong approach")
+  Future<void> syncUsersAndGroupMembersOnNotification(
     String groupPublicId, {
     String? addedUserPublicId,
     String? removedUserPublicId,
@@ -86,7 +87,7 @@ class SyncService {
       logger.e('Group with public id $groupPublicId not found');
       return;
     }
-    final membersResponse = await _apiClient.syncGroupMembers(groupPublicId);
+    final membersResponse = await _apiClient.getGroupMembers(groupPublicId);
 
     //we get addedpublicId if we dont find group member with that public id in local db,
     //we fetch and insert user if user is not present, RETHINK
@@ -124,6 +125,70 @@ class SyncService {
         await _db.usersDao.deleteUserByPublicId(removedUserPublicId);
       }
     }
+  }
+
+  Future<void> syncUsersAndGroupMembersForGroupByPublicId(
+    String groupPublicId,
+  ) async {
+    final group = await _db.groupsDao.groupFromPublicId(groupPublicId);
+    if (group == null) {
+      logger.e('Group with public id $groupPublicId not found');
+      return;
+    }
+    await syncUsersAndGroupMembersForGroup(group);
+  }
+
+  Future<void> syncUsersAndGroupMembersForGroupById(int groupId) async {
+    final group = await _db.groupsDao.groupFromId(groupId);
+    if (group == null) {
+      logger.e('Group with id $groupId not found');
+      return;
+    }
+    await syncUsersAndGroupMembersForGroup(group);
+  }
+
+  Future<void> syncUsersAndGroupMembersForGroup(Group group) async {
+    final groupPublicId = group.publicId;
+    final membersResponse = await _apiClient.getGroupMembers(groupPublicId);
+
+    final localMembers = await _db.groupMembersDao.getMembersForGroup(group.id);
+    final localMembersPublicIds = localMembers
+        .map((m) => m.userPublicId)
+        .toSet();
+    final usersPublicIds = membersResponse.members
+        .map((m) => m.userPublicId)
+        .toSet();
+    final toDeletePublicIds = localMembersPublicIds.difference(usersPublicIds);
+
+    if (usersPublicIds.isNotEmpty) {
+      logger.d(
+        'New users with public ids $usersPublicIds added to db from sync',
+      );
+      final newUsersInList = await _apiClient.fetchUsersByPublicIds(
+        usersPublicIds.toList(),
+      );
+      await _db.usersDao.insertUsersFromSync(newUsersInList.users);
+    }
+    if (toDeletePublicIds.isNotEmpty) {
+      logger.d(
+        'Users with public ids $toDeletePublicIds removed from db from sync',
+      );
+      for (final publicId in toDeletePublicIds) {
+        await _db.groupMembersDao.deleteMember(group.id, publicId);
+        final isMember = await _db.groupMembersDao.isMemberOfAnyGroup(publicId);
+        if (!isMember) {
+          logger.d(
+            'User with public id $publicId is not a member of any groups, deleting from users table',
+          );
+          await _db.usersDao.deleteUserByPublicId(publicId);
+        }
+      }
+    }
+
+    await _db.groupMembersDao.insertMembersFromSync(
+      group.id,
+      membersResponse.members,
+    );
   }
 
   //actully useless becase we get notif about one user so we just fetch that

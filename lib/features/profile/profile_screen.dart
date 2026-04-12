@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
+import 'package:quester_client/core/theme/app_dialog.dart';
+import 'package:quester_client/core/theme/app_theme.dart';
 import 'profile_actions_notifier.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -14,36 +16,21 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
+        padding: AppDimens.screenPadding,
         children: [
-          ListTile(
-            title: const Text('Username'),
-            subtitle: Text(username ?? 'No username set'),
-            trailing: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: const StadiumBorder(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-              ),
-              onPressed: () => _showEditDialog(context, ref, username),
-              child: const Text('Edit'),
-            ),
+          _ProfileTile(
+            icon: Icons.person_outline,
+            accentColor: AppColors.primary,
+            label: 'Username',
+            value: username ?? 'No username set',
+            onEdit: () => _showEditDialog(context, ref, username),
           ),
-          ListTile(
-            title: const Text('Phone Number'),
-            subtitle: Text(phoneNumber ?? 'No phone number set'),
-            trailing: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                shape: const StadiumBorder(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 8,
-                ),
-              ),
-              onPressed: () => _showEditNumberDialog(context, ref, phoneNumber),
-              child: const Text('Edit'),
-            ),
+          _ProfileTile(
+            icon: Icons.phone_outlined,
+            accentColor: AppColors.secondary,
+            label: 'Phone Number',
+            value: phoneNumber ?? 'No phone number set',
+            onEdit: () => _showEditNumberDialog(context, ref, phoneNumber),
           ),
         ],
       ),
@@ -73,6 +60,79 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
+// ─── Profile tile (hovering card with left accent strip) ─────────────────────
+
+class _ProfileTile extends StatelessWidget {
+  final IconData icon;
+  final Color accentColor;
+  final String label;
+  final String value;
+  final VoidCallback onEdit;
+
+  const _ProfileTile({
+    required this.icon,
+    required this.accentColor,
+    required this.label,
+    required this.value,
+    required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: AppDimens.cardMargin,
+      // accentCard = floatingCard + left colored border strip, same language
+      // as quest tiles.
+      decoration: AppTheme.accentCard(accentColor: accentColor),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppDimens.borderRadius),
+        child: Padding(
+          padding: AppDimens.cardPadding,
+          child: Row(
+            children: [
+              Icon(icon, color: accentColor, size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: onEdit,
+                child: const Text('Edit'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Edit dialogs ─────────────────────────────────────────────────────────────
+
 class _EditUsernameDialog extends ConsumerStatefulWidget {
   final String? currentUsername;
   const _EditUsernameDialog({required this.currentUsername});
@@ -100,12 +160,14 @@ class _EditUsernameDialogState extends ConsumerState<_EditUsernameDialog> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(profileActionsProvider);
-    return AlertDialog(
+    return AppDialog(
       title: const Text('Edit Username'),
       content: TextField(
         controller: _controller,
         decoration: const InputDecoration(labelText: 'New username'),
         autofocus: true,
+        textInputAction: TextInputAction.done,
+        onSubmitted: (_) => state.isLoading ? null : _submit(),
       ),
       actions: [
         TextButton(
@@ -113,20 +175,21 @@ class _EditUsernameDialogState extends ConsumerState<_EditUsernameDialog> {
           child: const Text('Cancel'),
         ),
         state.isLoading
-            ? const CircularProgressIndicator()
-            : ElevatedButton(
-                onPressed: () async {
-                  final newUsername = _controller.text.trim();
-                  if (newUsername.isEmpty) return;
-                  await ref
-                      .read(profileActionsProvider.notifier)
-                      .changeUsername(newUsername);
-                  if (context.mounted) Navigator.of(context).pop();
-                },
-                child: const Text('Submit'),
-              ),
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : ElevatedButton(onPressed: _submit, child: const Text('Submit')),
       ],
     );
+  }
+
+  Future<void> _submit() async {
+    final newUsername = _controller.text.trim();
+    if (newUsername.isEmpty) return;
+    await ref.read(profileActionsProvider.notifier).changeUsername(newUsername);
+    if (context.mounted) Navigator.of(context).pop();
   }
 }
 
@@ -156,14 +219,16 @@ class _EditNumberDialogState extends ConsumerState<_EditNumberDialog> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(profileActionsProvider);
-    return AlertDialog(
+    return AppDialog(
       title: const Text('Edit Phone Number'),
       content: TextField(
         controller: _controller,
         decoration: const InputDecoration(labelText: 'New phone number'),
         keyboardType: TextInputType.phone,
         autofocus: true,
+        textInputAction: TextInputAction.done,
         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+]'))],
+        onSubmitted: (_) => state.isLoading ? null : _submit(),
       ),
       actions: [
         TextButton(
@@ -171,19 +236,22 @@ class _EditNumberDialogState extends ConsumerState<_EditNumberDialog> {
           child: const Text('Cancel'),
         ),
         state.isLoading
-            ? const CircularProgressIndicator()
-            : ElevatedButton(
-                onPressed: () async {
-                  final newPhoneNumber = _controller.text.trim();
-                  if (newPhoneNumber.isEmpty) return;
-                  await ref
-                      .read(profileActionsProvider.notifier)
-                      .changePhoneNumber(newPhoneNumber);
-                  if (context.mounted) Navigator.of(context).pop();
-                },
-                child: const Text('Submit'),
-              ),
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : ElevatedButton(onPressed: _submit, child: const Text('Submit')),
       ],
     );
+  }
+
+  Future<void> _submit() async {
+    final newPhoneNumber = _controller.text.trim();
+    if (newPhoneNumber.isEmpty) return;
+    await ref
+        .read(profileActionsProvider.notifier)
+        .changePhoneNumber(newPhoneNumber);
+    if (context.mounted) Navigator.of(context).pop();
   }
 }

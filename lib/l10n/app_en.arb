@@ -1,0 +1,29 @@
+{
+  "@@locale": "en",
+  "@@comment": "",
+  "questStatusActive": "Active",
+  "questStatusAccepted": "Accepted",
+  "questStatusCompleted": "Completed",
+  "questStatusCancelled": "Cancelled",
+  "questStatusTimedOut": "Timed Out",
+  "questMenuDelete": "Delete",
+  "questMenuHide": "Hide"
+  ,
+  "createQuestDialogTitle": "New Quest",
+  "createQuestNameLabel": "Quest name",
+  "createQuestPickDate": "Pick date",
+  "createQuestStartTime": "Start time:",
+  "createQuestSetStartTime": "Set start time",
+  "createQuestEndTime": "End time:",
+  "createQuestSetEndTime": "Set end time",
+  "createQuestAddressLabel": "Address",
+  "createQuestContactNumberLabel": "Contact number",
+  "createQuestContactInfoLabel": "Contact info",
+  "createQuestDescriptionLabel": "Description",
+  "createQuestMeToo": "Me too",
+  "cancel": "Cancel",
+  "create": "Create",
+
+    "tapToOpen": "Tap to open"
+
+}

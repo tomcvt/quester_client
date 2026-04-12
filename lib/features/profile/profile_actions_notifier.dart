@@ -26,6 +26,29 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
       ref.read(phoneNumberProvider.notifier).set(newPhoneNumber);
     });
   }
+
+  Future<void> changeUsernamePhone(
+    String newUsername,
+    String newPhoneNumber,
+  ) async {
+    state = const AsyncLoading();
+    logger.d(
+      'Attempting to change username and phone number. New username: $newUsername, New phone number: $newPhoneNumber',
+    );
+    state = await AsyncValue.guard(() async {
+      await ref
+          .read(authServiceProvider)
+          .changeUsernameAndPhoneNumber(newUsername, newPhoneNumber);
+      logger.d('Username changed to: $newUsername');
+      ref.read(usernameProvider.notifier).set(newUsername);
+      logger.d('Username provider updated with new username: $newUsername');
+      logger.d('Phone number changed to: $newPhoneNumber');
+      ref.read(phoneNumberProvider.notifier).set(newPhoneNumber);
+      logger.d(
+        'Phone number provider updated with new phone number: $newPhoneNumber',
+      );
+    });
+  }
 }
 
 final profileActionsProvider =

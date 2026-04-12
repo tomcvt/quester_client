@@ -2,7 +2,9 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/http/api_client.dart';
+import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
+import 'package:quester_client/core/services/sync_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/auth_service.dart';
@@ -55,4 +57,10 @@ final installationIdProvider = Provider<String>((ref) {
 final apiClientProvider = Provider<ApiClient>((ref) {
   final installationId = ref.watch(installationIdProvider);
   return ApiClient(AppInitializer.buildConfig.apiBaseUrl, installationId);
+});
+
+final syncServiceProvider = Provider<SyncService>((ref) {
+  final db = ref.watch(databaseProvider).requireValue;
+  final apiClient = ref.watch(apiClientProvider);
+  return SyncService(db, apiClient);
 });

@@ -1,0 +1,28 @@
+{
+  "@@locale": "pl",
+  "@@comment": "",
+  "questStatusActive": "Aktywne",
+  "questStatusAccepted": "Przyjęte",
+  "questStatusCompleted": "Gotowe",
+  "questStatusCancelled": "Anulowane",
+  "questStatusTimedOut": "Przedawnione",
+  "questMenuDelete": "Usuń",
+  "questMenuHide": "Ukryj"
+  ,
+  "createQuestDialogTitle": "Nowe zadanie",
+  "createQuestNameLabel": "Nazwa zadania",
+  "createQuestPickDate": "Wybierz datę",
+  "createQuestStartTime": "Godzina rozpoczęcia:",
+  "createQuestSetStartTime": "Ustaw godzinę rozpoczęcia",
+  "createQuestEndTime": "Godzina zakończenia:",
+  "createQuestSetEndTime": "Ustaw godzinę zakończenia",
+  "createQuestAddressLabel": "Adres",
+  "createQuestContactNumberLabel": "Numer kontaktowy",
+  "createQuestContactInfoLabel": "Dane kontaktowe",
+  "createQuestDescriptionLabel": "Opis",
+  "createQuestMeToo": "Ja też",
+  "cancel": "Anuluj",
+  "create": "Utwórz",
+
+    "tapToOpen": "Dotknij, aby otworzyć"
+}

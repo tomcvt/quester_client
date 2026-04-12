@@ -208,14 +208,12 @@ class ApiClient {
     }
   }
 
-  Future<GroupMembersSyncResponse> syncGroupMembers(
-    String groupPublicId,
-  ) async {
+  Future<GroupMembersSyncResponse> getGroupMembers(String groupPublicId) async {
     try {
       final response = await _dio.get('/groups/$groupPublicId/members');
       return GroupMembersSyncResponse.fromJson(response.data);
     } on DioException catch (e) {
-      _throwFromDio(e, 'Failed to sync group members');
+      _throwFromDio(e, 'Failed to get group members');
     }
   }
 
@@ -273,6 +271,21 @@ class ApiClient {
       return true;
     } on DioException catch (e) {
       _throwFromDio(e, 'Failed to change phone number');
+    }
+  }
+
+  Future<bool> changeUsernameAndPhoneNumber(
+    String newUsername,
+    String newPhoneNumber,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/users/change-username-phone-number',
+        data: {'username': newUsername, 'phone_number': newPhoneNumber},
+      );
+      return true;
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to change username and phone number');
     }
   }
 

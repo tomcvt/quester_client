@@ -55,7 +55,7 @@ class GroupsService {
     final id = await _groupsDao.insertGroup(newGroup);
     final createdGroup = await _groupsDao.groupFromId(id);
     logger.d('Group inserted into local DB: ${createdGroup.toString()}');
-    final fetchedMembers = await _apiClient.syncGroupMembers(
+    final fetchedMembers = await _apiClient.getGroupMembers(
       groupResponse.publicId,
     );
     logger.d('Fetched members from backend: ${fetchedMembers.toString()}');
@@ -130,7 +130,7 @@ class GroupsService {
     final createdGroup = await _groupsDao.groupFromId(id);
     logger.d('Joined group inserted into local DB: ${createdGroup.toString()}');
 
-    final fetchedMembersResponse = await _apiClient.syncGroupMembers(
+    final fetchedMembersResponse = await _apiClient.getGroupMembers(
       groupResponse.publicId,
     );
     logger.d(

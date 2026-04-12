@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/data_tables.dart';
+import 'package:quester_client/features/quests/quest_actions_notifier.dart';
+import 'package:quester_client/l10n/app_localizations.dart';
 
 import 'quest_card_theme.dart';
 // your Quest model and QuestStatus imports here
@@ -22,33 +24,34 @@ class QuestStatusMeta {
     required this.label,
   });
 
-  static QuestStatusMeta from(QuestStatus status) => switch (status) {
-    QuestStatus.started => const QuestStatusMeta(
-      color: Color(0xFFFF9800),
-      icon: Icons.play_circle_outline,
-      label: 'Otwarte',
-    ),
-    QuestStatus.accepted => const QuestStatusMeta(
-      color: Color(0xFF2196F3),
-      icon: Icons.person_outline,
-      label: 'Przyjęte',
-    ),
-    QuestStatus.completed => const QuestStatusMeta(
-      color: Color(0xFF4CAF50),
-      icon: Icons.check_circle_outline,
-      label: 'Gotowe',
-    ),
-    QuestStatus.deleted => const QuestStatusMeta(
-      color: Color(0xFFF44336),
-      icon: Icons.cancel_outlined,
-      label: 'Anulowane',
-    ),
-    QuestStatus.timedOut => const QuestStatusMeta(
-      color: Color(0xFF9E9E9E),
-      icon: Icons.timer_off_outlined,
-      label: 'Przedawnione',
-    ),
-  };
+  static QuestStatusMeta from(QuestStatus status, AppLocalizations l10n) =>
+      switch (status) {
+        QuestStatus.started => QuestStatusMeta(
+          color: Color(0xFFFF9800),
+          icon: Icons.play_circle_outline,
+          label: l10n.questStatusActive,
+        ),
+        QuestStatus.accepted => QuestStatusMeta(
+          color: Color(0xFF2196F3),
+          icon: Icons.person_outline,
+          label: l10n.questStatusAccepted,
+        ),
+        QuestStatus.completed => QuestStatusMeta(
+          color: Color(0xFF4CAF50),
+          icon: Icons.check_circle_outline,
+          label: l10n.questStatusCompleted,
+        ),
+        QuestStatus.deleted => QuestStatusMeta(
+          color: Color(0xFFF44336),
+          icon: Icons.cancel_outlined,
+          label: l10n.questStatusCancelled,
+        ),
+        QuestStatus.timedOut => QuestStatusMeta(
+          color: Color(0xFF9E9E9E),
+          icon: Icons.timer_off_outlined,
+          label: l10n.questStatusTimedOut,
+        ),
+      };
 }
 
 // ─── Context menu actions ─────────────────────────────────────────────────────
@@ -71,7 +74,8 @@ class QuestTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final meta = QuestStatusMeta.from(quest.status);
+    final l10n = AppLocalizations.of(context)!;
+    final meta = QuestStatusMeta.from(quest.status, l10n);
     final colorScheme = Theme.of(context).colorScheme;
     final cardColor = colorScheme.surface;
 
@@ -182,7 +186,7 @@ class QuestTile extends StatelessWidget {
 // StatefulWidget because it owns an AnimationController (needs vsync).
 // Equivalent to a View with a ValueAnimator in Android — lifecycle-tied.
 
-class _QuestMenuButton extends StatefulWidget {
+class _QuestMenuButton extends ConsumerStatefulWidget {
   final Quest quest;
   final bool canDeleteQuest;
   final bool canHideQuest;
@@ -194,10 +198,10 @@ class _QuestMenuButton extends StatefulWidget {
   });
 
   @override
-  State<_QuestMenuButton> createState() => _QuestMenuButtonState();
+  ConsumerState<_QuestMenuButton> createState() => _QuestMenuButtonState();
 }
 
-class _QuestMenuButtonState extends State<_QuestMenuButton>
+class _QuestMenuButtonState extends ConsumerState<_QuestMenuButton>
     with SingleTickerProviderStateMixin {
   // AnimationController = ValueAnimator. Duration set once, play on demand.
   late final AnimationController _controller;
@@ -241,6 +245,7 @@ class _QuestMenuButtonState extends State<_QuestMenuButton>
 
   Future<void> _openMenu() async {
     // 1. Play the pop animation forward.
+    final l10n = AppLocalizations.of(context)!;
     _controller.forward(from: 0);
 
     // 2. showMenu() is the imperative API — positions relative to a Rect.
@@ -249,6 +254,13 @@ class _QuestMenuButtonState extends State<_QuestMenuButton>
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay =
         Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final buttonTopLeft = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final menuOrigin = buttonTopLeft.translate(-button.size.width - 10, 0);
+    final RelativeRect position = RelativeRect.fromRect(
+      menuOrigin & button.size,
+      Offset.zero & overlay.size,
+    );
+    /*
     final RelativeRect position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
@@ -259,6 +271,7 @@ class _QuestMenuButtonState extends State<_QuestMenuButton>
       ),
       Offset.zero & overlay.size,
     );
+    */
 
     final QuestMenuAction? selected = await showMenu<QuestMenuAction>(
       context: context,
@@ -270,7 +283,7 @@ class _QuestMenuButtonState extends State<_QuestMenuButton>
           value: QuestMenuAction.delete,
           child: _MenuEntry(
             icon: Icons.delete_outline,
-            label: 'Usuń',
+            label: l10n.questMenuDelete,
             isDestructive: true,
             isDisabled: !widget.canDeleteQuest,
           ),
@@ -279,7 +292,7 @@ class _QuestMenuButtonState extends State<_QuestMenuButton>
           value: QuestMenuAction.hide,
           child: _MenuEntry(
             icon: Icons.visibility_off_outlined,
-            label: 'Ukryj',
+            label: l10n.questMenuHide,
             isDisabled: !widget.canHideQuest,
           ),
         ),
@@ -294,7 +307,11 @@ class _QuestMenuButtonState extends State<_QuestMenuButton>
   void _handleAction(QuestMenuAction action) {
     switch (action) {
       case QuestMenuAction.delete:
-        // TODO: wire to notifier
+        widget.canDeleteQuest
+            ? ref
+                  .read(questActionsNotifierProvider.notifier)
+                  .deleteQuest(widget.quest.id)
+            : null;
         break;
       case QuestMenuAction.hide:
         // TODO: wire to notifier

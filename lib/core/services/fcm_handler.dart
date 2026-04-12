@@ -66,7 +66,8 @@ Future<void> _handleMessage(RemoteMessage message) async {
   final groupPublicId = data['group_public_id'];
   final questPublicId = data['quest_public_id'];
   final acceptedByPublicId = data['accepted_by_public_id'];
-  final roleChange = data['role_change']; // for USER_ROLE_CHANGED events
+  final userPublicId = data['user_public_id']; // for user events
+  final newRole = data['new_role']; // for USER_ROLE_CHANGED events
   logger.d(
     'Received FCM message: type=$type, \n groupPublicId=$groupPublicId, \n questPublicId=$questPublicId, \n acceptedByPublicId=$acceptedByPublicId',
   );
@@ -245,25 +246,25 @@ Future<void> _handleMessage(RemoteMessage message) async {
       case userRoleChanged:
         //TODO handle role change events (e.g. show notification if user is promoted to admin or something)
         //actually sync as this is most important
-        MemberRole newRole;
+        MemberRole newRoleEnum;
         bool hasLeft = false;
         try {
-          newRole = MemberRoleX.fromString(roleChange);
+          newRoleEnum = MemberRoleX.fromString(newRole);
         } catch (e) {
           hasLeft = true;
           logger.i(
-            'Failed to parse role change, meaning user likely left the group. roleChange=$roleChange',
+            'Failed to parse role change, meaning user likely left the group. newRole=$newRole',
           );
         }
         if (hasLeft) {
-          await syncService.syncUsersAndGroupMembers(
+          await syncService.syncUsersAndGroupMembersOnNotification(
             groupPublicId,
-            removedUserPublicId: myPublicId,
+            removedUserPublicId: userPublicId,
           );
         } else {
-          await syncService.syncUsersAndGroupMembers(
+          await syncService.syncUsersAndGroupMembersOnNotification(
             groupPublicId,
-            addedUserPublicId: myPublicId,
+            addedUserPublicId: userPublicId,
           );
         }
       default:

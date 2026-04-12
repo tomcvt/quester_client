@@ -168,6 +168,39 @@ class AuthService {
     return newPhoneNumber;
   }
 
+  Future<bool> changeUsernameAndPhoneNumber(
+    String newUsername,
+    String newPhoneNumber,
+  ) async {
+    final publicId = await _secureStorage.read(key: publicIdKey);
+    if (publicId == null) {
+      throw Exception('Public ID not found in secure storage');
+    }
+    if (!_allowedUsername(newUsername)) {
+      throw Exception(
+        'Username has to be 3-20 chars, letters, numbers or underscores only',
+      );
+    }
+    //TODO add phone number validation
+    bool didSucceed = await _apiClient.changeUsernameAndPhoneNumber(
+      newUsername,
+      newPhoneNumber,
+    );
+    if (!didSucceed) {
+      throw Exception('Failed to change username and phone number');
+    }
+    await _prefs.setString(usernameKey, newUsername);
+    await _prefs.setString(phoneNumberKey, newPhoneNumber);
+    AppInitializer.sessionData = AppInitializer.sessionData.copyWith(
+      username: newUsername,
+      phoneNumber: newPhoneNumber,
+    );
+    logger.d(
+      'Username and phone number changed successfully. New username: $newUsername, New phone number: $newPhoneNumber',
+    );
+    return true;
+  }
+
   Future<SessionData> login(String username, String password) async {
     await Future.delayed(const Duration(seconds: 1));
     return AppInitializer.sessionData;

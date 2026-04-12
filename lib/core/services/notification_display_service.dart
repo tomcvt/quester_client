@@ -4,6 +4,8 @@ import 'dart:ui';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:quester_client/core/data/app_database.dart';
+import 'package:quester_client/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationDisplayService {
   static final _plugin = FlutterLocalNotificationsPlugin();
@@ -37,12 +39,26 @@ class NotificationDisplayService {
     await androidImpl?.createNotificationChannel(standardChannel);
   }
 
+  static Future<AppLocalizations> _resolveL10n() async {
+    final prefs = await SharedPreferences.getInstance();
+    final localeCode = prefs.getString('locale') ?? 'pl';
+    final safeCode = _safeLocaleCode(localeCode);
+    return lookupAppLocalizations(Locale(safeCode));
+  }
+
+  static String _safeLocaleCode(String? code) {
+    if (code == null) return 'pl';
+    final supported = ['en', 'pl'];
+    return supported.contains(code) ? code : 'pl';
+  }
+
   static Future<void> showQuestNotification(Quest quest) async {
+    final l10n = await _resolveL10n();
     await _plugin.show(
       id: quest
           .id, // your local Drift int id — deterministic, no mapping needed
       title: quest.name,
-      body: quest.data ?? 'Tap to open',
+      body: quest.data ?? l10n.tapToOpen,
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'quests',
@@ -59,6 +75,8 @@ class NotificationDisplayService {
   static Future<void> cancelQuestNotification(int questLocalId) async {
     await _plugin.cancel(id: questLocalId);
   }
+
+  //TODO DO L10N for all notifications, not only quest notification
 
   static Future<void> showYourQuestTakenNotification(
     Quest quest,
@@ -120,7 +138,7 @@ class NotificationDisplayService {
   static Future<void> questInProgressDeletedNotification(Quest quest) async {
     await _plugin.show(
       id: quest.id,
-      title: 'CANCELED: ${quest.name}',
+      title: 'CANCELLED: ${quest.name}',
       body: 'A quest you are doing was deleted by the creator.',
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
