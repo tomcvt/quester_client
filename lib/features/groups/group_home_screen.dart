@@ -1,5 +1,6 @@
 // lib/features/group_home/group_home_screen.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +14,7 @@ import 'package:quester_client/core/services/sync_service.dart';
 import 'package:quester_client/features/groups/group_actions_notifier.dart';
 import 'package:quester_client/core/providers/service_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
+import 'package:quester_client/features/groups/group_member_tile.dart';
 import 'package:quester_client/features/groups/quest_tile.dart';
 import 'package:quester_client/l10n/app_localizations.dart';
 
@@ -213,6 +215,7 @@ class _MembersSubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(groupMembersProvider(groupId));
+    final meMemberAsync = ref.watch(meGroupMemberProvider(groupId));
     return membersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
@@ -222,6 +225,15 @@ class _MembersSubScreen extends ConsumerWidget {
               itemCount: members.length,
               itemBuilder: (context, index) {
                 final member = members[index];
+                final canSetRole = _canSetRole(member, meMemberAsync.value);
+                final canKick =
+                    canSetRole; // For simplicity, same permission for kicking
+                return GroupMemberTile(
+                  memberWithUser: member,
+                  canPing: true, // Replace with actual permission logic
+                  canSetRole: canSetRole,
+                  canKick: canKick,
+                );
                 return ListTile(
                   leading: CircleAvatar(
                     child: Text(
@@ -239,6 +251,22 @@ class _MembersSubScreen extends ConsumerWidget {
             ),
     );
     return const Center(child: Text('Members — TODO'));
+  }
+
+  bool _canSetRole(GroupMemberWithUser member, GroupMemberWithUser? me) {
+    if (me == null) return false; // Not logged in, no permissions
+    if (me.user.role == UserRole.superuser)
+      return true; // Superuser can set anyone's role
+    if (member.groupMember.role == MemberRole.owner)
+      return false; // No one can set owner's role
+    if (me.groupMember.role == MemberRole.owner)
+      return true; // Owner can set anyone's role
+    if (me.groupMember.role == MemberRole.admin) {
+      // Admin can set roles of non-admins, but not other admins or the owner
+      return member.groupMember.role != MemberRole.owner &&
+          member.groupMember.role != MemberRole.admin;
+    }
+    return false; // Members cannot set roles
   }
 }
 

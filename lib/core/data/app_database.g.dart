@@ -437,7 +437,17 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [publicId, username, phoneNumber];
+  late final GeneratedColumnWithTypeConverter<UserRole, String> role =
+      GeneratedColumn<String>(
+        'role',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(UserRole.user.name),
+      ).withConverter<UserRole>($UsersTable.$converterrole);
+  @override
+  List<GeneratedColumn> get $columns => [publicId, username, phoneNumber, role];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -494,6 +504,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.string,
         data['${effectivePrefix}phone_number'],
       ),
+      role: $UsersTable.$converterrole.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}role'],
+        )!,
+      ),
     );
   }
 
@@ -501,13 +517,22 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   $UsersTable createAlias(String alias) {
     return $UsersTable(attachedDatabase, alias);
   }
+
+  static JsonTypeConverter2<UserRole, String, String> $converterrole =
+      const EnumNameConverter<UserRole>(UserRole.values);
 }
 
 class User extends DataClass implements Insertable<User> {
   final String publicId;
   final String? username;
   final String? phoneNumber;
-  const User({required this.publicId, this.username, this.phoneNumber});
+  final UserRole role;
+  const User({
+    required this.publicId,
+    this.username,
+    this.phoneNumber,
+    required this.role,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -517,6 +542,9 @@ class User extends DataClass implements Insertable<User> {
     }
     if (!nullToAbsent || phoneNumber != null) {
       map['phone_number'] = Variable<String>(phoneNumber);
+    }
+    {
+      map['role'] = Variable<String>($UsersTable.$converterrole.toSql(role));
     }
     return map;
   }
@@ -530,6 +558,7 @@ class User extends DataClass implements Insertable<User> {
       phoneNumber: phoneNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(phoneNumber),
+      role: Value(role),
     );
   }
 
@@ -542,6 +571,9 @@ class User extends DataClass implements Insertable<User> {
       publicId: serializer.fromJson<String>(json['publicId']),
       username: serializer.fromJson<String?>(json['username']),
       phoneNumber: serializer.fromJson<String?>(json['phoneNumber']),
+      role: $UsersTable.$converterrole.fromJson(
+        serializer.fromJson<String>(json['role']),
+      ),
     );
   }
   @override
@@ -551,6 +583,9 @@ class User extends DataClass implements Insertable<User> {
       'publicId': serializer.toJson<String>(publicId),
       'username': serializer.toJson<String?>(username),
       'phoneNumber': serializer.toJson<String?>(phoneNumber),
+      'role': serializer.toJson<String>(
+        $UsersTable.$converterrole.toJson(role),
+      ),
     };
   }
 
@@ -558,10 +593,12 @@ class User extends DataClass implements Insertable<User> {
     String? publicId,
     Value<String?> username = const Value.absent(),
     Value<String?> phoneNumber = const Value.absent(),
+    UserRole? role,
   }) => User(
     publicId: publicId ?? this.publicId,
     username: username.present ? username.value : this.username,
     phoneNumber: phoneNumber.present ? phoneNumber.value : this.phoneNumber,
+    role: role ?? this.role,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -570,6 +607,7 @@ class User extends DataClass implements Insertable<User> {
       phoneNumber: data.phoneNumber.present
           ? data.phoneNumber.value
           : this.phoneNumber,
+      role: data.role.present ? data.role.value : this.role,
     );
   }
 
@@ -578,49 +616,56 @@ class User extends DataClass implements Insertable<User> {
     return (StringBuffer('User(')
           ..write('publicId: $publicId, ')
           ..write('username: $username, ')
-          ..write('phoneNumber: $phoneNumber')
+          ..write('phoneNumber: $phoneNumber, ')
+          ..write('role: $role')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(publicId, username, phoneNumber);
+  int get hashCode => Object.hash(publicId, username, phoneNumber, role);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is User &&
           other.publicId == this.publicId &&
           other.username == this.username &&
-          other.phoneNumber == this.phoneNumber);
+          other.phoneNumber == this.phoneNumber &&
+          other.role == this.role);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
   final Value<String> publicId;
   final Value<String?> username;
   final Value<String?> phoneNumber;
+  final Value<UserRole> role;
   final Value<int> rowid;
   const UsersCompanion({
     this.publicId = const Value.absent(),
     this.username = const Value.absent(),
     this.phoneNumber = const Value.absent(),
+    this.role = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
     required String publicId,
     this.username = const Value.absent(),
     this.phoneNumber = const Value.absent(),
+    this.role = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : publicId = Value(publicId);
   static Insertable<User> custom({
     Expression<String>? publicId,
     Expression<String>? username,
     Expression<String>? phoneNumber,
+    Expression<String>? role,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (publicId != null) 'public_id': publicId,
       if (username != null) 'username': username,
       if (phoneNumber != null) 'phone_number': phoneNumber,
+      if (role != null) 'role': role,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -629,12 +674,14 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<String>? publicId,
     Value<String?>? username,
     Value<String?>? phoneNumber,
+    Value<UserRole>? role,
     Value<int>? rowid,
   }) {
     return UsersCompanion(
       publicId: publicId ?? this.publicId,
       username: username ?? this.username,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      role: role ?? this.role,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -651,6 +698,11 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (phoneNumber.present) {
       map['phone_number'] = Variable<String>(phoneNumber.value);
     }
+    if (role.present) {
+      map['role'] = Variable<String>(
+        $UsersTable.$converterrole.toSql(role.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -663,6 +715,7 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('publicId: $publicId, ')
           ..write('username: $username, ')
           ..write('phoneNumber: $phoneNumber, ')
+          ..write('role: $role, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2144,6 +2197,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'group_members_user_public_id_idx',
     'CREATE INDEX group_members_user_public_id_idx ON group_members (user_public_id)',
   );
+  late final Index groupMembersGroupIdPublicIdIdx = Index(
+    'group_members_group_id_public_id_idx',
+    'CREATE INDEX group_members_group_id_public_id_idx ON group_members (group_id, user_public_id)',
+  );
   late final Index questsGroupStatusUpdatedIdx = Index(
     'quests_group_status_updated_idx',
     'CREATE INDEX quests_group_status_updated_idx ON quests (group_id, status, updated_at)',
@@ -2164,6 +2221,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     groupMembers,
     quests,
     groupMembersUserPublicIdIdx,
+    groupMembersGroupIdPublicIdIdx,
     questsGroupStatusUpdatedIdx,
   ];
 }
@@ -2575,6 +2633,7 @@ typedef $$UsersTableCreateCompanionBuilder =
       required String publicId,
       Value<String?> username,
       Value<String?> phoneNumber,
+      Value<UserRole> role,
       Value<int> rowid,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
@@ -2582,6 +2641,7 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String> publicId,
       Value<String?> username,
       Value<String?> phoneNumber,
+      Value<UserRole> role,
       Value<int> rowid,
     });
 
@@ -2682,6 +2742,12 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<UserRole, UserRole, String> get role =>
+      $composableBuilder(
+        column: $table.role,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
   Expression<bool> groupMembersRefs(
     Expression<bool> Function($$GroupMembersTableFilterComposer f) f,
   ) {
@@ -2781,6 +2847,11 @@ class $$UsersTableOrderingComposer
     column: $table.phoneNumber,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UsersTableAnnotationComposer
@@ -2802,6 +2873,9 @@ class $$UsersTableAnnotationComposer
     column: $table.phoneNumber,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<UserRole, String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
 
   Expression<T> groupMembersRefs<T extends Object>(
     Expression<T> Function($$GroupMembersTableAnnotationComposer a) f,
@@ -2914,11 +2988,13 @@ class $$UsersTableTableManager
                 Value<String> publicId = const Value.absent(),
                 Value<String?> username = const Value.absent(),
                 Value<String?> phoneNumber = const Value.absent(),
+                Value<UserRole> role = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion(
                 publicId: publicId,
                 username: username,
                 phoneNumber: phoneNumber,
+                role: role,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2926,11 +3002,13 @@ class $$UsersTableTableManager
                 required String publicId,
                 Value<String?> username = const Value.absent(),
                 Value<String?> phoneNumber = const Value.absent(),
+                Value<UserRole> role = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion.insert(
                 publicId: publicId,
                 username: username,
                 phoneNumber: phoneNumber,
+                role: role,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

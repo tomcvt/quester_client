@@ -28,6 +28,7 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
         final companion = UsersCompanion(
           publicId: Value(user.publicId),
           username: Value(user.username),
+          role: Value(user.role),
           phoneNumber: Value(user.phoneNumber),
           //avatarUrl: Value(user.avatarUrl),
         );

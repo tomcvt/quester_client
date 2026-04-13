@@ -58,12 +58,16 @@ extension GroupTypeX on GroupType {
       GroupType.values.firstWhere((e) => e.name == s.toLowerCase());
 }
 
+enum UserRole { superuser, admin, user }
+
 // Users table schema
 // REFERENCE: PRIMARY KEY
 class Users extends Table {
   TextColumn get publicId => text()();
   TextColumn get username => text().nullable()();
   TextColumn get phoneNumber => text().nullable()();
+  TextColumn get role =>
+      textEnum<UserRole>().withDefault(Constant(UserRole.user.name))();
   //TextColumn get avatarUrl => text().nullable()();
 
   @override
