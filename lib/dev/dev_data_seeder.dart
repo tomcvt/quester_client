@@ -15,7 +15,7 @@ class DevDataSeeder {
 
     // Create a mock group using the service, which will also insert it into the DB
     //TODO mock group
-    await groupService.createMockGroupWithUser("Group 1");
+    //await groupService.createMockGroupWithUser("Group 1");
   }
 
   static Future<void> clearQuests(AppDatabase db) async {

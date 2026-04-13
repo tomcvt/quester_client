@@ -233,7 +233,7 @@ class _MembersSubScreen extends ConsumerWidget {
                   title: Text(
                     member.user.username ?? 'User ${member.user.publicId}',
                   ),
-                  subtitle: Text('Role: ${member.groupMember.role}'),
+                  subtitle: Text('Role: ${member.groupMember.role.label}'),
                 );
               },
             ),
