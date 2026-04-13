@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/data/data_objects.dart';
 import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/theme/app_theme.dart';
+import 'package:quester_client/features/groups/group_actions_notifier.dart';
 import 'package:quester_client/features/groups/quest_card_theme.dart';
 
 // ─── Role metadata ────────────────────────────────────────────────────────────
@@ -303,6 +304,9 @@ class _MemberMenuButtonState extends ConsumerState<_MemberMenuButton>
       case MemberMenuAction.kick:
         if (widget.canKick) {
           // TODO: wire to notifier
+          ref
+              .read(groupActionsProvider.notifier)
+              .kickMember(widget.memberWithUser.groupMember.userPublicId);
         }
         break;
     }

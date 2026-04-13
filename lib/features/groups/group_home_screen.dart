@@ -225,6 +225,7 @@ class _MembersSubScreen extends ConsumerWidget {
               itemCount: members.length,
               itemBuilder: (context, index) {
                 final member = members[index];
+                final meMember = meMemberAsync.whenData((data) => data);
                 final canSetRole = _canSetRole(member, meMemberAsync.value);
                 final canKick =
                     canSetRole; // For simplicity, same permission for kicking
@@ -234,6 +235,7 @@ class _MembersSubScreen extends ConsumerWidget {
                   canSetRole: canSetRole,
                   canKick: canKick,
                 );
+                //TODO integrate circle avatar later
                 return ListTile(
                   leading: CircleAvatar(
                     child: Text(
