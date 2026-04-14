@@ -1,10 +1,12 @@
 // lib/core/providers/core_providers.dart
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/auth_service.dart';
@@ -48,19 +50,35 @@ final authServiceProvider = Provider<AuthService>(
   ),
 );
 
-final installationIdProvider = Provider<String>((ref) {
-  throw UnimplementedError(
-    'installationIdProvider must be overridden in main()',
-  );
+final installationIdProvider = FutureProvider<String>((ref) {
+  return ref
+      .watch(installationIdServiceProvider)
+      .getOrCreateInstallationId(); // directly call the method here
 });
 
 final apiClientProvider = Provider<ApiClient>((ref) {
-  final installationId = ref.watch(installationIdProvider);
-  return ApiClient(AppInitializer.buildConfig.apiBaseUrl, installationId);
+  final buildConfig = ref.watch(buildConfigProvider);
+  final installationId = ref
+      .watch(installationIdProvider)
+      .maybeWhen(
+        data: (id) => id,
+        orElse: () => throw Exception('Installation ID not available'),
+      );
+  return ApiClient(buildConfig.apiBaseUrl, installationId);
 });
 
 final syncServiceProvider = Provider<SyncService>((ref) {
   final db = ref.watch(databaseProvider).requireValue;
   final apiClient = ref.watch(apiClientProvider);
   return SyncService(db, apiClient);
+});
+
+final buildConfigProvider = Provider<BuildConfig>((ref) {
+  throw UnimplementedError('buildConfigProvider must be overridden in main()');
+});
+
+final firebaseProvider = Provider<Future<FirebaseApp>>((ref) {
+  return Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 });

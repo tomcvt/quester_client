@@ -3,16 +3,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
+import 'package:quester_client/core/services/auth_service.dart';
 import 'core_providers.dart';
 
 class AuthNotifier extends AsyncNotifier<SessionData> {
   @override
   Future<SessionData> build() async {
-    // AppInitializer.init() already ran auth before runApp — just expose the result.
-    // This avoids a second authenticate call on every app start.
-    return AppInitializer.sessionData;
+    final authService = ref.watch(authServiceProvider);
+    final installationId = await ref.watch(installationIdProvider.future);
   }
 
+  @Deprecated('for now useless')
   Future<void> login(String username, String password) async {
     state = const AsyncValue.loading();
     final session = await ref
@@ -21,6 +22,7 @@ class AuthNotifier extends AsyncNotifier<SessionData> {
     state = AsyncValue.data(session);
   }
 
+  @Deprecated('for now useless')
   Future<void> logout() async {
     state = const AsyncValue.loading();
     await ref.read(authServiceProvider).logout();

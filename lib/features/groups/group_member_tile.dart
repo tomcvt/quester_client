@@ -304,9 +304,9 @@ class _MemberMenuButtonState extends ConsumerState<_MemberMenuButton>
       case MemberMenuAction.kick:
         if (widget.canKick) {
           // TODO: wire to notifier
-          ref
-              .read(groupActionsProvider.notifier)
-              .kickMember(widget.memberWithUser.groupMember.userPublicId);
+          //ref
+          //.read(groupActionsProvider.notifier)
+          //.kickMember(widget.memberWithUser.groupMember.userPublicId);
         }
         break;
     }
