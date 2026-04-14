@@ -1,6 +1,7 @@
 // lib/core/providers/core_providers.dart
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
@@ -77,8 +78,17 @@ final buildConfigProvider = Provider<BuildConfig>((ref) {
   throw UnimplementedError('buildConfigProvider must be overridden in main()');
 });
 
-final firebaseProvider = Provider<Future<FirebaseApp>>((ref) {
+final firebaseFutureProvider = Provider<Future<FirebaseApp>>((ref) {
   return Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+});
+
+final fcmTokenProvider = FutureProvider<String?>((ref) async {
+  final fcmToken = await FirebaseMessaging.instance.getToken(
+    vapidKey: ref.watch(buildConfigProvider).vapidKey,
+  );
+  final prefsAsync = await ref.watch(sharedPreferencesProvider.future);
+  await prefsAsync.setString('fcm_token', fcmToken ?? '');
+  return fcmToken;
 });

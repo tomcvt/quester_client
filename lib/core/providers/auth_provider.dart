@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/services/auth_service.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'core_providers.dart';
 
 class AuthNotifier extends AsyncNotifier<SessionData> {
@@ -11,6 +12,18 @@ class AuthNotifier extends AsyncNotifier<SessionData> {
   Future<SessionData> build() async {
     final authService = ref.watch(authServiceProvider);
     final installationId = await ref.watch(installationIdProvider.future);
+    final firebaseApp = await ref.watch(firebaseFutureProvider);
+    final fcmToken = await ref.watch(fcmTokenProvider.future);
+    logger.d('Firebase app in AuthNotifier: ${firebaseApp.name}');
+    final sessionData = await authService.initialize(
+      installationId,
+      fcmToken: fcmToken,
+    );
+    if (sessionData.sessionToken.isEmpty) {
+      logger.w('No session token received during authentication');
+      return const SessionData.empty();
+    }
+    return sessionData;
   }
 
   @Deprecated('for now useless')

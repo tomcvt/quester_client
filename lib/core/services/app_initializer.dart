@@ -46,6 +46,8 @@ class AppInitializer {
           persistenceMode: PersistenceMode.memory,
           isDebug: true,
           apiBaseUrl: 'http://localhost:8100/api/v1/',
+          vapidKey:
+              "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
         );
     buildConfig = config; // assign to static variable for global access
     prefs = await SharedPreferences.getInstance();
@@ -83,8 +85,7 @@ class AppInitializer {
     logger.i('Existing FCM token: $newFcmToken');
     if (newFcmToken == null || newFcmToken.isEmpty) {
       newFcmToken = await FirebaseMessaging.instance.getToken(
-        vapidKey:
-            "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
+        vapidKey: buildConfig.vapidKey,
       );
       if (newFcmToken == null) {
         logger.e('Failed to obtain FCM token');
@@ -139,12 +140,15 @@ class BuildConfig {
   //static const String apiBaseUrl = 'https://questerapp.tomcvt.com/api';
   String apiBaseUrl = 'http://localhost:8100/api/v1/';
   PersistenceMode persistenceMode = PersistenceMode.memory;
+  String vapidKey =
+      "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8";
   bool isDebug = true;
 
   BuildConfig({
     required this.persistenceMode,
     required this.isDebug,
     required this.apiBaseUrl,
+    required this.vapidKey,
   });
 }
 
