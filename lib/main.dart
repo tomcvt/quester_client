@@ -17,10 +17,13 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final timestamp1 = DateTime.now().millisecondsSinceEpoch;
   final firebaseAppFuture = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await firebaseAppFuture; // Ensure Firebase is initialized before proceeding
+  final timestamp2 = DateTime.now().millisecondsSinceEpoch;
+  logger.d('Firebase initialization took ${timestamp2 - timestamp1} ms');
   //TODO for now, solve the async later
 
   String apiBaseUrl;
@@ -77,6 +80,7 @@ void main() async {
   runApp(
     ProviderScope(
       overrides: [
+        buildConfigProvider.overrideWithValue(buildConfig),
         databaseProvider.overrideWithValue(AsyncValue.data(AppInitializer.db)),
         firebaseFutureProvider.overrideWithValue(firebaseAppFuture),
         //fcmTokenProvider.overrideWithValue(AppInitializer.fcmToken), TODO

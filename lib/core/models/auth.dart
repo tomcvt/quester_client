@@ -19,7 +19,23 @@ class SessionData {
     required this.publicId,
     this.fcmToken,
   });
+  /*
+  @override
+  int get hashCode =>
+      Object.hash(sessionToken, username, phoneNumber, publicId, fcmToken);
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is SessionData &&
+        other.sessionToken == sessionToken &&
+        other.username == username &&
+        other.phoneNumber == phoneNumber &&
+        other.publicId == publicId &&
+        other.fcmToken == fcmToken;
+  }
+*/
   @override
   String toString() {
     return 'SessionData(sessionToken: $sessionToken, username: $username, phoneNumber: $phoneNumber, publicId: $publicId, fcmToken: $fcmToken)';

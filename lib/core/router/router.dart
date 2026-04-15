@@ -9,6 +9,7 @@ import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/services/fcm_handler.dart';
 import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/dev/dev_data_seeder.dart';
 import 'package:quester_client/features/auth/setup_profile_screen.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
@@ -47,30 +48,34 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: notifier,
     redirect: (context, state) {
       final authState = ref.read(authProvider);
+      if (authState.hasError) {
+        logger.e('Error in auth provider: ${authState.error}');
+        // If there's an error in auth, we might want to redirect to an error page or logout
+        // For now, we'll just log it and continue as if unauthenticated
+      }
       final sessionData = authState.maybeWhen(
-        data: (data) => data,
-        orElse: () => const SessionData.empty(),
+        data: (session) => session,
+        orElse: () => null,
       );
       final isSplash = state.matchedLocation == '/splash';
-      final usernameOrNull = ref.read(usernameProvider);
+      final usernameOrNull = ref.read(usernameProvider).value;
+      //.maybeWhen(data: (username) => username, orElse: () => null);
 
       // Still loading auth — stay on splash
       //if (authState.isLoading) return isSplash ? null : '/splash';
 
-      final isLoggedIn = sessionData.sessionToken.isNotEmpty;
+      final isLoggedIn = sessionData?.sessionToken.isNotEmpty ?? false;
+      logger.d(
+        'Routing: isLoggedIn=$isLoggedIn, username=$usernameOrNull, location=${state.matchedLocation}',
+      );
       // Logged in but no username — force setup profile
       if (isSplash && isLoggedIn && usernameOrNull == null) {
         return '/setup-profile';
       }
 
       // On splash and auth resolved — redirect to correct screen
-      if (isSplash) return isLoggedIn ? '/home' : '/login';
-
-      // Not on splash — guard home route
-      if (!isLoggedIn && state.matchedLocation == '/home') return '/login';
-
-      // Already on login and logged in — go home
-      if (isLoggedIn && state.matchedLocation == '/login') return '/home';
+      if (isSplash && !isLoggedIn)
+        return '/splash'; // stay on splash if not logged in and w8 for session data
 
       //TODO add more route guards as needed (e.g. prevent accessing group/quest details if not a member)
 

@@ -11,7 +11,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final username = ref.watch(usernameProvider);
+    final username = ref.watch(usernameProvider).requireValue;
     final phoneNumber = ref.watch(phoneNumberProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),

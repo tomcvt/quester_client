@@ -43,7 +43,7 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
   Widget build(BuildContext context) {
     ref.listen<AsyncValue<void>>(profileActionsProvider, (previous, next) {
       if (previous?.isLoading == true && !next.isLoading && !next.hasError) {
-        final username = ref.read(usernameProvider);
+        final username = ref.read(usernameProvider).value;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Welcome, $username!')));
