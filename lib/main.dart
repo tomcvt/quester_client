@@ -17,10 +17,11 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FirebaseApp firebaseApp = await Firebase.initializeApp(
+  final firebaseAppFuture = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  logger.d('Firebase initialized: ${firebaseApp.name}');
+  await firebaseAppFuture; // Ensure Firebase is initialized before proceeding
+  //TODO for now, solve the async later
 
   String apiBaseUrl;
   if (kDebugMode) {
@@ -44,12 +45,19 @@ void main() async {
     //TODO: memory for debug
     isDebug: kDebugMode,
     apiBaseUrl: apiBaseUrl,
+    vapidKey:
+        "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
   );
 
-  await AppInitializer.init(buildConfig);
+  await AppInitializer.initSlim(buildConfig);
   logger.d('DB: ${AppInitializer.db}');
-  await FirebaseMessaging.instance.requestPermission();
-
+  Future<NotificationSettings> requestNotificationFuture;
+  try {
+    requestNotificationFuture = FirebaseMessaging.instance.requestPermission();
+  } catch (e) {
+    logger.e('Error requesting notification permissions: $e');
+  }
+  //await requestNotificationFuture;
   await NotificationDisplayService.init();
 
   FirebaseMessaging.onBackgroundMessage(
@@ -70,8 +78,7 @@ void main() async {
     ProviderScope(
       overrides: [
         databaseProvider.overrideWithValue(AsyncValue.data(AppInitializer.db)),
-        installationIdProvider.overrideWithValue(AppInitializer.installationId),
-        apiClientProvider.overrideWithValue(AppInitializer.apiClient),
+        firebaseFutureProvider.overrideWithValue(firebaseAppFuture),
         //fcmTokenProvider.overrideWithValue(AppInitializer.fcmToken), TODO
       ],
       child: MyApp(),

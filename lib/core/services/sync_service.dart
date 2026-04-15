@@ -205,8 +205,8 @@ class SyncService {
   }
 }
 
-final syncServiceProvider = Provider<SyncService>((ref) {
+final syncServiceProvider = FutureProvider<SyncService>((ref) async {
   final db = ref.watch(appDatabaseProvider);
-  final apiClient = ref.watch(apiClientProvider);
+  final apiClient = await ref.watch(apiClientProvider.future);
   return SyncService(db, apiClient);
 });

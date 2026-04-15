@@ -1,4 +1,5 @@
 //Keys for SharedPreferences and secure storage
+const String installationIdKey = 'installation_id';
 const String apiKeyKey = 'x-api-key';
 const String sessionTokenKey = 'session_token';
 const String publicIdKey = 'public_id';

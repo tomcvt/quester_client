@@ -39,6 +39,22 @@ class AppInitializer {
     return sessionData.publicId;
   }
 
+  static Future<void> initSlim(BuildConfig? passedBuildConfig) async {
+    final config =
+        passedBuildConfig ??
+        BuildConfig(
+          persistenceMode: PersistenceMode.memory,
+          isDebug: true,
+          apiBaseUrl: 'http://localhost:8100/api/v1/',
+          vapidKey:
+              "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
+        );
+    db = await AppDatabase.open(buildConfig: config);
+    deviceId = await _getDeviceId();
+    buildConfig = config;
+    isInitialized = true;
+  }
+
   static Future<void> init(BuildConfig? passedBuildConfig) async {
     final config =
         passedBuildConfig ??
@@ -52,10 +68,10 @@ class AppInitializer {
     buildConfig = config; // assign to static variable for global access
     prefs = await SharedPreferences.getInstance();
     final installationIdService = InstallationIdService(prefs);
-    installationId = await installationIdService.getOrCreateInstallationId();
-    fcmToken = await getFcmToken(prefs);
+    //installationId = await installationIdService.getOrCreateInstallationId();
+    //fcmToken = await getFcmToken(prefs);
     prefs.setString(apiBaseUrlKey, config.apiBaseUrl);
-    prefs.setString('installation_id', installationId);
+    prefs.setString(installationIdKey, installationId);
     apiClient = ApiClient(config.apiBaseUrl, installationId);
     //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful
     final authService = AuthService(

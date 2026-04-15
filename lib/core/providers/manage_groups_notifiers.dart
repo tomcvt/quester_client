@@ -11,7 +11,7 @@ class AddGroupNotifier extends AsyncNotifier<Group?> {
 
   Future<Group?> createGroup(String name, String password) async {
     logger.d('createGroup called: $name');
-    final groupsService = ref.read(groupsServiceProvider);
+    final groupsService = await ref.read(groupsServiceProvider.future);
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
       () async {
@@ -42,7 +42,7 @@ class JoinGroupNotifier extends AsyncNotifier<Group?> {
 
   Future<Group?> joinGroup(String name, String password) async {
     logger.d('joinGroup called: $name');
-    final groupsService = ref.read(groupsServiceProvider);
+    final groupsService = await ref.read(groupsServiceProvider.future);
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
       () async {

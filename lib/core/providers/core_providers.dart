@@ -7,6 +7,7 @@ import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -24,53 +25,41 @@ final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),
 );
 
-final installationIdServiceProvider = Provider<InstallationIdService>(
-  (ref) => InstallationIdService(
-    ref
-        .watch(sharedPreferencesProvider)
-        .maybeWhen(
-          data: (prefs) => prefs,
-          orElse: () => throw Exception('SharedPreferences not available'),
-        ),
+final installationIdServiceProvider = FutureProvider<InstallationIdService>(
+  (ref) async =>
+      InstallationIdService(await ref.read(sharedPreferencesProvider.future)),
+);
+
+final authServiceProvider = FutureProvider<AuthService>(
+  (ref) async => AuthService(
+    await ref.read(installationIdServiceProvider.future),
+    await ref.read(apiClientProvider.future),
+    ref.read(secureStorageProvider),
+    await ref.read(sharedPreferencesProvider.future),
   ),
 );
 
-final authServiceProvider = Provider<AuthService>(
-  (ref) => AuthService(
-    ref.watch(
-      installationIdServiceProvider,
-    ), // pass the notifier to getOrCreateInstallationId()
-    ref.watch(apiClientProvider),
-    ref.watch(secureStorageProvider),
-    ref
-        .watch(sharedPreferencesProvider)
-        .maybeWhen(
-          data: (prefs) => prefs,
-          orElse: () => throw Exception('SharedPreferences not available'),
-        ),
-  ),
-);
-
-final installationIdProvider = FutureProvider<String>((ref) {
-  return ref
-      .watch(installationIdServiceProvider)
+final installationIdProvider = FutureProvider<String>((ref) async {
+  final installationIdService = await ref.read(
+    installationIdServiceProvider.future,
+  );
+  return installationIdService
       .getOrCreateInstallationId(); // directly call the method here
 });
 
-final apiClientProvider = Provider<ApiClient>((ref) {
-  final buildConfig = ref.watch(buildConfigProvider);
-  final installationId = ref
-      .watch(installationIdProvider)
-      .maybeWhen(
-        data: (id) => id,
-        orElse: () => throw Exception('Installation ID not available'),
-      );
+final apiClientProvider = FutureProvider<ApiClient>((ref) async {
+  final buildConfig = ref.read(buildConfigProvider);
+  final installationId = await ref
+      .read(installationIdProvider.future)
+      .catchError((e) {
+        throw Exception('Failed to get installation ID: $e');
+      });
   return ApiClient(buildConfig.apiBaseUrl, installationId);
 });
 
-final syncServiceProvider = Provider<SyncService>((ref) {
+final syncServiceProvider = FutureProvider<SyncService>((ref) async {
   final db = ref.watch(databaseProvider).requireValue;
-  final apiClient = ref.watch(apiClientProvider);
+  final apiClient = await ref.watch(apiClientProvider.future);
   return SyncService(db, apiClient);
 });
 
@@ -79,12 +68,14 @@ final buildConfigProvider = Provider<BuildConfig>((ref) {
 });
 
 final firebaseFutureProvider = Provider<Future<FirebaseApp>>((ref) {
-  return Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  throw UnimplementedError(
+    'firebaseFutureProvider must be overridden in main()',
   );
 });
 
 final fcmTokenProvider = FutureProvider<String?>((ref) async {
+  final firebaseApp = await ref.watch(firebaseFutureProvider);
+  logger.d('Firebase app in fcmTokenProvider: ${firebaseApp.name}');
   final fcmToken = await FirebaseMessaging.instance.getToken(
     vapidKey: ref.watch(buildConfigProvider).vapidKey,
   );

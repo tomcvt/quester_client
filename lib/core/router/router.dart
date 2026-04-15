@@ -220,7 +220,7 @@ class _DebugSpeedDialState extends ConsumerState<_DebugSpeedDial> {
 
   @override
   Widget build(BuildContext context) {
-    final syncService = ref.read(syncServiceProvider);
+    final syncServiceFuture = ref.read(syncServiceProvider.future);
     final actions = <({String label, IconData icon, VoidCallback onTap})>[
       /*
     (
@@ -247,6 +247,7 @@ class _DebugSpeedDialState extends ConsumerState<_DebugSpeedDial> {
         label: 'Sync quests data',
         icon: Icons.sync,
         onTap: () async {
+          final syncService = await syncServiceFuture;
           await syncService.syncAllQuests();
           if (context.mounted) {
             ScaffoldMessenger.of(

@@ -72,7 +72,8 @@ class HomeScreen extends ConsumerWidget {
               title: const Text('Logout'),
               onTap: () {
                 Navigator.of(context).pop();
-                ref.read(authProvider.notifier).logout();
+                // TODO: implement logout
+                // ref.read(authProvider.notifier).logout();
               },
             ),
           ],

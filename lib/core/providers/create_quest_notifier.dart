@@ -45,7 +45,7 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
     required QuestStatus status,
   }) async {
     logger.d('createQuest called: $name');
-    final questsService = ref.read(questsServiceProvider);
+    final questsService = await ref.read(questsServiceProvider.future);
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
       () async {

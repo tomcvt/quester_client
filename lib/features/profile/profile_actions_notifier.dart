@@ -11,7 +11,8 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
     state = const AsyncLoading();
     logger.d('Attempting to change username to: $newUsername');
     state = await AsyncValue.guard(() async {
-      await ref.read(authServiceProvider).changeUsername(newUsername);
+      final authService = await ref.read(authServiceProvider.future);
+      await authService.changeUsername(newUsername);
       logger.d('Username changed to: $newUsername');
       ref.read(usernameProvider.notifier).set(newUsername);
       logger.d('Username provider updated with new username: $newUsername');
@@ -22,7 +23,8 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
     state = const AsyncLoading();
     logger.d('Attempting to change phone number to: $newPhoneNumber');
     state = await AsyncValue.guard(() async {
-      await ref.read(authServiceProvider).changePhoneNumber(newPhoneNumber);
+      final authService = await ref.read(authServiceProvider.future);
+      await authService.changePhoneNumber(newPhoneNumber);
       ref.read(phoneNumberProvider.notifier).set(newPhoneNumber);
     });
   }
@@ -36,9 +38,11 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
       'Attempting to change username and phone number. New username: $newUsername, New phone number: $newPhoneNumber',
     );
     state = await AsyncValue.guard(() async {
-      await ref
-          .read(authServiceProvider)
-          .changeUsernameAndPhoneNumber(newUsername, newPhoneNumber);
+      final authService = await ref.read(authServiceProvider.future);
+      await authService.changeUsernameAndPhoneNumber(
+        newUsername,
+        newPhoneNumber,
+      );
       logger.d('Username changed to: $newUsername');
       ref.read(usernameProvider.notifier).set(newUsername);
       logger.d('Username provider updated with new username: $newUsername');

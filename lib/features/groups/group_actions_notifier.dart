@@ -9,16 +9,18 @@ class GroupActionsNotifier extends AsyncNotifier<void> {
   Future<void> leaveGroup(String groupId) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await ref.read(groupsServiceProvider).leaveGroup(groupId);
+      final groupsService = await ref.read(groupsServiceProvider.future);
+      await groupsService.leaveGroup(groupId);
     });
   }
 
   Future<void> syncGroupMembers(String groupId) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await ref
-          .read(syncServiceProvider)
-          .syncUsersAndGroupMembersForGroupById(int.parse(groupId));
+      final syncService = await ref.read(syncServiceProvider.future);
+      await syncService.syncUsersAndGroupMembersForGroupById(
+        int.parse(groupId),
+      );
     });
   }
 }
