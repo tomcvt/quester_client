@@ -19,7 +19,7 @@ class UserSyncDto {
     return UserSyncDto(
       publicId: json['public_id'],
       username: json['username'],
-      role: UserRole.values.firstWhere((e) => e.name == json['role']),
+      role: UserRoleX.fromString(json['role']),
       phoneNumber: json['phone_number'],
       avatarUrl: json['avatar_url'],
     );

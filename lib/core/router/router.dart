@@ -58,7 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => null,
       );
       final isSplash = state.matchedLocation == '/splash';
-      final usernameOrNull = ref.read(usernameProvider).value;
+      final usernameOrNull = sessionData
+          ?.username; //.maybeWhen(data: (session) => session.username, orElse: () => null);
       //.maybeWhen(data: (username) => username, orElse: () => null);
 
       // Still loading auth — stay on splash

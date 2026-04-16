@@ -60,6 +60,26 @@ extension GroupTypeX on GroupType {
 
 enum UserRole { superuser, admin, user }
 
+extension UserRoleX on UserRole {
+  String get value => name;
+  String get apiValue => name.toUpperCase();
+  String get label {
+    switch (this) {
+      case UserRole.superuser:
+        return 'Superuser';
+      case UserRole.admin:
+        return 'Admin';
+      case UserRole.user:
+        return 'User';
+      default:
+        return name;
+    }
+  }
+
+  static UserRole fromString(String s) =>
+      UserRole.values.firstWhere((e) => e.name == s.toLowerCase());
+}
+
 // Users table schema
 // REFERENCE: PRIMARY KEY
 class Users extends Table {

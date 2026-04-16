@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/theme/app_theme.dart';
@@ -43,7 +44,7 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
   Widget build(BuildContext context) {
     ref.listen<AsyncValue<void>>(profileActionsProvider, (previous, next) {
       if (previous?.isLoading == true && !next.isLoading && !next.hasError) {
-        final username = ref.read(usernameProvider).value;
+        final username = ref.read(authProvider).value?.username;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Welcome, $username!')));

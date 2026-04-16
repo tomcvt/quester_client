@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/data_objects.dart';
 import 'package:quester_client/core/data/data_tables.dart';
+import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/providers/create_quest_notifier.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/features/groups/group_actions_notifier.dart';
 import 'package:quester_client/core/providers/service_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
@@ -69,7 +71,9 @@ final questsProvider = StreamProvider.autoDispose
 
 final groupMembersProvider = StreamProvider.autoDispose
     .family<List<GroupMemberWithUser>, String>((ref, groupId) {
-      final meUserPublicId = AppInitializer.getCurrentUserPublicId();
+      final meUserPublicId = ref
+          .watch(authProvider)
+          .maybeWhen(data: (session) => session.publicId, orElse: () => null);
       if (meUserPublicId == null) {
         //throw Exception('No user logged in');
         return ref
@@ -86,7 +90,9 @@ final groupMembersProvider = StreamProvider.autoDispose
 
 final meGroupMemberProvider = StreamProvider.autoDispose
     .family<GroupMemberWithUser?, String>((ref, groupId) {
-      final meUserPublicId = AppInitializer.getCurrentUserPublicId();
+      final meUserPublicId = ref
+          .watch(authProvider)
+          .maybeWhen(data: (session) => session.publicId, orElse: () => null);
       if (meUserPublicId == null) {
         return Stream.value(null); // No user logged in, so no membership
       }
@@ -226,7 +232,8 @@ class _MembersSubScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final member = members[index];
                 final meMember = meMemberAsync.whenData((data) => data);
-                final canSetRole = _canSetRole(member, meMemberAsync.value);
+                logger.w('Current user membership data: ${meMember.value}');
+                final canSetRole = _canSetRole(member, meMember.value);
                 final canKick =
                     canSetRole; // For simplicity, same permission for kicking
                 return GroupMemberTile(

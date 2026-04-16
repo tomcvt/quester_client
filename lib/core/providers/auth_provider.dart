@@ -25,6 +25,12 @@ class AuthNotifier extends AsyncNotifier<SessionData> {
     }
     return sessionData;
   }
+
+  Future<void> setUsername(String newUsername) async {
+    state = state.whenData(
+      (session) => session.copyWith(username: newUsername),
+    );
+  }
 }
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, SessionData>(
