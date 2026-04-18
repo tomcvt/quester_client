@@ -233,6 +233,8 @@ class _MembersSubScreen extends ConsumerWidget {
               itemCount: members.length,
               itemBuilder: (context, index) {
                 final member = members[index];
+                final meMember = meMemberAsync.whenData((data) => data);
+                logger.w('Current user membership data: ${meMember.value}');
                 final canSetRole = _canSetRole(member, meMember.value);
                 final canKick =
                     canSetRole; // For simplicity, same permission for kicking

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
@@ -13,8 +14,7 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
     state = await AsyncValue.guard(() async {
       final authService = await ref.read(authServiceProvider.future);
       await authService.changeUsername(newUsername);
-      logger.d('Username changed to: $newUsername');
-      ref.read(usernameProvider.notifier).set(newUsername);
+      ref.read(authProvider.notifier).setUsername(newUsername);
       logger.d('Username provider updated with new username: $newUsername');
     });
   }
