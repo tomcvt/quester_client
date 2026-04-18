@@ -58,7 +58,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         orElse: () => null,
       );
       final isSplash = state.matchedLocation == '/splash';
-      final usernameOrNull = ref.read(usernameProvider).value;
+      final isSetup = state.matchedLocation == '/setup-profile';
+      final usernameOrNull = ref.read(authProvider).value?.username;
       //.maybeWhen(data: (username) => username, orElse: () => null);
 
       // Still loading auth — stay on splash
@@ -72,6 +73,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isSplash && isLoggedIn && usernameOrNull == null) {
         return '/setup-profile';
       }
+
+      if (isSetup && (usernameOrNull != null || !isLoggedIn)) {
+        return '/home'; // if somehow on setup but already has username or not logged in, go home
+      } //CHECK CORRECTNESS IF WE WANT NOT LOGGED IN TO HOME
 
       // On splash and auth resolved — redirect to correct screen
       if (isSplash && !isLoggedIn)

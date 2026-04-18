@@ -49,40 +49,26 @@ class AuthService {
     String installationId,
     String? fcmToken,
   ) async {
-    final installationId = await _installationIdService
-        .getOrCreateInstallationId();
-    var apiKey = await _secureStorage.read(key: apiKeyKey);
-    logger.d('Retrieved API key from secure storage: $apiKey');
-    if (apiKey == null || apiKey.isEmpty) {
-      await registerAndSave(installationId, null, '');
-    }
-    //TODO add fallback if incorrect token
-    apiKey = await _secureStorage.read(key: apiKeyKey);
-    if (apiKey == null || apiKey.isEmpty) {
+    final id = await _installationIdService.getOrCreateInstallationId();
+
+    final regResponse = await registerAndSave(id, null, '');
+    if (regResponse.apiKey == null || regResponse.apiKey!.isEmpty) {
       throw Exception('API key is missing after registration');
     }
-    //TODO continue with authentication flow, handle cases where registration is needed, etc.
-    final authResponse = await _apiClient.authenticate(
-      installationId,
-      apiKey,
-      fcmToken,
-    );
-    //TODO -handle case of server has key user doesnt. for now we assume
+    logger.d('Registration complete, API key: ${regResponse.apiKey}');
 
+    final authResponse = await _apiClient.authenticate(id, regResponse.apiKey!, fcmToken);
     if (authResponse.sessionToken.isEmpty) {
-      await registerAndSave(installationId, null, '');
+      throw Exception('Session token is missing after authentication');
     }
+    logger.d('Authentication complete, session token: ${authResponse.sessionToken}');
+
     _apiClient.setSessionToken(authResponse.sessionToken);
-    logger.d(
-      'Setting session token in API client: ${authResponse.sessionToken}',
-    );
-    await _secureStorage.write(
-      key: sessionTokenKey,
-      value: authResponse.sessionToken,
-    );
+    await _secureStorage.write(key: sessionTokenKey, value: authResponse.sessionToken);
     await _secureStorage.write(key: publicIdKey, value: authResponse.publicId);
     await _prefs.setString(usernameKey, authResponse.username ?? '');
     await _prefs.setString(phoneNumberKey, authResponse.phoneNumber ?? '');
+
     return SessionData(
       sessionToken: authResponse.sessionToken,
       username: authResponse.username,

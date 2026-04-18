@@ -8,9 +8,11 @@ import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/data_objects.dart';
 import 'package:quester_client/core/data/data_tables.dart';
+import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/providers/create_quest_notifier.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/sync_service.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/features/groups/group_actions_notifier.dart';
 import 'package:quester_client/core/providers/service_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
@@ -69,7 +71,7 @@ final questsProvider = StreamProvider.autoDispose
 
 final groupMembersProvider = StreamProvider.autoDispose
     .family<List<GroupMemberWithUser>, String>((ref, groupId) {
-      final meUserPublicId = AppInitializer.getCurrentUserPublicId();
+      final meUserPublicId = ref.watch(currentUserPublicIdProvider);
       if (meUserPublicId == null) {
         //throw Exception('No user logged in');
         return ref
@@ -86,7 +88,9 @@ final groupMembersProvider = StreamProvider.autoDispose
 
 final meGroupMemberProvider = StreamProvider.autoDispose
     .family<GroupMemberWithUser?, String>((ref, groupId) {
-      final meUserPublicId = AppInitializer.getCurrentUserPublicId();
+      //explore change notifiers for auth state
+
+      final meUserPublicId = ref.watch(currentUserPublicIdProvider);
       if (meUserPublicId == null) {
         return Stream.value(null); // No user logged in, so no membership
       }
@@ -216,6 +220,10 @@ class _MembersSubScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final membersAsync = ref.watch(groupMembersProvider(groupId));
     final meMemberAsync = ref.watch(meGroupMemberProvider(groupId));
+    final meMember = meMemberAsync.whenData(
+      (data) => data,
+    ); // Extract GroupMemberWithUser
+    logger.d('Me member data: ${meMember.toString()}');
     return membersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
@@ -225,11 +233,11 @@ class _MembersSubScreen extends ConsumerWidget {
               itemCount: members.length,
               itemBuilder: (context, index) {
                 final member = members[index];
-                final meMember = meMemberAsync.whenData((data) => data);
-                final canSetRole = _canSetRole(member, meMemberAsync.value);
+                final canSetRole = _canSetRole(member, meMember.value);
                 final canKick =
                     canSetRole; // For simplicity, same permission for kicking
                 return GroupMemberTile(
+                  groupId: groupId, // Pass groupId for actions that need it
                   memberWithUser: member,
                   canPing: true, // Replace with actual permission logic
                   canSetRole: canSetRole,
@@ -256,13 +264,18 @@ class _MembersSubScreen extends ConsumerWidget {
   }
 
   bool _canSetRole(GroupMemberWithUser member, GroupMemberWithUser? me) {
-    if (me == null) return false; // Not logged in, no permissions
-    if (me.user.role == UserRole.superuser)
+    if (me == null) {
+      return false; // Not logged in, no permissions
+    }
+    if (me.user.role == UserRole.superuser) {
       return true; // Superuser can set anyone's role
-    if (member.groupMember.role == MemberRole.owner)
+    }
+    if (member.groupMember.role == MemberRole.owner) {
       return false; // No one can set owner's role
-    if (me.groupMember.role == MemberRole.owner)
+    }
+    if (me.groupMember.role == MemberRole.owner) {
       return true; // Owner can set anyone's role
+    }
     if (me.groupMember.role == MemberRole.admin) {
       // Admin can set roles of non-admins, but not other admins or the owner
       return member.groupMember.role != MemberRole.owner &&

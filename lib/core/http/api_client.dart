@@ -318,4 +318,25 @@ class ApiClient {
       _throwFromDio(e, 'Failed to delete quest');
     }
   }
+
+  /*
+class SetRoleRequest(BaseModel):
+    group_public_id: uuid.UUID
+    user_public_id: uuid.UUID
+    role: str
+*/
+  Future<void> setMemberRole(
+    String publicId,
+    String userPublicId,
+    MemberRole newRole,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/$publicId/set-role',
+        data: {'user_public_id': userPublicId, 'role': newRole.apiValue},
+      );
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to set member role');
+    }
+  }
 }

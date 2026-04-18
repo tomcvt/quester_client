@@ -186,6 +186,20 @@ class GroupsService {
     await _groupsDao.deleteGroupById(group.id);
   }
 
+  Future<void> setMemberRole(
+    String groupId,
+    String userPublicId,
+    MemberRole newRole,
+  ) async {
+    final group = await _groupsDao.groupFromId(int.parse(groupId));
+    if (group == null) {
+      throw Exception('Group not found in local DB for ID $groupId');
+    }
+    await _apiClient.setMemberRole(group.publicId, userPublicId, newRole);
+    logger.d('Set member role on backend: user $userPublicId to role $newRole');
+    //TODO - update local DB with new role for this member
+  }
+
   Future<Group?> createMockGroupWithUser(String groupName) async {
     final newGroup = GroupsCompanion(
       name: Value(groupName),

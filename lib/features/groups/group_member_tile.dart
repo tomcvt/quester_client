@@ -48,6 +48,7 @@ enum MemberMenuAction { ping, call, setRole, kick }
 
 class GroupMemberTile extends StatelessWidget {
   final GroupMemberWithUser memberWithUser;
+  final String groupId;
 
   /// Ping is always enabled when true (pass true to enable).
   final bool canPing;
@@ -68,6 +69,7 @@ class GroupMemberTile extends StatelessWidget {
     this.phoneNumber,
     this.canSetRole = false,
     this.canKick = false,
+    required this.groupId,
   });
 
   @override
@@ -148,6 +150,7 @@ class GroupMemberTile extends StatelessWidget {
                         // — 3-dot menu button —
                         _MemberMenuButton(
                           memberWithUser: memberWithUser,
+                          groupId: groupId,
                           canPing: canPing,
                           phoneNumber: phoneNumber,
                           canSetRole: canSetRole,
@@ -170,6 +173,7 @@ class GroupMemberTile extends StatelessWidget {
 
 class _MemberMenuButton extends ConsumerStatefulWidget {
   final GroupMemberWithUser memberWithUser;
+  final String groupId;
   final bool canPing;
   final String? phoneNumber;
   final bool canSetRole;
@@ -177,6 +181,7 @@ class _MemberMenuButton extends ConsumerStatefulWidget {
 
   const _MemberMenuButton({
     required this.memberWithUser,
+    required this.groupId,
     required this.canPing,
     required this.phoneNumber,
     required this.canSetRole,
@@ -319,7 +324,13 @@ class _MemberMenuButtonState extends ConsumerState<_MemberMenuButton>
           _SetRoleDialog(currentRole: widget.memberWithUser.groupMember.role),
     ).then((newRole) {
       if (newRole != null) {
-        // TODO: wire to notifier with newRole
+        ref
+            .read(groupActionsProvider.notifier)
+            .setMemberRole(
+              widget.groupId,
+              widget.memberWithUser.groupMember.userPublicId,
+              newRole,
+            );
       }
     });
   }

@@ -5,4 +5,9 @@ class GroupMemberWithUser {
   final User user;
 
   GroupMemberWithUser({required this.groupMember, required this.user});
+
+  @override
+  String toString() {
+    return 'GroupMemberWithUser(groupMember: $groupMember, user: $user)';
+  }
 }

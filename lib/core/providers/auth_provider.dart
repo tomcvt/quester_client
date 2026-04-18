@@ -33,8 +33,22 @@ final authProvider = AsyncNotifierProvider<AuthNotifier, SessionData>(
 
 /// Convenience provider — use this in UI instead of drilling into authProvider.
 /// Returns null while auth is loading or when not logged in.
+///
+/*
 final currentUserPublicIdProvider = Provider<String?>((ref) {
   return ref
       .watch(authProvider)
       .maybeWhen(data: (session) => session.publicId, orElse: () => null);
 });
+*/
+
+final currentUserPublicIdProvider = Provider<String?>((ref) {
+  return ref.watch(
+    authProvider.select((async) => async.unwrapPrevious().value?.publicId),
+  );
+});
+/*
+final meUserPublicId = ref.watch(
+  authProvider.select((async) => async.valueOrNull?.publicId),
+);
+*/
