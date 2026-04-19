@@ -157,4 +157,21 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> deleteMembersForGroup(int groupId) =>
       (delete(groupMembers)..where((m) => m.groupId.equals(groupId))).go();
+
+  Future<void> updateMemberRole(
+    int id,
+    String userPublicId,
+    MemberRole newRole,
+    DateTime updateDT,
+  ) async {
+    await (update(groupMembers)..where(
+          (m) => m.groupId.equals(id) & m.userPublicId.equals(userPublicId),
+        ))
+        .write(
+          GroupMembersCompanion(
+            role: Value(newRole),
+            updatedAt: Value(updateDT),
+          ),
+        );
+  }
 }

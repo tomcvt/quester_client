@@ -195,9 +195,16 @@ class GroupsService {
     if (group == null) {
       throw Exception('Group not found in local DB for ID $groupId');
     }
+    final updateDT = DateTime.now();
     await _apiClient.setMemberRole(group.publicId, userPublicId, newRole);
     logger.d('Set member role on backend: user $userPublicId to role $newRole');
     //TODO - update local DB with new role for this member
+    await _groupMembersDao.updateMemberRole(
+      group.id,
+      userPublicId,
+      newRole,
+      updateDT,
+    );
   }
 
   Future<Group?> createMockGroupWithUser(String groupName) async {

@@ -42,16 +42,26 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue<void>>(profileActionsProvider, (previous, next) {
-      if (previous?.isLoading == true && !next.isLoading && !next.hasError) {
-        final username = ref.read(authProvider).value?.username;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Welcome, $username!')));
-        if (username != null) {
-          context.go('/home');
-        }
-      }
+    ref.listen<AsyncValue<String?>>(profileActionsProvider, (previous, next) {
+      next.whenOrNull(
+        error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            duration: const Duration(seconds: 10),
+          ),
+        ),
+        data: (message) {
+          if (message != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                duration: const Duration(seconds: 5),
+              ),
+            );
+            ref.read(profileActionsProvider.notifier).reset();
+          }
+        },
+      );
     });
 
     final state = ref.watch(profileActionsProvider);

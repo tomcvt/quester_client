@@ -267,6 +267,14 @@ Future<void> _handleMessage(RemoteMessage message) async {
             addedUserPublicId: userPublicId,
           );
         }
+      case userUpdated:
+        final updateType = data['update_type']; // e.g. USERNAME_CHANGED
+        final updateData = data['update_data']; // e.g. new username
+        logger.d(
+          'Received user update notification: updateType=$updateType, updateData=$updateData',
+        );
+        // For simplicity, just refetch the user data for this public ID
+        await syncService.syncUser(userPublicId);
       default:
         logger.w('Received FCM message with unknown type: $type');
     }

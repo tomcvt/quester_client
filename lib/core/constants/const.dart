@@ -20,3 +20,4 @@ const String yourQuestCompleted = 'YOUR_QUEST_COMPLETED';
 const String userJoinedGroup = 'USER_JOINED_GROUP';
 const String userLeftGroup = 'USER_LEFT_GROUP';
 const String userRoleChanged = 'USER_ROLE_CHANGED'; //for now only this one used
+const String userUpdated = 'USER_UPDATED';

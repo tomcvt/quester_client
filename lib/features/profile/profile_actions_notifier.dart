@@ -4,9 +4,11 @@ import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
 
-class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
+class ProfileActionsNotifier extends Notifier<AsyncValue<String?>> {
   @override
-  AsyncValue<void> build() => const AsyncData(null);
+  AsyncValue<String?> build() => const AsyncData(null);
+
+  void reset() => state = const AsyncData(null);
 
   Future<void> changeUsername(String newUsername) async {
     state = const AsyncLoading();
@@ -16,6 +18,7 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
       await authService.changeUsername(newUsername);
       ref.read(authProvider.notifier).setUsername(newUsername);
       logger.d('Username provider updated with new username: $newUsername');
+      return 'Username changed to: $newUsername';
     });
   }
 
@@ -26,6 +29,7 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
       final authService = await ref.read(authServiceProvider.future);
       await authService.changePhoneNumber(newPhoneNumber);
       ref.read(phoneNumberProvider.notifier).set(newPhoneNumber);
+      return 'Phone number changed to: $newPhoneNumber';
     });
   }
 
@@ -51,11 +55,12 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<void>> {
       logger.d(
         'Phone number provider updated with new phone number: $newPhoneNumber',
       );
+      return 'Username changed to: $newUsername, Phone number changed to: $newPhoneNumber';
     });
   }
 }
 
 final profileActionsProvider =
-    NotifierProvider<ProfileActionsNotifier, AsyncValue<void>>(
+    NotifierProvider<ProfileActionsNotifier, AsyncValue<String?>>(
       ProfileActionsNotifier.new,
     );

@@ -4,6 +4,7 @@ import 'package:quester_client/core/dto/auth.dart';
 import 'package:quester_client/core/dto/groups.dart';
 import 'package:quester_client/core/dto/quests.dart';
 import 'package:quester_client/core/dto/users.dart';
+import 'package:quester_client/core/utils/logger_util.dart';
 
 class ApiException implements Exception {
   final int? statusCode;
@@ -16,6 +17,16 @@ class ApiException implements Exception {
 }
 
 Never _throwFromDio(DioException e, String fallback) {
+  switch (e.type) {
+    case DioExceptionType.connectionError:
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+      logger.e('Network error: ${e.message}', error: e);
+      throw const ApiException(detail: 'Check your internet connection');
+    default:
+      break;
+  }
   final response = e.response;
   if (response != null) {
     final serverDetail = response.data is Map
@@ -332,7 +343,7 @@ class SetRoleRequest(BaseModel):
   ) async {
     try {
       final response = await _dio.post(
-        '/$publicId/set-role',
+        '/groups/$publicId/set-role',
         data: {'user_public_id': userPublicId, 'role': newRole.apiValue},
       );
     } on DioException catch (e) {

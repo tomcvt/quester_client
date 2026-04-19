@@ -203,6 +203,16 @@ class SyncService {
     final newUsersPublicIds = usersPublicIds.difference(existingUsersPublicIds);
     return newUsersPublicIds.toList();
   }
+
+  Future<void> syncUser(userPublicId) async {
+    final userResponse = await _apiClient.fetchUsersByPublicIds(
+      List.of([userPublicId]),
+    );
+    if (userResponse.users.isNotEmpty) {
+      await _db.usersDao.insertUsersFromSync(userResponse.users);
+    }
+    logger.d('Synced user with public id $userPublicId from backend');
+  }
 }
 
 final syncServiceProvider = FutureProvider<SyncService>((ref) async {

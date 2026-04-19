@@ -129,6 +129,28 @@ class GroupHomeScreen extends ConsumerWidget {
     ref.watch(questsProvider((groupId, TaskFilter.other)));
     ref.watch(createQuestProvider); // pre-warm
 
+    ref.listen(groupActionsProvider, (previous, next) {
+      next.whenOrNull(
+        error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            duration: const Duration(seconds: 10),
+          ),
+        ),
+        data: (message) {
+          if (message != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(message),
+                duration: const Duration(seconds: 5),
+              ),
+            );
+            ref.read(groupActionsProvider.notifier).reset();
+          }
+        },
+      );
+    });
+
     final tab = ref.watch(groupTabProvider);
     final groupDetailsAsync = ref.watch(groupDetailsProvider(groupId));
 
@@ -223,7 +245,7 @@ class _MembersSubScreen extends ConsumerWidget {
     final meMember = meMemberAsync.whenData(
       (data) => data,
     ); // Extract GroupMemberWithUser
-    logger.d('Me member data: ${meMember.toString()}');
+    //logger.d('Me member data: ${meMember.toString()}');
     return membersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
@@ -234,7 +256,7 @@ class _MembersSubScreen extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final member = members[index];
                 final meMember = meMemberAsync.whenData((data) => data);
-                logger.w('Current user membership data: ${meMember.value}');
+                //logger.w('Current user membership data: ${meMember.value}');
                 final canSetRole = _canSetRole(member, meMember.value);
                 final canKick =
                     canSetRole; // For simplicity, same permission for kicking
