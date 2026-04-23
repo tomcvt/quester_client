@@ -57,14 +57,23 @@ class AuthService {
     }
     logger.d('Registration complete, API key: ${regResponse.apiKey}');
 
-    final authResponse = await _apiClient.authenticate(id, regResponse.apiKey!, fcmToken);
+    final authResponse = await _apiClient.authenticate(
+      id,
+      regResponse.apiKey!,
+      fcmToken,
+    );
     if (authResponse.sessionToken.isEmpty) {
       throw Exception('Session token is missing after authentication');
     }
-    logger.d('Authentication complete, session token: ${authResponse.sessionToken}');
+    logger.d(
+      'Authentication complete, session token: ${authResponse.sessionToken}',
+    );
 
     _apiClient.setSessionToken(authResponse.sessionToken);
-    await _secureStorage.write(key: sessionTokenKey, value: authResponse.sessionToken);
+    await _secureStorage.write(
+      key: sessionTokenKey,
+      value: authResponse.sessionToken,
+    );
     await _secureStorage.write(key: publicIdKey, value: authResponse.publicId);
     await _prefs.setString(usernameKey, authResponse.username ?? '');
     await _prefs.setString(phoneNumberKey, authResponse.phoneNumber ?? '');
@@ -129,13 +138,11 @@ class AuthService {
       throw Exception('Failed to change username');
     }
     await _prefs.setString(usernameKey, newUsername);
-    AppInitializer.sessionData = AppInitializer.sessionData.copyWith(
-      username: newUsername,
-    );
     logger.d('Username changed successfully to: $newUsername');
     return newUsername;
   }
 
+  //TODO refactor to current architecture
   Future<String?> changePhoneNumber(String newPhoneNumber) async {
     final publicId = await _secureStorage.read(key: publicIdKey);
     if (publicId == null) {
@@ -154,6 +161,7 @@ class AuthService {
     return newPhoneNumber;
   }
 
+  //TODO refactor to current architecture
   Future<bool> changeUsernameAndPhoneNumber(
     String newUsername,
     String newPhoneNumber,
@@ -185,18 +193,6 @@ class AuthService {
       'Username and phone number changed successfully. New username: $newUsername, New phone number: $newPhoneNumber',
     );
     return true;
-  }
-
-  Future<SessionData> login(String username, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
-    return AppInitializer.sessionData;
-  }
-
-  Future<void> logout() async {
-    await Future.delayed(const Duration(seconds: 1));
-    await _secureStorage.delete(key: sessionTokenKey);
-    await _prefs.remove(usernameKey);
-    await _prefs.remove(phoneNumberKey);
   }
 
   bool _allowedUsername(String username) {

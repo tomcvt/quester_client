@@ -15,10 +15,10 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<String?>> {
     logger.d('Attempting to change username to: $newUsername');
     state = await AsyncValue.guard(() async {
       final authService = await ref.read(authServiceProvider.future);
-      await authService.changeUsername(newUsername);
-      ref.read(authProvider.notifier).setUsername(newUsername);
-      logger.d('Username provider updated with new username: $newUsername');
-      return 'Username changed to: $newUsername';
+      final result = await authService.changeUsername(newUsername);
+      ref.read(authProvider.notifier).setUsername(result!);
+      logger.d('Username provider updated with new username: $result');
+      return 'Username changed to: $result';
     });
   }
 
