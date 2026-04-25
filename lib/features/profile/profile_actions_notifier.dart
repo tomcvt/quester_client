@@ -10,18 +10,37 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<String?>> {
 
   void reset() => state = const AsyncData(null);
 
+  Future<void> linkGoogleAccount() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final oauthService = await ref.read(oauthServiceProvider.future);
+      final account = await oauthService.signIn();
+      if (account == null) {
+        state = const AsyncData(null);
+        return null; // cancelled
+      }
+      final idToken = account.authentication.idToken;
+      if (idToken == null) throw Exception('Failed to get ID token');
+      final authService = await ref.read(authServiceProvider.future);
+      final updatedSession = await authService.linkOAuth(idToken);
+      await ref.read(authProvider.notifier).updateSession(updatedSession);
+      return 'Google account linked';
+    });
+  }
+
   Future<void> changeUsername(String newUsername) async {
     state = const AsyncLoading();
     logger.d('Attempting to change username to: $newUsername');
     state = await AsyncValue.guard(() async {
       final authService = await ref.read(authServiceProvider.future);
       final result = await authService.changeUsername(newUsername);
-      ref.read(authProvider.notifier).setUsername(result!);
+      await ref.read(authProvider.notifier).setUsername(result!);
       logger.d('Username provider updated with new username: $result');
       return 'Username changed to: $result';
     });
   }
 
+  //TODO refactor
   Future<void> changePhoneNumber(String newPhoneNumber) async {
     state = const AsyncLoading();
     logger.d('Attempting to change phone number to: $newPhoneNumber');
@@ -33,6 +52,7 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<String?>> {
     });
   }
 
+  //TODO refactor
   Future<void> changeUsernamePhone(
     String newUsername,
     String newPhoneNumber,

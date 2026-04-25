@@ -350,4 +350,24 @@ class SetRoleRequest(BaseModel):
       _throwFromDio(e, 'Failed to set member role');
     }
   }
+
+  Future<AuthenticationResponse> oauthLogin({
+    required String idToken,
+    required String installationId,
+    required String fcmToken,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/auth/oauth-login/google',
+        data: {
+          'id_token': idToken,
+          'installation_id': installationId,
+          'fcm_token': fcmToken,
+        },
+      );
+      return AuthenticationResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to login with OAuth');
+    }
+  }
 }

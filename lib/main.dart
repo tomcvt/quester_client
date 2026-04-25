@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/services/fcm_handler.dart';
 import 'package:quester_client/core/services/notification_display_service.dart';
+import 'package:quester_client/core/services/oauth_service.dart';
 import 'firebase_options.dart';
 import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
@@ -24,7 +26,6 @@ void main() async {
   await firebaseAppFuture; // Ensure Firebase is initialized before proceeding
   final timestamp2 = DateTime.now().millisecondsSinceEpoch;
   logger.d('Firebase initialization took ${timestamp2 - timestamp1} ms');
-  //TODO for now, solve the async later
 
   String apiBaseUrl;
   if (kDebugMode) {
@@ -50,6 +51,8 @@ void main() async {
     apiBaseUrl: apiBaseUrl,
     vapidKey:
         "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
+    googleServerClientId:
+        "1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com", //TODO replace with actual client ID
   );
 
   await AppInitializer.initSlim(buildConfig);
@@ -83,7 +86,6 @@ void main() async {
         buildConfigProvider.overrideWithValue(buildConfig),
         databaseProvider.overrideWithValue(AsyncValue.data(AppInitializer.db)),
         firebaseFutureProvider.overrideWithValue(firebaseAppFuture),
-        //fcmTokenProvider.overrideWithValue(AppInitializer.fcmToken), TODO
       ],
       child: MyApp(),
     ),

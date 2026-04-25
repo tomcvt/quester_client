@@ -13,6 +13,7 @@ class AuthService {
   final ApiClient _apiClient;
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
+  String lastFcmToken = ''; //TODO fast solution, refactor later
   /*
   static const String _apiKey = 'x-api-key';
   static const String _sessionTokenKey = 'session_token';
@@ -31,6 +32,7 @@ class AuthService {
     String installationId, {
     String? fcmToken,
   }) async {
+    _prefs.setString(fcmTokenKey, fcmToken ?? '');
     try {
       final sessionData = await authenticate(installationId, fcmToken);
       if (sessionData.sessionToken.isEmpty) {
@@ -45,6 +47,27 @@ class AuthService {
     }
   }
 
+  Future<SessionData> linkOAuth(String idToken) async {
+    final installationId = await _installationIdService
+        .getOrCreateInstallationId();
+    final fcmToken = _prefs.getString(fcmTokenKey) ?? '';
+
+    final response = await _apiClient.oauthLogin(
+      idToken: idToken,
+      installationId: installationId,
+      fcmToken: fcmToken,
+    );
+
+    // Same session storage as regular auth
+    await _secureStorage.write(
+      key: sessionTokenKey,
+      value: response.sessionToken,
+    );
+    // ... etc
+    //TODO overwrite installation id if backend returns a "correct" one
+    return SessionData.fromAuthResponse(response);
+  }
+
   Future<SessionData> authenticate(
     String installationId,
     String? fcmToken,
@@ -57,7 +80,7 @@ class AuthService {
     }
     logger.d('Registration complete, API key: ${regResponse.apiKey}');
 
-    final authResponse = await _apiClient.authenticate(
+    final AuthenticationResponse authResponse = await _apiClient.authenticate(
       id,
       regResponse.apiKey!,
       fcmToken,
@@ -77,6 +100,7 @@ class AuthService {
     await _secureStorage.write(key: publicIdKey, value: authResponse.publicId);
     await _prefs.setString(usernameKey, authResponse.username ?? '');
     await _prefs.setString(phoneNumberKey, authResponse.phoneNumber ?? '');
+    await _prefs.setString(publicIdKey, authResponse.publicId);
 
     return SessionData(
       sessionToken: authResponse.sessionToken,
@@ -84,6 +108,8 @@ class AuthService {
       phoneNumber: authResponse.phoneNumber,
       publicId: authResponse.publicId,
       fcmToken: authResponse.fcmToken,
+      role: authResponse.role,
+      oauthProvider: authResponse.oauthProvider,
     );
   }
 
@@ -105,16 +131,13 @@ class AuthService {
       key: sessionTokenKey,
       value: registrationResponse.sessionToken,
     );
-    await _secureStorage.write(
-      key: publicIdKey,
-      value: registrationResponse.publicId,
-    );
     //how to handle case where username is null? for now we just store empty string, but maybe we should generate a random username or something?
     await _prefs.setString(usernameKey, registrationResponse.username ?? '');
     await _prefs.setString(
       phoneNumberKey,
       registrationResponse.phoneNumber ?? '',
     );
+    await _prefs.setString(publicIdKey, registrationResponse.publicId);
     logger.d('Registered: ${registrationResponse.toString()}');
     return registrationResponse;
   }
@@ -124,10 +147,6 @@ class AuthService {
   String? getPhoneNumber() => AppInitializer.sessionData.phoneNumber;
 
   Future<String?> changeUsername(String newUsername) async {
-    final publicId = await _secureStorage.read(key: publicIdKey);
-    if (publicId == null) {
-      throw Exception('Public ID not found in secure storage');
-    }
     if (!_allowedUsername(newUsername)) {
       throw Exception(
         'Username has to be 3-20 chars, letters, numbers or underscores only',
@@ -144,10 +163,6 @@ class AuthService {
 
   //TODO refactor to current architecture
   Future<String?> changePhoneNumber(String newPhoneNumber) async {
-    final publicId = await _secureStorage.read(key: publicIdKey);
-    if (publicId == null) {
-      throw Exception('Public ID not found in secure storage');
-    }
     //TODO add phone number validation
     bool didSucceed = await _apiClient.changePhoneNumber(newPhoneNumber);
     if (!didSucceed) {
@@ -166,10 +181,6 @@ class AuthService {
     String newUsername,
     String newPhoneNumber,
   ) async {
-    final publicId = await _secureStorage.read(key: publicIdKey);
-    if (publicId == null) {
-      throw Exception('Public ID not found in secure storage');
-    }
     if (!_allowedUsername(newUsername)) {
       throw Exception(
         'Username has to be 3-20 chars, letters, numbers or underscores only',

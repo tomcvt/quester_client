@@ -25,6 +25,8 @@ class RegistrationResponse(BaseModel):
     public_id: uuid.UUID | None = None
 */
 
+import 'package:quester_client/core/data/data_tables.dart';
+
 class AuthenticationRequest {
   final String installationId;
   final String? fcmToken;
@@ -49,6 +51,9 @@ class AuthenticationResponse {
   final String? phoneNumber;
   final String publicId;
   final String fcmToken;
+  final UserRole role;
+  final String installationId;
+  final String? oauthProvider; // nullable — not linked yet
 
   AuthenticationResponse({
     required this.sessionToken,
@@ -56,6 +61,9 @@ class AuthenticationResponse {
     this.phoneNumber,
     required this.publicId,
     required this.fcmToken,
+    required this.role,
+    required this.installationId,
+    this.oauthProvider,
   });
 
   factory AuthenticationResponse.fromJson(Map<String, dynamic> json) {
@@ -65,6 +73,9 @@ class AuthenticationResponse {
       phoneNumber: json['phone_number'] as String?,
       publicId: json['public_id'] as String,
       fcmToken: json['fcm_token'] as String,
+      role: UserRoleX.fromString(json['role'] as String),
+      installationId: json['installation_id'] as String,
+      oauthProvider: json['oauth_provider'] as String?,
     );
   }
 }

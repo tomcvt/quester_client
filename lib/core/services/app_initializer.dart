@@ -48,51 +48,12 @@ class AppInitializer {
           apiBaseUrl: 'http://localhost:8100/api/v1/',
           vapidKey:
               "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
+          googleServerClientId:
+              "1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com", //TODO replace with actual client ID
         );
     db = await AppDatabase.open(buildConfig: config);
     deviceId = await _getDeviceId();
     buildConfig = config;
-    isInitialized = true;
-  }
-
-  static Future<void> init(BuildConfig? passedBuildConfig) async {
-    final config =
-        passedBuildConfig ??
-        BuildConfig(
-          persistenceMode: PersistenceMode.memory,
-          isDebug: true,
-          apiBaseUrl: 'http://localhost:8100/api/v1/',
-          vapidKey:
-              "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
-        );
-    buildConfig = config; // assign to static variable for global access
-    prefs = await SharedPreferences.getInstance();
-    final installationIdService = InstallationIdService(prefs);
-    //installationId = await installationIdService.getOrCreateInstallationId();
-    //fcmToken = await getFcmToken(prefs);
-    prefs.setString(apiBaseUrlKey, config.apiBaseUrl);
-    prefs.setString(installationIdKey, installationId);
-    apiClient = ApiClient(config.apiBaseUrl, installationId);
-    //TODO - handle token expiration, refresh, etc. @link AuthService.initialize() should return a result object with success/failure and token if successful
-    final authService = AuthService(
-      installationIdService,
-      apiClient,
-      FlutterSecureStorage(),
-      prefs,
-    );
-    sessionData = await authService.initialize(
-      installationId,
-      fcmToken: fcmToken,
-    );
-    logger.i('Installation ID: $installationId');
-    logger.i('Session data: ${sessionData.toString()}');
-    db = await AppDatabase.open(buildConfig: buildConfig);
-    deviceId = await _getDeviceId();
-
-    if (config.isDebug) {
-      await DevDataSeeder.seed(db, installationId);
-      logger.d('Development data seeded');
-    }
     isInitialized = true;
   }
 
@@ -159,12 +120,15 @@ class BuildConfig {
   String vapidKey =
       "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8";
   bool isDebug = true;
+  String googleServerClientId =
+      "1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com"; //TODO replace with actual client ID
 
   BuildConfig({
     required this.persistenceMode,
     required this.isDebug,
     required this.apiBaseUrl,
     required this.vapidKey,
+    required this.googleServerClientId,
   });
 }
 

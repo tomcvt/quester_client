@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
+import 'package:quester_client/core/services/oauth_service.dart';
 import 'package:quester_client/core/services/sync_service.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
 import 'package:quester_client/firebase_options.dart';
@@ -82,4 +83,11 @@ final fcmTokenProvider = FutureProvider<String?>((ref) async {
   final prefsAsync = await ref.watch(sharedPreferencesProvider.future);
   await prefsAsync.setString('fcm_token', fcmToken ?? '');
   return fcmToken;
+});
+
+final oauthServiceProvider = FutureProvider<OAuthService>((ref) async {
+  final buildConfig = ref.watch(buildConfigProvider);
+  final service = OAuthService();
+  await service.initialize(serverClientId: buildConfig.googleServerClientId);
+  return service;
 });
