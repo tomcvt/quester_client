@@ -47,13 +47,17 @@ class AuthService {
     }
   }
 
-  Future<SessionData> linkOAuth(String idToken) async {
+  Future<SessionData> authenticateWithOAuth(
+    String idToken,
+    String email,
+  ) async {
     final installationId = await _installationIdService
         .getOrCreateInstallationId();
     final fcmToken = _prefs.getString(fcmTokenKey) ?? '';
 
     final response = await _apiClient.oauthLogin(
       idToken: idToken,
+      email: email,
       installationId: installationId,
       fcmToken: fcmToken,
     );

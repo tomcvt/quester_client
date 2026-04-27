@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/theme/app_dialog.dart';
 import 'package:quester_client/core/theme/app_theme.dart';
+import 'package:quester_client/features/profile/widgets/google_link_tile.dart';
 import 'profile_actions_notifier.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -11,7 +12,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final username = ref.watch(usernameProvider).requireValue;
+    final username = ref.watch(usernameProvider).value;
     final phoneNumber = ref.watch(phoneNumberProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
@@ -32,6 +33,7 @@ class ProfileScreen extends ConsumerWidget {
             value: phoneNumber ?? 'No phone number set',
             onEdit: () => _showEditNumberDialog(context, ref, phoneNumber),
           ),
+          const GoogleLinkTile(),
         ],
       ),
     );

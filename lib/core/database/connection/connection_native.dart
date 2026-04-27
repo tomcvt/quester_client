@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:quester_client/core/build_config.dart';
 import '../../services/app_initializer.dart';
 
 Future<QueryExecutor> openConnection({BuildConfig? buildConfig}) async {

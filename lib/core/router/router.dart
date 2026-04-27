@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quester_client/core/models/app_auth_state.dart';
 import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
@@ -53,37 +54,47 @@ final routerProvider = Provider<GoRouter>((ref) {
         // If there's an error in auth, we might want to redirect to an error page or logout
         // For now, we'll just log it and continue as if unauthenticated
       }
-      final sessionData = authState.maybeWhen(
-        data: (session) => session,
-        orElse: () => null,
-      );
-      final isSplash = state.matchedLocation == '/splash';
-      final isSetup = state.matchedLocation == '/setup-profile';
-      final usernameOrNull = ref.read(authProvider).value?.username;
-      //.maybeWhen(data: (username) => username, orElse: () => null);
+      final authAsync = ref.read(authProvider);
+      final location = state.matchedLocation;
 
-      // Still loading auth — stay on splash
-      //if (authState.isLoading) return isSplash ? null : '/splash';
-
-      final isLoggedIn = sessionData?.sessionToken.isNotEmpty ?? false;
-      logger.d(
-        'Routing: isLoggedIn=$isLoggedIn, username=$usernameOrNull, location=${state.matchedLocation}',
-      );
-      // Logged in but no username — force setup profile
-      if (isSplash && isLoggedIn && usernameOrNull == null) {
-        return '/setup-profile';
+      // Still loading — stay on splash
+      if (authAsync.isLoading) {
+        return location == '/splash' ? null : '/splash';
       }
 
-      if (isSetup && (usernameOrNull != null || !isLoggedIn)) {
-        return '/home'; // if somehow on setup but already has username or not logged in, go home
-      } //CHECK CORRECTNESS IF WE WANT NOT LOGGED IN TO HOME
+      final auth = authAsync.value;
 
-      // On splash and auth resolved — redirect to correct screen
-      if (isSplash && !isLoggedIn)
-        return '/splash'; // stay on splash if not logged in and w8 for session data
+      switch (auth) {
+        // Error or null — stay on splash, let it retry
+        case null:
+          return location == '/splash' ? null : '/splash';
 
-      //TODO add more route guards as needed (e.g. prevent accessing group/quest details if not a member)
+        // First launch, no network — hard wall, must show connection screen
+        case CannotAuthenticate():
+          return '/no-connection';
 
+        // Offline with cached identity — let through if username exists
+        case AuthenticatedOffline(cachedUsername: final name):
+          if (name.isEmpty) {
+            return location == '/setup-profile' ? null : '/setup-profile';
+          } else {
+            return location == '/splash' || location == '/setup-profile'
+                ? '/home'
+                : null;
+          }
+
+        // Full session — check username gate
+        case Authenticated(username: final name):
+          if (name == null || name.isEmpty) {
+            return location == '/setup-profile' ? null : '/setup-profile';
+          } else {
+            return location == '/splash' ||
+                    location == '/' ||
+                    location == '/setup-profile'
+                ? '/home'
+                : null;
+          }
+      }
       return null; // proceed
     },
     routes: [

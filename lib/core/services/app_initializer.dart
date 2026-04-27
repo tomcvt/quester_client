@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quester_client/core/build_config.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/models/auth.dart';
@@ -49,7 +50,9 @@ class AppInitializer {
           vapidKey:
               "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
           googleServerClientId:
-              "1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com", //TODO replace with actual client ID
+              "603873913094-qt9sv52pvomcelqmkoho68nd9ormr0su.apps.googleusercontent.com",
+          googleWebClientId:
+              "603873913094-qt9sv52pvomcelqmkoho68nd9ormr0su.apps.googleusercontent.com",
         );
     db = await AppDatabase.open(buildConfig: config);
     deviceId = await _getDeviceId();
@@ -112,27 +115,6 @@ class AppInitializer {
     return const Uuid().v4();
   }
 }
-
-class BuildConfig {
-  //static const String apiBaseUrl = 'https://questerapp.tomcvt.com/api';
-  String apiBaseUrl = 'http://localhost:8100/api/v1/';
-  PersistenceMode persistenceMode = PersistenceMode.memory;
-  String vapidKey =
-      "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8";
-  bool isDebug = true;
-  String googleServerClientId =
-      "1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com"; //TODO replace with actual client ID
-
-  BuildConfig({
-    required this.persistenceMode,
-    required this.isDebug,
-    required this.apiBaseUrl,
-    required this.vapidKey,
-    required this.googleServerClientId,
-  });
-}
-
-enum PersistenceMode { memory, sqlite }
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
   if (!AppInitializer.isInitialized) {

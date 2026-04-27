@@ -28,7 +28,11 @@ class AuthNotifier extends AsyncNotifier<AppAuthState> {
       (_, next) {
         next.whenData((event) async {
           if (event is GoogleSignInAuthenticationEventSignIn) {
-            await _handleOAuthEvent(event.user);
+            final user = event.user;
+            final displayName = user.displayName;
+            final email = user.email;
+            logger.i('Google sign-in event: $displayName <$email>');
+            await _handleOAuthEvent(user);
           }
         });
       },
@@ -93,7 +97,10 @@ class AuthNotifier extends AsyncNotifier<AppAuthState> {
       if (idToken == null) return;
 
       final authService = await ref.read(authServiceProvider.future);
-      final updatedSession = await authService.linkOAuth(idToken);
+      final updatedSession = await authService.authenticateWithOAuth(
+        idToken,
+        googleUser.email,
+      );
 
       state = AsyncData(Authenticated(updatedSession));
       logger.i('OAuth linked successfully: ${updatedSession.oauthProvider}');

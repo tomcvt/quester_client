@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "quester (web)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--web-hostname", "localhost",
+        "--web-port", "7357"
+      ]
+    },
+    {
+      "name": "quester (android)",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}

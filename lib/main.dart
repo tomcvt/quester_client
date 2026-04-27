@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:quester_client/core/build_config.dart';
 import 'package:quester_client/core/providers/auth_provider.dart';
 import 'package:quester_client/core/services/fcm_handler.dart';
 import 'package:quester_client/core/services/notification_display_service.dart';
@@ -52,7 +53,9 @@ void main() async {
     vapidKey:
         "BF7AEejZwS5IMB4qOl2Ys1Z-wppuNBl7r7pFEvYXat8ZF-zOU4xwJxZZ7iVfIvy7Zf-dJZIjqDLyEYZMHWvUrr8",
     googleServerClientId:
-        "1234567890-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com", //TODO replace with actual client ID
+        "603873913094-qt9sv52pvomcelqmkoho68nd9ormr0su.apps.googleusercontent.com",
+    googleWebClientId:
+        "603873913094-qt9sv52pvomcelqmkoho68nd9ormr0su.apps.googleusercontent.com",
   );
 
   await AppInitializer.initSlim(buildConfig);

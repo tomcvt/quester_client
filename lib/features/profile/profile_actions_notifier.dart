@@ -20,9 +20,13 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<String?>> {
         return null; // cancelled
       }
       final idToken = account.authentication.idToken;
+      final email = account.email;
       if (idToken == null) throw Exception('Failed to get ID token');
       final authService = await ref.read(authServiceProvider.future);
-      final updatedSession = await authService.linkOAuth(idToken);
+      final updatedSession = await authService.authenticateWithOAuth(
+        idToken,
+        email,
+      );
       await ref.read(authProvider.notifier).updateSession(updatedSession);
       return 'Google account linked';
     });
@@ -68,7 +72,7 @@ class ProfileActionsNotifier extends Notifier<AsyncValue<String?>> {
         newPhoneNumber,
       );
       logger.d('Username changed to: $newUsername');
-      ref.read(usernameProvider.notifier).set(newUsername);
+      //ref.read(usernameProvider.notifier).set(newUsername);
       logger.d('Username provider updated with new username: $newUsername');
       logger.d('Phone number changed to: $newPhoneNumber');
       ref.read(phoneNumberProvider.notifier).set(newPhoneNumber);

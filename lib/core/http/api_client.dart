@@ -353,6 +353,7 @@ class SetRoleRequest(BaseModel):
 
   Future<AuthenticationResponse> oauthLogin({
     required String idToken,
+    required String email,
     required String installationId,
     required String fcmToken,
   }) async {
@@ -361,6 +362,7 @@ class SetRoleRequest(BaseModel):
         '/auth/oauth-login/google',
         data: {
           'id_token': idToken,
+          'email': email,
           'installation_id': installationId,
           'fcm_token': fcmToken,
         },

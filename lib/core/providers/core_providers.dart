@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quester_client/core/build_config.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
@@ -88,6 +89,9 @@ final fcmTokenProvider = FutureProvider<String?>((ref) async {
 final oauthServiceProvider = FutureProvider<OAuthService>((ref) async {
   final buildConfig = ref.watch(buildConfigProvider);
   final service = OAuthService();
-  await service.initialize(serverClientId: buildConfig.googleServerClientId);
+  await service.initialize(
+    serverClientId: buildConfig.googleServerClientId,
+    webClientId: buildConfig.googleWebClientId,
+  );
   return service;
 });
