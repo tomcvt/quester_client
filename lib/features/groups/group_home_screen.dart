@@ -24,6 +24,9 @@ import 'package:quester_client/l10n/app_localizations.dart';
 
 enum GroupTab { tasks, members, settings }
 
+///
+/// TaskFilter is a simple enum for filtering quests in the Tasks tab.
+/// Maps to [QuestStatus] for basic filters, with an additional "other" for any custom statuses.
 enum TaskFilter { all, active, accepted, completed, other }
 
 // ─── Providers ───────────────────────────────────────────────────────────────

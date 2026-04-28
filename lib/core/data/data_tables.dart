@@ -200,6 +200,7 @@ class Quests extends Table {
   // NEW: single deadline field (was deadlineEnd)
   DateTimeColumn get deadline => dateTime().nullable()();
   // NEW: when the quest becomes available (CREATED status requires this)
+  //TODO [PRIORITY]: consider making startTime required/non-nullable if backend contract refactor allows
   DateTimeColumn get startTime => dateTime().nullable()();
   TextColumn get data => text().nullable()();
   TextColumn get address => text().nullable()();

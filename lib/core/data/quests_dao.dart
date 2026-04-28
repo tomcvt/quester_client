@@ -129,11 +129,11 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
       case TaskFilter.all:
         break; // no additional where clause
       case TaskFilter.active:
-        // active = OPEN | ACCEPTED (was: only 'started')
+        // active = CREATED | OPEN
         query.where(
           (q) => q.status.isIn([
+            QuestStatus.created.value,
             QuestStatus.open.value,
-            QuestStatus.accepted.value,
           ]),
         );
         break;
@@ -149,11 +149,22 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
           (q) => q.status.isIn([
             QuestStatus.cancelled.value,
             QuestStatus.expired.value,
-            QuestStatus.created.value,
           ]),
         );
         break;
     }
+    if (filter == TaskFilter.active) {
+      // For active tasks, we want to order by startTime desc
+      query.orderBy([
+        (q) => OrderingTerm(expression: q.startTime, mode: OrderingMode.desc),
+      ]);
+    } else {
+      // For other filters, we can order by createdAt desc
+      query.orderBy([
+        (q) => OrderingTerm(expression: q.createdAt, mode: OrderingMode.desc),
+      ]);
+    }
+    return query.watch();
     return (query..orderBy([
           (q) => OrderingTerm(expression: q.updatedAt, mode: OrderingMode.desc),
         ]))
