@@ -141,15 +141,22 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
         }
       case questDeleted:
-        final deletedQuest = await syncService.deleteQuest(
+        // TODO [PENDING]: backend now soft-deletes (transitions to CANCELLED status).
+        // A dedicated 'QUEST_CANCELLED' FCM payload is planned; wire it here when available.
+        // For now: sync the quest to pull the CANCELLED status instead of hard-deleting locally.
+        // TODO [NEXT]: remove this syncService.deleteQuest call once backend sends dedicated cancellation event,
+        //   and replace with syncNewQuests to pull CANCELLED status reactively.
+        final deletedQuest = await syncService.syncNewQuests(
           groupPublicId,
           questPublicId,
         );
         if (deletedQuest != null) {
-          logger.i('Quest deleted: ${deletedQuest.name}');
+          logger.i(
+            'Quest soft-cancelled (CANCELLED status synced): ${deletedQuest.name}',
+          );
         } else {
           logger.e(
-            'Failed to sync deleted quest with public id $questPublicId',
+            'Failed to sync cancelled quest with public id $questPublicId',
           );
           break;
         }

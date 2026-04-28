@@ -194,18 +194,25 @@ class Quests extends Table {
   TextColumn get publicId => text()();
   TextColumn get name => text()();
   TextColumn get description => text().nullable()();
-  DateTimeColumn get date => dateTime().nullable()();
-  DateTimeColumn get deadlineStart => dateTime().nullable()();
-  DateTimeColumn get deadlineEnd => dateTime().nullable()();
+  // DateTimeColumn get date => dateTime().nullable()(); // DROPPED: replaced by deadline + startTime
+  // DateTimeColumn get deadlineStart => dateTime().nullable()(); // DROPPED: replaced by deadline
+  // DateTimeColumn get deadlineEnd => dateTime().nullable()(); // DROPPED: replaced by deadline
+  // NEW: single deadline field (was deadlineEnd)
+  DateTimeColumn get deadline => dateTime().nullable()();
+  // NEW: when the quest becomes available (CREATED status requires this)
+  DateTimeColumn get startTime => dateTime().nullable()();
   TextColumn get data => text().nullable()();
   TextColumn get address => text().nullable()();
-  TextColumn get contactNumber => text().nullable()();
-  TextColumn get contactInfo => text().nullable()();
-  TextColumn get type =>
-      textEnum<QuestType>().withDefault(Constant(QuestType.job.value))();
+  // TextColumn get contactNumber => text().nullable()(); // DROPPED: removed from backend contract
+  // TextColumn get contactInfo => text().nullable()(); // DROPPED: removed from backend contract
+  // TextColumn get type => textEnum<QuestType>().withDefault(Constant(QuestType.job.value))(); // DROPPED: removed from backend contract
+  // NEW: reward fields per backend contract refactor
+  TextColumn get rewardType =>
+      textEnum<RewardType>().withDefault(Constant(RewardType.none.value))();
+  TextColumn get rewardValue => text().nullable()();
   BoolColumn get inclusive => boolean()();
   TextColumn get status => textEnum<QuestStatus>().withDefault(
-    Constant(QuestStatus.started.value),
+    Constant(QuestStatus.open.value), // was: QuestStatus.started.value
   )();
   @ReferenceName('createdQuests')
   TextColumn get creatorPublicId => text().references(Users, #publicId)();
@@ -224,6 +231,7 @@ class Quests extends Table {
   ];
 }
 
+// QuestType: DROPPED from backend contract, kept for reference only
 enum QuestType { job }
 
 extension QuestTypeX on QuestType {
@@ -242,28 +250,56 @@ extension QuestTypeX on QuestType {
       QuestType.values.firstWhere((e) => e.name == s.toLowerCase());
 }
 
-enum QuestStatus { started, accepted, completed, deleted, timedOut }
+// OLD: enum QuestStatus { started, accepted, completed, deleted, timedOut }
+// NEW per backend contract refactor:
+enum QuestStatus { created, open, accepted, completed, cancelled, expired }
 
 extension QuestStatusX on QuestStatus {
   String get value => name;
   String get apiValue => name.toUpperCase();
   String get label {
     switch (this) {
-      case QuestStatus.started:
-        return 'Started';
+      case QuestStatus.created:
+        return 'Created';
+      case QuestStatus.open:
+        return 'Open';
       case QuestStatus.accepted:
         return 'Accepted';
       case QuestStatus.completed:
         return 'Completed';
-      case QuestStatus.deleted:
-        return 'Deleted';
-      case QuestStatus.timedOut:
-        return 'Timed Out';
+      case QuestStatus.cancelled:
+        return 'Cancelled';
+      case QuestStatus.expired:
+        return 'Expired';
       default:
         return name;
     }
   }
 
+  // TODO [PENDING]: add migration guard for old DB rows that may have 'started'/'deleted'/'timedOut'
   static QuestStatus fromString(String s) =>
       QuestStatus.values.firstWhere((e) => e.name == s.toLowerCase());
+}
+
+// NEW: RewardType enum per backend contract refactor
+enum RewardType { none, currency, prize }
+
+extension RewardTypeX on RewardType {
+  String get value => name;
+  String get apiValue => name.toUpperCase();
+  String get label {
+    switch (this) {
+      case RewardType.none:
+        return 'None';
+      case RewardType.currency:
+        return 'Currency';
+      case RewardType.prize:
+        return 'Prize';
+      default:
+        return name;
+    }
+  }
+
+  static RewardType fromString(String s) =>
+      RewardType.values.firstWhere((e) => e.name == s.toLowerCase());
 }

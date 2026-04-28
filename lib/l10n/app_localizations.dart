@@ -98,6 +98,24 @@ abstract class AppLocalizations {
     Locale('pl'),
   ];
 
+  /// No description provided for @questStatusCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get questStatusCreated;
+
+  /// No description provided for @questStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get questStatusOpen;
+
+  /// No description provided for @questStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get questStatusExpired;
+
   /// No description provided for @questStatusActive.
   ///
   /// In en, this message translates to:
@@ -205,6 +223,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Description'**
   String get createQuestDescriptionLabel;
+
+  /// No description provided for @createQuestDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline:'**
+  String get createQuestDeadline;
+
+  /// No description provided for @createQuestAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability:'**
+  String get createQuestAvailability;
+
+  /// No description provided for @createQuestOpenImmediately.
+  ///
+  /// In en, this message translates to:
+  /// **'Open immediately'**
+  String get createQuestOpenImmediately;
+
+  /// No description provided for @createQuestDelayedStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Delayed start'**
+  String get createQuestDelayedStart;
+
+  /// No description provided for @createQuestRewardType.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward type:'**
+  String get createQuestRewardType;
+
+  /// No description provided for @createQuestRewardValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward amount'**
+  String get createQuestRewardValue;
 
   /// No description provided for @createQuestMeToo.
   ///

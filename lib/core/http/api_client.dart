@@ -140,35 +140,43 @@ class ApiClient {
     required String groupPublicId,
     required String name,
     required String? description,
-    required DateTime? date,
-    required DateTime? deadlineStart,
-    required DateTime? deadlineEnd,
+    // required DateTime? date, // DROPPED
+    // required DateTime? deadlineStart, // DROPPED: replaced by deadline
+    // required DateTime? deadlineEnd, // DROPPED: replaced by deadline
+    required DateTime? deadline,
+    required DateTime? startTime,
     required String? address,
-    required String? contactNumber,
-    required String? contactInfo,
+    // required String? contactNumber, // DROPPED
+    // required String? contactInfo, // DROPPED
     required String? data,
-    required QuestType type,
+    // required QuestType type, // DROPPED
+    required RewardType rewardType,
+    required String? rewardValue,
     required bool inclusive,
     required QuestStatus status,
-    required String creatorPublicId,
-    String? acceptedByPublicId,
+    // required String creatorPublicId, // DROPPED: resolved server-side
+    // String? acceptedByPublicId, // DROPPED
   }) async {
     final createQuestRequest = CreateQuestRequest(
       groupPublicId: groupPublicId,
       name: name,
       description: description,
-      date: date,
-      deadlineStart: deadlineStart,
-      deadlineEnd: deadlineEnd,
+      // date: date, // DROPPED
+      // deadlineStart: deadlineStart, // DROPPED
+      // deadlineEnd: deadlineEnd, // DROPPED
+      deadline: deadline,
+      startTime: startTime,
       address: address,
-      contactNumber: contactNumber,
-      contactInfo: contactInfo,
+      // contactNumber: contactNumber, // DROPPED
+      // contactInfo: contactInfo, // DROPPED
       data: data,
-      type: type,
+      // type: type, // DROPPED
+      rewardType: rewardType,
+      rewardValue: rewardValue,
       inclusive: inclusive,
       status: status,
-      creatorPublicId: creatorPublicId,
-      acceptedByPublicId: acceptedByPublicId,
+      // creatorPublicId: creatorPublicId, // DROPPED
+      // acceptedByPublicId: acceptedByPublicId, // DROPPED
     );
     try {
       final response = await _dio.post(

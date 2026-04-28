@@ -34,35 +34,38 @@ class CreateQuestRequest {
   final String groupPublicId;
   final String name;
   final String? description;
-  final DateTime? date;
-  final DateTime? deadlineStart;
-  final DateTime? deadlineEnd;
+  // final DateTime? date; // DROPPED: removed from backend contract
+  // final DateTime? deadlineStart; // DROPPED: replaced by deadline
+  // final DateTime? deadlineEnd; // DROPPED: replaced by deadline
+  final DateTime? deadline;
+  final DateTime? startTime;
   final String? address;
-  final String? contactNumber;
-  final String? contactInfo;
+  // final String? contactNumber; // DROPPED: removed from backend contract
+  // final String? contactInfo; // DROPPED: removed from backend contract
   final String? data;
-  final QuestType type;
+  // final QuestType type; // DROPPED: removed from backend contract
+  final RewardType rewardType;
+  final String? rewardValue;
   final bool inclusive;
   final QuestStatus status;
-  final String creatorPublicId;
-  final String? acceptedByPublicId;
+  // final String creatorPublicId; // DROPPED: resolved server-side from auth token
+  // final String? acceptedByPublicId; // DROPPED: not sent on create
 
   CreateQuestRequest({
     required this.groupPublicId,
     required this.name,
     this.description,
-    this.date,
-    this.deadlineStart,
-    this.deadlineEnd,
+    this.deadline,
+    this.startTime,
     this.address,
-    this.contactNumber,
-    this.contactInfo,
     this.data,
-    this.type = QuestType.job,
+    this.rewardType = RewardType.none,
+    this.rewardValue,
+    // this.type = QuestType.job, // DROPPED
     this.inclusive = true,
-    this.status = QuestStatus.started,
-    required this.creatorPublicId,
-    this.acceptedByPublicId,
+    this.status = QuestStatus.open,
+    // required this.creatorPublicId, // DROPPED
+    // this.acceptedByPublicId, // DROPPED
   });
 
   Map<String, dynamic> toJson() {
@@ -70,34 +73,43 @@ class CreateQuestRequest {
       'group_public_id': groupPublicId,
       'name': name,
       'description': description,
-      'date': date?.toIso8601String(),
-      'deadline_start': deadlineStart?.toIso8601String(),
-      'deadline_end': deadlineEnd?.toIso8601String(),
+      // 'date': date?.toIso8601String(), // DROPPED
+      // 'deadline_start': deadlineStart?.toIso8601String(), // DROPPED
+      // 'deadline_end': deadlineEnd?.toIso8601String(), // DROPPED
+      'deadline': deadline?.toIso8601String(),
+      'start_time': startTime?.toIso8601String(),
       'address': address,
-      'contact_number': contactNumber,
-      'contact_info': contactInfo,
+      // 'contact_number': contactNumber, // DROPPED
+      // 'contact_info': contactInfo, // DROPPED
       'data': data,
-      'type': type.apiValue,
+      // 'type': type.apiValue, // DROPPED
+      'reward_type': rewardType.apiValue,
+      'reward_value': rewardValue,
       'inclusive': inclusive,
       'status': status.apiValue,
-      'creator_public_id': creatorPublicId,
-      'accepted_by_public_id': acceptedByPublicId,
+      // 'creator_public_id': creatorPublicId, // DROPPED: server resolves from auth
+      // 'accepted_by_public_id': acceptedByPublicId, // DROPPED
     };
   }
 }
 
 class CreateQuestResponse {
   final String publicId;
+  final String? groupPublicId;
   final String name;
   final String? description;
-  final DateTime? date;
-  final DateTime? deadlineStart;
-  final DateTime? deadlineEnd;
+  // final DateTime? date; // DROPPED
+  // final DateTime? deadlineStart; // DROPPED: replaced by deadline
+  // final DateTime? deadlineEnd; // DROPPED: replaced by deadline
+  final DateTime? deadline;
+  final DateTime? startTime;
+  // final String? contactNumber; // DROPPED
+  // final String? contactInfo; // DROPPED
   final String? address;
-  final String? contactNumber;
-  final String? contactInfo;
   final String? data;
-  final QuestType type;
+  // final QuestType type; // DROPPED
+  final RewardType rewardType;
+  final String? rewardValue;
   final bool inclusive;
   final QuestStatus status;
   final String creatorPublicId;
@@ -107,16 +119,18 @@ class CreateQuestResponse {
 
   CreateQuestResponse({
     required this.publicId,
+    this.groupPublicId,
     required this.name,
     this.description,
-    this.date,
-    this.deadlineStart,
-    this.deadlineEnd,
+    this.deadline,
+    this.startTime,
     this.address,
-    this.contactNumber,
-    this.contactInfo,
+    // this.contactNumber, // DROPPED
+    // this.contactInfo, // DROPPED
     this.data,
-    required this.type,
+    // required this.type, // DROPPED
+    this.rewardType = RewardType.none,
+    this.rewardValue,
     required this.inclusive,
     required this.status,
     required this.creatorPublicId,
@@ -128,20 +142,27 @@ class CreateQuestResponse {
   factory CreateQuestResponse.fromJson(Map<String, dynamic> json) {
     return CreateQuestResponse(
       publicId: json['public_id'],
+      groupPublicId: json['group_public_id'],
       name: json['name'],
       description: json['description'],
-      date: json['date'] != null ? DateTime.parse(json['date']) : null,
-      deadlineStart: json['deadline_start'] != null
-          ? DateTime.parse(json['deadline_start'])
+      // date: json['date'] != null ? DateTime.parse(json['date']) : null, // DROPPED
+      // deadlineStart: json['deadline_start'] != null ? DateTime.parse(json['deadline_start']) : null, // DROPPED
+      // deadlineEnd: json['deadline_end'] != null ? DateTime.parse(json['deadline_end']) : null, // DROPPED
+      deadline: json['deadline'] != null
+          ? DateTime.parse(json['deadline'])
           : null,
-      deadlineEnd: json['deadline_end'] != null
-          ? DateTime.parse(json['deadline_end'])
+      startTime: json['start_time'] != null
+          ? DateTime.parse(json['start_time'])
           : null,
       address: json['address'],
-      contactNumber: json['contact_number'],
-      contactInfo: json['contact_info'],
+      // contactNumber: json['contact_number'], // DROPPED
+      // contactInfo: json['contact_info'], // DROPPED
       data: json['data'],
-      type: QuestTypeX.fromString(json['type']),
+      // type: QuestTypeX.fromString(json['type']), // DROPPED
+      rewardType: json['reward_type'] != null
+          ? RewardTypeX.fromString(json['reward_type'])
+          : RewardType.none,
+      rewardValue: json['reward_value'],
       inclusive: json['inclusive'],
       status: QuestStatusX.fromString(json['status']),
       creatorPublicId: json['creator_public_id'],
@@ -179,14 +200,18 @@ class QuestSyncDTO {
   final String publicId;
   final String name;
   final String? description;
-  final DateTime? date;
-  final DateTime? deadlineStart;
-  final DateTime? deadlineEnd;
+  // final DateTime? date; // DROPPED
+  // final DateTime? deadlineStart; // DROPPED: replaced by deadline
+  // final DateTime? deadlineEnd; // DROPPED: replaced by deadline
+  final DateTime? deadline;
+  final DateTime? startTime;
+  // final String? contactNumber; // DROPPED
+  // final String? contactInfo; // DROPPED
   final String? address;
-  final String? contactNumber;
-  final String? contactInfo;
   final String? data;
-  final QuestType type;
+  // final QuestType type; // DROPPED
+  final RewardType rewardType;
+  final String? rewardValue;
   final bool inclusive;
   final QuestStatus status;
   final String creatorPublicId;
@@ -199,14 +224,15 @@ class QuestSyncDTO {
     required this.publicId,
     required this.name,
     this.description,
-    this.date,
-    this.deadlineStart,
-    this.deadlineEnd,
+    this.deadline,
+    this.startTime,
+    // this.contactNumber, // DROPPED
+    // this.contactInfo, // DROPPED
     this.address,
-    this.contactNumber,
-    this.contactInfo,
     this.data,
-    required this.type,
+    // required this.type, // DROPPED
+    this.rewardType = RewardType.none,
+    this.rewardValue,
     required this.inclusive,
     required this.status,
     required this.creatorPublicId,
@@ -221,18 +247,24 @@ class QuestSyncDTO {
       publicId: json['public_id'],
       name: json['name'],
       description: json['description'],
-      date: json['date'] != null ? DateTime.parse(json['date']) : null,
-      deadlineStart: json['deadline_start'] != null
-          ? DateTime.parse(json['deadline_start'])
+      // date: json['date'] != null ? DateTime.parse(json['date']) : null, // DROPPED
+      // deadlineStart: json['deadline_start'] != null ? DateTime.parse(json['deadline_start']) : null, // DROPPED
+      // deadlineEnd: json['deadline_end'] != null ? DateTime.parse(json['deadline_end']) : null, // DROPPED
+      deadline: json['deadline'] != null
+          ? DateTime.parse(json['deadline'])
           : null,
-      deadlineEnd: json['deadline_end'] != null
-          ? DateTime.parse(json['deadline_end'])
+      startTime: json['start_time'] != null
+          ? DateTime.parse(json['start_time'])
           : null,
       address: json['address'],
-      contactNumber: json['contact_number'],
-      contactInfo: json['contact_info'],
+      // contactNumber: json['contact_number'], // DROPPED
+      // contactInfo: json['contact_info'], // DROPPED
       data: json['data'],
-      type: QuestTypeX.fromString(json['type']),
+      // type: QuestTypeX.fromString(json['type']), // DROPPED
+      rewardType: json['reward_type'] != null
+          ? RewardTypeX.fromString(json['reward_type'])
+          : RewardType.none,
+      rewardValue: json['reward_value'],
       inclusive: json['inclusive'],
       status: QuestStatusX.fromString(json['status']),
       creatorPublicId: json['creator_public_id'],

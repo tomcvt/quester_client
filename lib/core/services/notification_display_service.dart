@@ -98,11 +98,12 @@ class NotificationDisplayService {
   }
 
   static Future<void> showYouDoQuestNotification(Quest quest) async {
+    //TODO [PENDING]: think about start time making sense here
     await _plugin.show(
       id: quest.id,
       title: 'You are completing a quest!',
       body:
-          '${quest.name} : ${quest.deadlineStart != null ? 'Start at ${_dateTimeHourMinute(quest.deadlineStart!)}' : 'Tap to open'}',
+          '${quest.name} : ${quest.startTime != null ? 'Start at ${_dateTimeHourMinute(quest.startTime!)}' : 'Tap to open'}',
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'quests',

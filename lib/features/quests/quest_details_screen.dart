@@ -194,7 +194,8 @@ class _QuestDetailsBody extends StatelessWidget {
                     color: colorScheme.onSurface,
                   ),
                 ),
-                if (quest.deadlineStart != null) ...[
+                // startTime replaces deadlineStart
+                if (quest.startTime != null) ...[
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -205,7 +206,7 @@ class _QuestDetailsBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Start: ${_dateToHourMinute(quest.deadlineStart!)}',
+                        'Start: ${_dateToHourMinute(quest.startTime!)}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -213,7 +214,8 @@ class _QuestDetailsBody extends StatelessWidget {
                     ],
                   ),
                 ],
-                if (quest.deadlineEnd != null) ...[
+                // deadline replaces deadlineEnd
+                if (quest.deadline != null) ...[
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -224,7 +226,7 @@ class _QuestDetailsBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Deadline: ${_dateToHourMinute(quest.deadlineEnd!)}',
+                        'Deadline: ${_dateToHourMinute(quest.deadline!)}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -242,31 +244,19 @@ class _QuestDetailsBody extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              // Contact card — groups phone + info together, only if either exists
-              if (quest.contactNumber != null || quest.contactInfo != null)
-                _InfoCard(
-                  children: [
-                    _CardHeader(
-                      icon: Icons.contact_page_outlined,
-                      label: 'Contact',
-                    ),
-                    if (quest.contactNumber != null)
-                      _TappableRow(
-                        icon: Icons.phone_outlined,
-                        label: quest.contactNumber!,
-                        // tel: URI — OS routes this to the dialer app.
-                        // On Android: opens dialer pre-filled. On iOS: same.
-                        // On web: browser behaviour varies (usually opens tel: link).
-                        onTap: () => _launch('tel:${quest.contactNumber}'),
-                      ),
-                    if (quest.contactInfo != null)
-                      _TappableRow(
-                        icon: Icons.info_outline,
-                        label: quest.contactInfo!,
-                        onTap: null, // plain text — no action
-                      ),
-                  ],
-                ),
+              // Contact card — DROPPED: contactNumber and contactInfo removed from backend contract
+              // TODO [NEXT]: if contact info is re-added, re-enable this card
+              // if (quest.contactNumber != null || quest.contactInfo != null)
+              //   _InfoCard(
+              //     children: [
+              //       _CardHeader(icon: Icons.contact_page_outlined, label: 'Contact'),
+              //       if (quest.contactNumber != null)
+              //         _TappableRow(icon: Icons.phone_outlined, label: quest.contactNumber!,
+              //           onTap: () => _launch('tel:${quest.contactNumber}')),
+              //       if (quest.contactInfo != null)
+              //         _TappableRow(icon: Icons.info_outline, label: quest.contactInfo!, onTap: null),
+              //     ],
+              //   ),
 
               // Address card — tapping opens maps
               if (quest.address != null && quest.address!.isNotEmpty)
@@ -454,7 +444,8 @@ class _QuestActionBar extends ConsumerWidget {
         quest.acceptedByPublicId != null &&
         quest.acceptedByPublicId == currentUserPublicId;
 
-    final canAccept = quest.status == QuestStatus.started && !isLoading;
+    // canAccept: quest must be OPEN (was: QuestStatus.started)
+    final canAccept = quest.status == QuestStatus.open && !isLoading;
     final canComplete =
         quest.status == QuestStatus.accepted && isAcceptedByMe && !isLoading;
 
@@ -668,7 +659,16 @@ class _StatusMeta {
   });
 
   factory _StatusMeta.from(QuestStatus status) => switch (status) {
-    QuestStatus.started => _StatusMeta(
+    // QuestStatus.started => ... // DROPPED: replaced by open
+    // QuestStatus.deleted => ... // DROPPED: replaced by cancelled
+    // QuestStatus.timedOut => ... // DROPPED: replaced by expired
+    QuestStatus.created => _StatusMeta(
+      // Lighter orange - quest not yet open (waiting for start_time)
+      color: Color(0xFFFFCC02),
+      icon: Icons.schedule_outlined,
+      label: 'Created',
+    ),
+    QuestStatus.open => _StatusMeta(
       color: Colors.orange,
       icon: Icons.play_circle_outline,
       label: 'Open',
@@ -683,15 +683,15 @@ class _StatusMeta {
       icon: Icons.check_circle_outline,
       label: 'Done',
     ),
-    QuestStatus.deleted => _StatusMeta(
+    QuestStatus.cancelled => _StatusMeta(
       color: Colors.red,
       icon: Icons.cancel_outlined,
       label: 'Cancelled',
     ),
-    QuestStatus.timedOut => _StatusMeta(
+    QuestStatus.expired => _StatusMeta(
       color: Colors.grey,
       icon: Icons.timer_off_outlined,
-      label: 'Timed Out',
+      label: 'Expired',
     ),
   };
 }

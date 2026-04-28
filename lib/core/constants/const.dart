@@ -13,6 +13,9 @@ const String fcmTokenKey = 'fcm_token';
 const String questCreated = 'QUEST_CREATED';
 const String questTaken = 'QUEST_TAKEN';
 const String questDeleted = 'QUEST_DELETED';
+// TODO [PENDING]: dedicated cancellation payload — currently reuses questDeleted path on backend.
+// Wire questCancelled handler in fcm_handler.dart when backend sends a distinct event.
+const String questCancelled = 'QUEST_CANCELLED';
 const String yourQuestTaken = 'YOUR_QUEST_TAKEN';
 const String questCompleted = 'QUEST_COMPLETED';
 const String yourQuestCompleted = 'YOUR_QUEST_COMPLETED';

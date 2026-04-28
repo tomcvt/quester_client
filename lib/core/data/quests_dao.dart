@@ -62,14 +62,18 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
           publicId: Value(quest.publicId),
           name: Value(quest.name),
           description: Value(quest.description),
-          date: Value(quest.date),
-          deadlineStart: Value(quest.deadlineStart),
-          deadlineEnd: Value(quest.deadlineEnd),
+          // date: Value(quest.date), // DROPPED
+          // deadlineStart: Value(quest.deadlineStart), // DROPPED
+          // deadlineEnd: Value(quest.deadlineEnd), // DROPPED
+          deadline: Value(quest.deadline),
+          startTime: Value(quest.startTime),
           address: Value(quest.address),
-          contactNumber: Value(quest.contactNumber),
-          contactInfo: Value(quest.contactInfo),
+          // contactNumber: Value(quest.contactNumber), // DROPPED
+          // contactInfo: Value(quest.contactInfo), // DROPPED
           data: Value(quest.data),
-          type: Value(quest.type),
+          // type: Value(quest.type), // DROPPED
+          rewardType: Value(quest.rewardType),
+          rewardValue: Value(quest.rewardValue),
           inclusive: Value(quest.inclusive),
           status: Value(quest.status),
           creatorPublicId: Value(quest.creatorPublicId),
@@ -121,10 +125,17 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
   Stream<List<Quest>> watchByGroupAndFilter(int groupId, TaskFilter filter) {
     final query = select(quests)..where((q) => q.groupId.equals(groupId));
     switch (filter) {
+      //TODO [PENDING]: change taskfilter mapping
       case TaskFilter.all:
         break; // no additional where clause
       case TaskFilter.active:
-        query.where((q) => q.status.equals(QuestStatus.started.value));
+        // active = OPEN | ACCEPTED (was: only 'started')
+        query.where(
+          (q) => q.status.isIn([
+            QuestStatus.open.value,
+            QuestStatus.accepted.value,
+          ]),
+        );
         break;
       case TaskFilter.accepted:
         query.where((q) => q.status.equals(QuestStatus.accepted.value));
@@ -133,11 +144,12 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
         query.where((q) => q.status.equals(QuestStatus.completed.value));
         break;
       case TaskFilter.other:
+        // other = CANCELLED | EXPIRED | CREATED (was: anything not started/accepted/completed)
         query.where(
-          (q) => q.status.isNotIn([
-            QuestStatus.started.value,
-            QuestStatus.accepted.value,
-            QuestStatus.completed.value,
+          (q) => q.status.isIn([
+            QuestStatus.cancelled.value,
+            QuestStatus.expired.value,
+            QuestStatus.created.value,
           ]),
         );
         break;

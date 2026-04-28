@@ -57,14 +57,18 @@ class QuestsService {
     required int groupId,
     required String name,
     required String? description,
-    required DateTime? date,
-    required DateTime? deadlineStart,
-    required DateTime? deadlineEnd,
+    // required DateTime? date, // DROPPED
+    // required DateTime? deadlineStart, // DROPPED: replaced by deadline
+    // required DateTime? deadlineEnd, // DROPPED: replaced by deadline
+    required DateTime? deadline,
+    required DateTime? startTime,
     required String? address,
-    required String? contactNumber,
-    required String? contactInfo,
+    // required String? contactNumber, // DROPPED
+    // required String? contactInfo, // DROPPED
     required String? data,
-    required QuestType type,
+    // required QuestType type, // DROPPED
+    required RewardType rewardType,
+    required String? rewardValue,
     required bool inclusive,
     required QuestStatus status,
     bool offline = false,
@@ -74,14 +78,12 @@ class QuestsService {
         groupId: groupId,
         name: name,
         description: description,
-        date: date,
-        deadlineStart: deadlineStart,
-        deadlineEnd: deadlineEnd,
+        deadline: deadline,
+        startTime: startTime,
         address: address,
-        contactNumber: contactNumber,
-        contactInfo: contactInfo,
         data: data,
-        type: type,
+        rewardType: rewardType,
+        rewardValue: rewardValue,
         inclusive: inclusive,
         status: status,
       );
@@ -109,17 +111,21 @@ class QuestsService {
       groupPublicId: group.publicId,
       name: name,
       description: description,
-      date: date,
-      deadlineStart: deadlineStart,
-      deadlineEnd: deadlineEnd,
+      // date: date, // DROPPED
+      // deadlineStart: deadlineStart, // DROPPED
+      // deadlineEnd: deadlineEnd, // DROPPED
+      deadline: deadline,
+      startTime: startTime,
       address: address,
-      contactNumber: contactNumber,
-      contactInfo: contactInfo,
+      // contactNumber: contactNumber, // DROPPED
+      // contactInfo: contactInfo, // DROPPED
       data: data,
-      type: type,
+      // type: type, // DROPPED
+      rewardType: rewardType,
+      rewardValue: rewardValue,
       inclusive: inclusive,
       status: status,
-      creatorPublicId: AppInitializer.installationId,
+      // creatorPublicId: AppInitializer.installationId, // DROPPED: resolved server-side
     );
     //TODO - fetch actual user public id from shared prefs or similar
     logger.d('Quest created on backend: ${questResponse.toString()}');
@@ -128,14 +134,18 @@ class QuestsService {
       publicId: Value(questResponse.publicId),
       name: Value(questResponse.name),
       description: Value(questResponse.description),
-      date: Value(questResponse.date),
-      deadlineStart: Value(questResponse.deadlineStart),
-      deadlineEnd: Value(questResponse.deadlineEnd),
+      // date: Value(questResponse.date), // DROPPED
+      // deadlineStart: Value(questResponse.deadlineStart), // DROPPED
+      // deadlineEnd: Value(questResponse.deadlineEnd), // DROPPED
+      deadline: Value(questResponse.deadline),
+      startTime: Value(questResponse.startTime),
       address: Value(questResponse.address),
-      contactNumber: Value(questResponse.contactNumber),
-      contactInfo: Value(questResponse.contactInfo),
+      // contactNumber: Value(questResponse.contactNumber), // DROPPED
+      // contactInfo: Value(questResponse.contactInfo), // DROPPED
       data: Value(questResponse.data),
-      type: Value(questResponse.type),
+      // type: Value(questResponse.type), // DROPPED
+      rewardType: Value(questResponse.rewardType),
+      rewardValue: Value(questResponse.rewardValue),
       inclusive: Value(questResponse.inclusive),
       status: Value(questResponse.status),
       creatorPublicId: Value(questResponse.creatorPublicId),
@@ -158,14 +168,18 @@ class QuestsService {
     required int groupId,
     required String name,
     required String? description,
-    required DateTime? date,
-    required DateTime? deadlineStart,
-    required DateTime? deadlineEnd,
+    // required DateTime? date, // DROPPED
+    // required DateTime? deadlineStart, // DROPPED
+    // required DateTime? deadlineEnd, // DROPPED
+    required DateTime? deadline,
+    required DateTime? startTime,
     required String? address,
-    required String? contactNumber,
-    required String? contactInfo,
+    // required String? contactNumber, // DROPPED
+    // required String? contactInfo, // DROPPED
     required String? data,
-    required QuestType type,
+    // required QuestType type, // DROPPED
+    required RewardType rewardType,
+    required String? rewardValue,
     required bool inclusive,
     required QuestStatus status,
   }) async {
@@ -174,14 +188,18 @@ class QuestsService {
       publicId: Value(Uuid().v4()),
       name: Value(name),
       description: Value(description),
-      date: Value(date),
-      deadlineStart: Value(deadlineStart),
-      deadlineEnd: Value(deadlineEnd),
+      // date: Value(date), // DROPPED
+      // deadlineStart: Value(deadlineStart), // DROPPED
+      // deadlineEnd: Value(deadlineEnd), // DROPPED
+      deadline: Value(deadline),
+      startTime: Value(startTime),
       address: Value(address),
-      contactNumber: Value(contactNumber),
-      contactInfo: Value(contactInfo),
+      // contactNumber: Value(contactNumber), // DROPPED
+      // contactInfo: Value(contactInfo), // DROPPED
       data: Value(data),
-      type: Value(type),
+      // type: Value(type), // DROPPED
+      rewardType: Value(rewardType),
+      rewardValue: Value(rewardValue),
       inclusive: Value(inclusive),
       status: Value(status),
       creatorPublicId: Value(AppInitializer.sessionData.publicId),
@@ -258,8 +276,12 @@ class QuestsService {
       logger.e('Quest with id $questId not found');
       return;
     }
+    // TODO [PENDING]: backend now soft-deletes (CANCELLED status) instead of hard-deleting.
+    // Once backend sends a dedicated cancellation FCM event, switch to sync instead of delete.
+    // For now: call delete endpoint (server soft-cancels) then hard-delete locally.
+    // The FCM questDeleted handler in fcm_handler.dart will sync the CANCELLED status reactively.
     await _apiClient.deleteQuest(quest.publicId);
-    logger.d('Quest with id $questId deleted on backend');
+    logger.d('Quest with id $questId cancelled on backend (soft delete)');
     await _questsDao.deleteQuest(questId);
     logger.d('Quest with id $questId deleted from local DB');
   }

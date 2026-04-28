@@ -2,7 +2,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart'; // FilteringTextInputFormatter — DROPPED: contact fields removed
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
@@ -125,6 +125,7 @@ class GroupHomeScreen extends ConsumerWidget {
     // Value is intentionally discarded.
     ref.watch(questsProvider((groupId, TaskFilter.all)));
     ref.watch(questsProvider((groupId, TaskFilter.active)));
+    ref.watch(questsProvider((groupId, TaskFilter.accepted)));
     ref.watch(questsProvider((groupId, TaskFilter.completed)));
     ref.watch(questsProvider((groupId, TaskFilter.other)));
     ref.watch(createQuestProvider); // pre-warm
@@ -522,17 +523,18 @@ extension DebugSnackBar on ScaffoldMessengerState {
 }
 
 ///
-/// TODO: implement deadline, address, contactNumber fields in the dialog and pass to notifier
+/// TODO: implement reward_value field validation (numeric for CURRENCY)
 ///
 /// Target [CreateQuestRequest] fields:
 /// through [CreateQuestNotifier.createQuest()]
 /// in UI ordered for targeted specific UX
 /// - name (required)
-/// - deadline (optional)
+/// - description (optional)
 /// - address (optional)
-/// - contactNumber (optional)
-/// - contactInfo (optional)
-/// - details (optional)
+/// - deadline (optional)
+/// - startTime / status chips: OPEN vs CREATED (optional delayed start)
+/// - rewardType chips: NONE | CURRENCY | PRIZE
+/// - rewardValue (shown only when rewardType is CURRENCY or PRIZE)
 /// - inclusive (optional)
 ///
 class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
@@ -543,30 +545,36 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
   late final TextEditingController _nameController;
   late final TextEditingController _detailsController;
   bool _inclusive = false;
-  late final TextEditingController _contactNumberController;
-  late final TextEditingController _contactInfoController;
+  // late final TextEditingController _contactNumberController; // DROPPED: removed from contract
+  // late final TextEditingController _contactInfoController; // DROPPED: removed from contract
   late final TextEditingController _addressController;
-  DateTime? _selectedDate;
-  TimeOfDay? _deadlineStart;
-  TimeOfDay? _deadlineEnd;
+  // _selectedDate, _deadlineStart, _deadlineEnd replaced by unified deadline + startTime:
+  DateTime? _deadline; // single deadline datetime
+  DateTime? _startTime; // when quest becomes available (for CREATED status)
+  bool _isDelayedStart = false; // true = CREATED status chip selected
+  // NEW: reward fields
+  RewardType _rewardType = RewardType.none;
+  late final TextEditingController _rewardValueController;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _detailsController = TextEditingController();
-    _contactNumberController = TextEditingController();
-    _contactInfoController = TextEditingController();
+    // _contactNumberController = TextEditingController(); // DROPPED
+    // _contactInfoController = TextEditingController(); // DROPPED
     _addressController = TextEditingController();
+    _rewardValueController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _detailsController.dispose();
-    _contactNumberController.dispose();
-    _contactInfoController.dispose();
+    // _contactNumberController.dispose(); // DROPPED
+    // _contactInfoController.dispose(); // DROPPED
     _addressController.dispose();
+    _rewardValueController.dispose();
     super.dispose();
   }
 
@@ -609,91 +617,14 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 8),
-              // Date picker — calendar style, no dates before today
-              OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today_outlined, size: 18),
-                label: Text(
-                  _selectedDate == null
-                      ? l10n.createQuestPickDate
-                      : _formatDate(_selectedDate)!,
+              TextField(
+                controller: _detailsController,
+                decoration: InputDecoration(
+                  labelText: l10n.createQuestDescriptionLabel,
                 ),
-                onPressed: () async {
-                  final now = DateTime.now();
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate ?? now,
-                    firstDate: now,
-                    lastDate: DateTime(now.year + 5),
-                  );
-                  if (picked != null) setState(() => _selectedDate = picked);
-                },
+                maxLines: 3,
               ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Text(
-                    l10n.createQuestStartTime,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(width: 8),
-                  ActionChip(
-                    label: Text(
-                      _deadlineStart == null
-                          ? l10n.createQuestSetStartTime
-                          : _formatTimeOfDay(_deadlineStart)!,
-                    ),
-                    onPressed: _selectedDate == null
-                        ? null
-                        : () async {
-                            final picked = await showTimePicker(
-                              context: context,
-                              initialTime: _deadlineStart ?? TimeOfDay.now(),
-                              builder: (context, child) => MediaQuery(
-                                data: MediaQuery.of(
-                                  context,
-                                ).copyWith(alwaysUse24HourFormat: true),
-                                child: child!,
-                              ),
-                            );
-                            if (picked != null)
-                              setState(() => _deadlineStart = picked);
-                          },
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Text(
-                    l10n.createQuestEndTime,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(width: 8),
-                  ActionChip(
-                    label: Text(
-                      _deadlineEnd == null
-                          ? l10n.createQuestSetEndTime
-                          : _formatTimeOfDay(_deadlineEnd)!,
-                    ),
-                    onPressed: _selectedDate == null
-                        ? null
-                        : () async {
-                            final picked = await showTimePicker(
-                              context: context,
-                              initialTime: _deadlineEnd ?? TimeOfDay.now(),
-                              builder: (context, child) => MediaQuery(
-                                data: MediaQuery.of(
-                                  context,
-                                ).copyWith(alwaysUse24HourFormat: true),
-                                child: child!,
-                              ),
-                            );
-                            if (picked != null) {
-                              setState(() => _deadlineEnd = picked);
-                            }
-                          },
-                  ),
-                ],
-              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: _addressController,
                 decoration: InputDecoration(
@@ -702,35 +633,195 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
                 ),
                 keyboardType: TextInputType.streetAddress,
               ),
-              TextField(
-                controller: _contactNumberController,
-                decoration: InputDecoration(
-                  labelText: l10n.createQuestContactNumberLabel,
-                  prefixIcon: const Icon(Icons.phone_outlined),
-                ),
-                keyboardType: TextInputType.phone,
-                // Digits and + only — input formatter is the right layer for this,
-                // not validation after the fact. Equivalent to an InputFilter in Android.
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+              // _contactNumberController field — DROPPED: removed from contract
+              // _contactInfoController field — DROPPED: removed from contract
+              const SizedBox(height: 12),
+              // — Deadline picker (single datetime) —
+              Row(
+                children: [
+                  Text(
+                    l10n.createQuestDeadline,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  ActionChip(
+                    avatar: _deadline != null
+                        ? const Icon(Icons.close, size: 16)
+                        : const Icon(Icons.calendar_today_outlined, size: 16),
+                    label: Text(
+                      _deadline == null
+                          ? l10n.createQuestPickDate
+                          : _formatDateTime(_deadline)!,
+                    ),
+                    onPressed: () async {
+                      if (_deadline != null) {
+                        setState(() => _deadline = null);
+                        return;
+                      }
+                      final now = DateTime.now();
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: now,
+                        firstDate: now,
+                        lastDate: DateTime(now.year + 5),
+                      );
+                      if (pickedDate == null) return;
+                      if (!mounted) return;
+                      final pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
+                        builder: (context, child) => MediaQuery(
+                          data: MediaQuery.of(
+                            context,
+                          ).copyWith(alwaysUse24HourFormat: true),
+                          child: child!,
+                        ),
+                      );
+                      if (pickedTime != null) {
+                        setState(
+                          () => _deadline = DateTime(
+                            pickedDate.year,
+                            pickedDate.month,
+                            pickedDate.day,
+                            pickedTime.hour,
+                            pickedTime.minute,
+                          ),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
-              TextField(
-                controller: _contactInfoController,
-                decoration: InputDecoration(
-                  labelText: l10n.createQuestContactInfoLabel,
-                  prefixIcon: const Icon(Icons.contact_mail_outlined),
-                ),
-                keyboardType: TextInputType.text,
+              const SizedBox(height: 8),
+              // — Status chip selector: Open immediately vs Delayed start —
+              // Chip style select per spec
+              Row(
+                children: [
+                  Text(
+                    l10n.createQuestAvailability,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  ChoiceChip(
+                    label: Text(l10n.createQuestOpenImmediately),
+                    selected: !_isDelayedStart,
+                    onSelected: (_) => setState(() {
+                      _isDelayedStart = false;
+                      _startTime = null;
+                    }),
+                  ),
+                  const SizedBox(width: 6),
+                  ChoiceChip(
+                    label: Text(l10n.createQuestDelayedStart),
+                    selected: _isDelayedStart,
+                    onSelected: (_) => setState(() => _isDelayedStart = true),
+                  ),
+                ],
               ),
-              //const SizedBox(height: 12),
-              TextField(
-                controller: _detailsController,
-                decoration: InputDecoration(
-                  labelText: l10n.createQuestDescriptionLabel,
+              // Start time picker — only visible when "Delayed start" selected
+              if (_isDelayedStart) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      l10n.createQuestStartTime,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    ActionChip(
+                      avatar: _startTime != null
+                          ? const Icon(Icons.close, size: 16)
+                          : const Icon(Icons.schedule, size: 16),
+                      label: Text(
+                        _startTime == null
+                            ? l10n.createQuestSetStartTime
+                            : _formatDateTime(_startTime)!,
+                      ),
+                      onPressed: () async {
+                        if (_startTime != null) {
+                          setState(() => _startTime = null);
+                          return;
+                        }
+                        final now = DateTime.now();
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: now,
+                          firstDate: now,
+                          lastDate: DateTime(now.year + 5),
+                        );
+                        if (pickedDate == null) return;
+                        if (!mounted) return;
+                        final pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                          builder: (context, child) => MediaQuery(
+                            data: MediaQuery.of(
+                              context,
+                            ).copyWith(alwaysUse24HourFormat: true),
+                            child: child!,
+                          ),
+                        );
+                        if (pickedTime != null) {
+                          setState(
+                            () => _startTime = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
                 ),
-                maxLines: 3,
+              ],
+              const SizedBox(height: 8),
+              // — Reward type chip selector —
+              // TODO [PENDING]: show reward selector only for casual/personal group type
+              // (need group type available here — pass it through widget or watch groupDetailsProvider)
+              Row(
+                children: [
+                  Text(
+                    l10n.createQuestRewardType,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  ...RewardType.values.map(
+                    (rt) => Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: ChoiceChip(
+                        label: Text(rt.label),
+                        selected: _rewardType == rt,
+                        onSelected: (_) => setState(() {
+                          _rewardType = rt;
+                          if (rt == RewardType.none) {
+                            _rewardValueController.clear();
+                          }
+                        }),
+                      ),
+                    ),
+                  ),
+                ],
               ),
+              // Reward value — shown only for CURRENCY or PRIZE
+              if (_rewardType != RewardType.none) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _rewardValueController,
+                  decoration: InputDecoration(
+                    labelText: l10n.createQuestRewardValue,
+                    prefixIcon: _rewardType == RewardType.currency
+                        ? const Icon(Icons.attach_money_outlined)
+                        : const Icon(Icons.card_giftcard_outlined),
+                  ),
+                  keyboardType: _rewardType == RewardType.currency
+                      ? TextInputType.number
+                      : TextInputType.text,
+                ),
+              ],
+              const SizedBox(height: 4),
               FilterChip(
                 label: Text(l10n.createQuestMeToo),
                 selected: _inclusive,
@@ -770,11 +861,19 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
     return DateTime(date.year, date.month, date.day, time.hour, time.minute);
   }
 
+  // _formatDate: kept for reference, replaced by _formatDateTime
   String? _formatDate(DateTime? dateTime) {
     if (dateTime == null) return null;
     return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year}';
   }
 
+  String? _formatDateTime(DateTime? dt) {
+    if (dt == null) return null;
+    return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  // _formatTimeOfDay: kept for reference, deadline/startTime now use _formatDateTime
   String? _formatTimeOfDay(TimeOfDay? time) {
     if (time == null) return null;
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
@@ -788,6 +887,23 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
       ).showDebugSnackBar('Quest name cannot be empty');
       return;
     }
+    // Validation: delayed start requires a start time in the future
+    if (_isDelayedStart && _startTime == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showDebugSnackBar('Set a start time for delayed quests');
+      return;
+    }
+    if (_isDelayedStart &&
+        _startTime != null &&
+        _startTime!.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(
+        context,
+      ).showDebugSnackBar('Start time must be in the future');
+      return;
+    }
+    // Status logic: CREATED if delayed start, OPEN otherwise
+    final status = _isDelayedStart ? QuestStatus.created : QuestStatus.open;
     ref
         .read(createQuestProvider.notifier)
         .createQuest(
@@ -796,22 +912,24 @@ class _CreateQuestDialogState extends ConsumerState<_CreateQuestDialog> {
           description: _detailsController.text.trim().isEmpty
               ? null
               : _detailsController.text.trim(),
-          date: _selectedDate,
-          deadlineStart: _toDateTime(_selectedDate, _deadlineStart),
-          deadlineEnd: _toDateTime(_selectedDate, _deadlineEnd),
+          // date: _selectedDate, // DROPPED
+          // deadlineStart: _toDateTime(_selectedDate, _deadlineStart), // DROPPED
+          // deadlineEnd: _toDateTime(_selectedDate, _deadlineEnd), // DROPPED
+          deadline: _deadline,
+          startTime: _isDelayedStart ? _startTime : null,
           address: _addressController.text.trim().isEmpty
               ? null
               : _addressController.text.trim(),
-          contactNumber: _contactNumberController.text.trim().isEmpty
-              ? null
-              : _contactNumberController.text.trim(),
-          contactInfo: _contactInfoController.text.trim().isEmpty
-              ? null
-              : _contactInfoController.text.trim(),
+          // contactNumber: ..., // DROPPED
+          // contactInfo: ..., // DROPPED
           data: null,
+          // type: QuestType.job, // DROPPED
+          rewardType: _rewardType,
+          rewardValue: _rewardValueController.text.trim().isEmpty
+              ? null
+              : _rewardValueController.text.trim(),
           inclusive: _inclusive,
-          type: QuestType.job,
-          status: QuestStatus.started,
+          status: status,
         );
   }
 }

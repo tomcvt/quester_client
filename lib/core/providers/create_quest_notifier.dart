@@ -11,18 +11,15 @@ class CreateQuestRequest(BaseModel):
     group_public_id: uuid.UUID
     name: str
     description: str | None = None
-    date: datetime | None = None
-    deadline_start: datetime | None = None
-    deadline_end: datetime | None = None
+    deadline: datetime | None = None
+    start_time: datetime | None = None
     address: str | None = None
-    contact_number: str | None = None
-    contact_info: str | None = None
     data: str | None = None
-    type: QuestType
+    reward_type: RewardType
+    reward_value: str | None = None
     inclusive: bool
     status: QuestStatus
-    creator_public_id: uuid.UUID
-    accepted_by_public_id: uuid.UUID | None = None'
+    # creator_public_id: resolved server-side from auth token (DROPPED from request)
     */
 
 class CreateQuestNotifier extends AsyncNotifier<Quest?> {
@@ -33,14 +30,18 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
     required int groupId,
     required String name,
     required String? description,
-    required DateTime? date,
-    required DateTime? deadlineStart,
-    required DateTime? deadlineEnd,
+    // required DateTime? date, // DROPPED
+    // required DateTime? deadlineStart, // DROPPED: replaced by deadline
+    // required DateTime? deadlineEnd, // DROPPED: replaced by deadline
+    required DateTime? deadline,
+    required DateTime? startTime,
     required String? address,
-    required String? contactNumber,
-    required String? contactInfo,
+    // required String? contactNumber, // DROPPED
+    // required String? contactInfo, // DROPPED
     required String? data,
-    required QuestType type,
+    // required QuestType type, // DROPPED
+    required RewardType rewardType,
+    required String? rewardValue,
     required bool inclusive,
     required QuestStatus status,
   }) async {
@@ -53,14 +54,18 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
           groupId: groupId,
           name: name,
           description: description,
-          date: date,
-          deadlineStart: deadlineStart,
-          deadlineEnd: deadlineEnd,
+          // date: date, // DROPPED
+          // deadlineStart: deadlineStart, // DROPPED
+          // deadlineEnd: deadlineEnd, // DROPPED
+          deadline: deadline,
+          startTime: startTime,
           address: address,
-          contactNumber: contactNumber,
-          contactInfo: contactInfo,
+          // contactNumber: contactNumber, // DROPPED
+          // contactInfo: contactInfo, // DROPPED
           data: data,
-          type: type,
+          // type: type, // DROPPED
+          rewardType: rewardType,
+          rewardValue: rewardValue,
           inclusive: inclusive,
           status: status,
         );

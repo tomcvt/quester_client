@@ -1157,33 +1157,23 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  static const VerificationMeta _deadlineMeta = const VerificationMeta(
+    'deadline',
+  );
   @override
-  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
-    'date',
+  late final GeneratedColumn<DateTime> deadline = GeneratedColumn<DateTime>(
+    'deadline',
     aliasedName,
     true,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _deadlineStartMeta = const VerificationMeta(
-    'deadlineStart',
+  static const VerificationMeta _startTimeMeta = const VerificationMeta(
+    'startTime',
   );
   @override
-  late final GeneratedColumn<DateTime> deadlineStart =
-      GeneratedColumn<DateTime>(
-        'deadline_start',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _deadlineEndMeta = const VerificationMeta(
-    'deadlineEnd',
-  );
-  @override
-  late final GeneratedColumn<DateTime> deadlineEnd = GeneratedColumn<DateTime>(
-    'deadline_end',
+  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
+    'start_time',
     aliasedName,
     true,
     type: DriftSqlType.dateTime,
@@ -1209,38 +1199,27 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _contactNumberMeta = const VerificationMeta(
-    'contactNumber',
-  );
   @override
-  late final GeneratedColumn<String> contactNumber = GeneratedColumn<String>(
-    'contact_number',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _contactInfoMeta = const VerificationMeta(
-    'contactInfo',
-  );
-  @override
-  late final GeneratedColumn<String> contactInfo = GeneratedColumn<String>(
-    'contact_info',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<QuestType, String> type =
+  late final GeneratedColumnWithTypeConverter<RewardType, String> rewardType =
       GeneratedColumn<String>(
-        'type',
+        'reward_type',
         aliasedName,
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: false,
-        defaultValue: Constant(QuestType.job.value),
-      ).withConverter<QuestType>($QuestsTable.$convertertype);
+        defaultValue: Constant(RewardType.none.value),
+      ).withConverter<RewardType>($QuestsTable.$converterrewardType);
+  static const VerificationMeta _rewardValueMeta = const VerificationMeta(
+    'rewardValue',
+  );
+  @override
+  late final GeneratedColumn<String> rewardValue = GeneratedColumn<String>(
+    'reward_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _inclusiveMeta = const VerificationMeta(
     'inclusive',
   );
@@ -1263,7 +1242,7 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         false,
         type: DriftSqlType.string,
         requiredDuringInsert: false,
-        defaultValue: Constant(QuestStatus.started.value),
+        defaultValue: Constant(QuestStatus.open.value),
       ).withConverter<QuestStatus>($QuestsTable.$converterstatus);
   static const VerificationMeta _creatorPublicIdMeta = const VerificationMeta(
     'creatorPublicId',
@@ -1324,14 +1303,12 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     publicId,
     name,
     description,
-    date,
-    deadlineStart,
-    deadlineEnd,
+    deadline,
+    startTime,
     data,
     address,
-    contactNumber,
-    contactInfo,
-    type,
+    rewardType,
+    rewardValue,
     inclusive,
     status,
     creatorPublicId,
@@ -1387,28 +1364,16 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         ),
       );
     }
-    if (data.containsKey('date')) {
+    if (data.containsKey('deadline')) {
       context.handle(
-        _dateMeta,
-        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+        _deadlineMeta,
+        deadline.isAcceptableOrUnknown(data['deadline']!, _deadlineMeta),
       );
     }
-    if (data.containsKey('deadline_start')) {
+    if (data.containsKey('start_time')) {
       context.handle(
-        _deadlineStartMeta,
-        deadlineStart.isAcceptableOrUnknown(
-          data['deadline_start']!,
-          _deadlineStartMeta,
-        ),
-      );
-    }
-    if (data.containsKey('deadline_end')) {
-      context.handle(
-        _deadlineEndMeta,
-        deadlineEnd.isAcceptableOrUnknown(
-          data['deadline_end']!,
-          _deadlineEndMeta,
-        ),
+        _startTimeMeta,
+        startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta),
       );
     }
     if (data.containsKey('data')) {
@@ -1423,21 +1388,12 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         address.isAcceptableOrUnknown(data['address']!, _addressMeta),
       );
     }
-    if (data.containsKey('contact_number')) {
+    if (data.containsKey('reward_value')) {
       context.handle(
-        _contactNumberMeta,
-        contactNumber.isAcceptableOrUnknown(
-          data['contact_number']!,
-          _contactNumberMeta,
-        ),
-      );
-    }
-    if (data.containsKey('contact_info')) {
-      context.handle(
-        _contactInfoMeta,
-        contactInfo.isAcceptableOrUnknown(
-          data['contact_info']!,
-          _contactInfoMeta,
+        _rewardValueMeta,
+        rewardValue.isAcceptableOrUnknown(
+          data['reward_value']!,
+          _rewardValueMeta,
         ),
       );
     }
@@ -1514,17 +1470,13 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
-      date: attachedDatabase.typeMapping.read(
+      deadline: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
-        data['${effectivePrefix}date'],
+        data['${effectivePrefix}deadline'],
       ),
-      deadlineStart: attachedDatabase.typeMapping.read(
+      startTime: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
-        data['${effectivePrefix}deadline_start'],
-      ),
-      deadlineEnd: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}deadline_end'],
+        data['${effectivePrefix}start_time'],
       ),
       data: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1534,19 +1486,15 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         DriftSqlType.string,
         data['${effectivePrefix}address'],
       ),
-      contactNumber: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}contact_number'],
-      ),
-      contactInfo: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}contact_info'],
-      ),
-      type: $QuestsTable.$convertertype.fromSql(
+      rewardType: $QuestsTable.$converterrewardType.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
-          data['${effectivePrefix}type'],
+          data['${effectivePrefix}reward_type'],
         )!,
+      ),
+      rewardValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reward_value'],
       ),
       inclusive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -1582,8 +1530,8 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     return $QuestsTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<QuestType, String, String> $convertertype =
-      const EnumNameConverter<QuestType>(QuestType.values);
+  static JsonTypeConverter2<RewardType, String, String> $converterrewardType =
+      const EnumNameConverter<RewardType>(RewardType.values);
   static JsonTypeConverter2<QuestStatus, String, String> $converterstatus =
       const EnumNameConverter<QuestStatus>(QuestStatus.values);
 }
@@ -1594,14 +1542,12 @@ class Quest extends DataClass implements Insertable<Quest> {
   final String publicId;
   final String name;
   final String? description;
-  final DateTime? date;
-  final DateTime? deadlineStart;
-  final DateTime? deadlineEnd;
+  final DateTime? deadline;
+  final DateTime? startTime;
   final String? data;
   final String? address;
-  final String? contactNumber;
-  final String? contactInfo;
-  final QuestType type;
+  final RewardType rewardType;
+  final String? rewardValue;
   final bool inclusive;
   final QuestStatus status;
   final String creatorPublicId;
@@ -1614,14 +1560,12 @@ class Quest extends DataClass implements Insertable<Quest> {
     required this.publicId,
     required this.name,
     this.description,
-    this.date,
-    this.deadlineStart,
-    this.deadlineEnd,
+    this.deadline,
+    this.startTime,
     this.data,
     this.address,
-    this.contactNumber,
-    this.contactInfo,
-    required this.type,
+    required this.rewardType,
+    this.rewardValue,
     required this.inclusive,
     required this.status,
     required this.creatorPublicId,
@@ -1639,14 +1583,11 @@ class Quest extends DataClass implements Insertable<Quest> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
-    if (!nullToAbsent || date != null) {
-      map['date'] = Variable<DateTime>(date);
+    if (!nullToAbsent || deadline != null) {
+      map['deadline'] = Variable<DateTime>(deadline);
     }
-    if (!nullToAbsent || deadlineStart != null) {
-      map['deadline_start'] = Variable<DateTime>(deadlineStart);
-    }
-    if (!nullToAbsent || deadlineEnd != null) {
-      map['deadline_end'] = Variable<DateTime>(deadlineEnd);
+    if (!nullToAbsent || startTime != null) {
+      map['start_time'] = Variable<DateTime>(startTime);
     }
     if (!nullToAbsent || data != null) {
       map['data'] = Variable<String>(data);
@@ -1654,14 +1595,13 @@ class Quest extends DataClass implements Insertable<Quest> {
     if (!nullToAbsent || address != null) {
       map['address'] = Variable<String>(address);
     }
-    if (!nullToAbsent || contactNumber != null) {
-      map['contact_number'] = Variable<String>(contactNumber);
-    }
-    if (!nullToAbsent || contactInfo != null) {
-      map['contact_info'] = Variable<String>(contactInfo);
-    }
     {
-      map['type'] = Variable<String>($QuestsTable.$convertertype.toSql(type));
+      map['reward_type'] = Variable<String>(
+        $QuestsTable.$converterrewardType.toSql(rewardType),
+      );
+    }
+    if (!nullToAbsent || rewardValue != null) {
+      map['reward_value'] = Variable<String>(rewardValue);
     }
     map['inclusive'] = Variable<bool>(inclusive);
     {
@@ -1687,24 +1627,20 @@ class Quest extends DataClass implements Insertable<Quest> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
-      date: date == null && nullToAbsent ? const Value.absent() : Value(date),
-      deadlineStart: deadlineStart == null && nullToAbsent
+      deadline: deadline == null && nullToAbsent
           ? const Value.absent()
-          : Value(deadlineStart),
-      deadlineEnd: deadlineEnd == null && nullToAbsent
+          : Value(deadline),
+      startTime: startTime == null && nullToAbsent
           ? const Value.absent()
-          : Value(deadlineEnd),
+          : Value(startTime),
       data: data == null && nullToAbsent ? const Value.absent() : Value(data),
       address: address == null && nullToAbsent
           ? const Value.absent()
           : Value(address),
-      contactNumber: contactNumber == null && nullToAbsent
+      rewardType: Value(rewardType),
+      rewardValue: rewardValue == null && nullToAbsent
           ? const Value.absent()
-          : Value(contactNumber),
-      contactInfo: contactInfo == null && nullToAbsent
-          ? const Value.absent()
-          : Value(contactInfo),
-      type: Value(type),
+          : Value(rewardValue),
       inclusive: Value(inclusive),
       status: Value(status),
       creatorPublicId: Value(creatorPublicId),
@@ -1727,16 +1663,14 @@ class Quest extends DataClass implements Insertable<Quest> {
       publicId: serializer.fromJson<String>(json['publicId']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
-      date: serializer.fromJson<DateTime?>(json['date']),
-      deadlineStart: serializer.fromJson<DateTime?>(json['deadlineStart']),
-      deadlineEnd: serializer.fromJson<DateTime?>(json['deadlineEnd']),
+      deadline: serializer.fromJson<DateTime?>(json['deadline']),
+      startTime: serializer.fromJson<DateTime?>(json['startTime']),
       data: serializer.fromJson<String?>(json['data']),
       address: serializer.fromJson<String?>(json['address']),
-      contactNumber: serializer.fromJson<String?>(json['contactNumber']),
-      contactInfo: serializer.fromJson<String?>(json['contactInfo']),
-      type: $QuestsTable.$convertertype.fromJson(
-        serializer.fromJson<String>(json['type']),
+      rewardType: $QuestsTable.$converterrewardType.fromJson(
+        serializer.fromJson<String>(json['rewardType']),
       ),
+      rewardValue: serializer.fromJson<String?>(json['rewardValue']),
       inclusive: serializer.fromJson<bool>(json['inclusive']),
       status: $QuestsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
@@ -1758,16 +1692,14 @@ class Quest extends DataClass implements Insertable<Quest> {
       'publicId': serializer.toJson<String>(publicId),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
-      'date': serializer.toJson<DateTime?>(date),
-      'deadlineStart': serializer.toJson<DateTime?>(deadlineStart),
-      'deadlineEnd': serializer.toJson<DateTime?>(deadlineEnd),
+      'deadline': serializer.toJson<DateTime?>(deadline),
+      'startTime': serializer.toJson<DateTime?>(startTime),
       'data': serializer.toJson<String?>(data),
       'address': serializer.toJson<String?>(address),
-      'contactNumber': serializer.toJson<String?>(contactNumber),
-      'contactInfo': serializer.toJson<String?>(contactInfo),
-      'type': serializer.toJson<String>(
-        $QuestsTable.$convertertype.toJson(type),
+      'rewardType': serializer.toJson<String>(
+        $QuestsTable.$converterrewardType.toJson(rewardType),
       ),
+      'rewardValue': serializer.toJson<String?>(rewardValue),
       'inclusive': serializer.toJson<bool>(inclusive),
       'status': serializer.toJson<String>(
         $QuestsTable.$converterstatus.toJson(status),
@@ -1785,14 +1717,12 @@ class Quest extends DataClass implements Insertable<Quest> {
     String? publicId,
     String? name,
     Value<String?> description = const Value.absent(),
-    Value<DateTime?> date = const Value.absent(),
-    Value<DateTime?> deadlineStart = const Value.absent(),
-    Value<DateTime?> deadlineEnd = const Value.absent(),
+    Value<DateTime?> deadline = const Value.absent(),
+    Value<DateTime?> startTime = const Value.absent(),
     Value<String?> data = const Value.absent(),
     Value<String?> address = const Value.absent(),
-    Value<String?> contactNumber = const Value.absent(),
-    Value<String?> contactInfo = const Value.absent(),
-    QuestType? type,
+    RewardType? rewardType,
+    Value<String?> rewardValue = const Value.absent(),
     bool? inclusive,
     QuestStatus? status,
     String? creatorPublicId,
@@ -1805,18 +1735,12 @@ class Quest extends DataClass implements Insertable<Quest> {
     publicId: publicId ?? this.publicId,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
-    date: date.present ? date.value : this.date,
-    deadlineStart: deadlineStart.present
-        ? deadlineStart.value
-        : this.deadlineStart,
-    deadlineEnd: deadlineEnd.present ? deadlineEnd.value : this.deadlineEnd,
+    deadline: deadline.present ? deadline.value : this.deadline,
+    startTime: startTime.present ? startTime.value : this.startTime,
     data: data.present ? data.value : this.data,
     address: address.present ? address.value : this.address,
-    contactNumber: contactNumber.present
-        ? contactNumber.value
-        : this.contactNumber,
-    contactInfo: contactInfo.present ? contactInfo.value : this.contactInfo,
-    type: type ?? this.type,
+    rewardType: rewardType ?? this.rewardType,
+    rewardValue: rewardValue.present ? rewardValue.value : this.rewardValue,
     inclusive: inclusive ?? this.inclusive,
     status: status ?? this.status,
     creatorPublicId: creatorPublicId ?? this.creatorPublicId,
@@ -1835,22 +1759,16 @@ class Quest extends DataClass implements Insertable<Quest> {
       description: data.description.present
           ? data.description.value
           : this.description,
-      date: data.date.present ? data.date.value : this.date,
-      deadlineStart: data.deadlineStart.present
-          ? data.deadlineStart.value
-          : this.deadlineStart,
-      deadlineEnd: data.deadlineEnd.present
-          ? data.deadlineEnd.value
-          : this.deadlineEnd,
+      deadline: data.deadline.present ? data.deadline.value : this.deadline,
+      startTime: data.startTime.present ? data.startTime.value : this.startTime,
       data: data.data.present ? data.data.value : this.data,
       address: data.address.present ? data.address.value : this.address,
-      contactNumber: data.contactNumber.present
-          ? data.contactNumber.value
-          : this.contactNumber,
-      contactInfo: data.contactInfo.present
-          ? data.contactInfo.value
-          : this.contactInfo,
-      type: data.type.present ? data.type.value : this.type,
+      rewardType: data.rewardType.present
+          ? data.rewardType.value
+          : this.rewardType,
+      rewardValue: data.rewardValue.present
+          ? data.rewardValue.value
+          : this.rewardValue,
       inclusive: data.inclusive.present ? data.inclusive.value : this.inclusive,
       status: data.status.present ? data.status.value : this.status,
       creatorPublicId: data.creatorPublicId.present
@@ -1872,14 +1790,12 @@ class Quest extends DataClass implements Insertable<Quest> {
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
-          ..write('date: $date, ')
-          ..write('deadlineStart: $deadlineStart, ')
-          ..write('deadlineEnd: $deadlineEnd, ')
+          ..write('deadline: $deadline, ')
+          ..write('startTime: $startTime, ')
           ..write('data: $data, ')
           ..write('address: $address, ')
-          ..write('contactNumber: $contactNumber, ')
-          ..write('contactInfo: $contactInfo, ')
-          ..write('type: $type, ')
+          ..write('rewardType: $rewardType, ')
+          ..write('rewardValue: $rewardValue, ')
           ..write('inclusive: $inclusive, ')
           ..write('status: $status, ')
           ..write('creatorPublicId: $creatorPublicId, ')
@@ -1897,14 +1813,12 @@ class Quest extends DataClass implements Insertable<Quest> {
     publicId,
     name,
     description,
-    date,
-    deadlineStart,
-    deadlineEnd,
+    deadline,
+    startTime,
     data,
     address,
-    contactNumber,
-    contactInfo,
-    type,
+    rewardType,
+    rewardValue,
     inclusive,
     status,
     creatorPublicId,
@@ -1921,14 +1835,12 @@ class Quest extends DataClass implements Insertable<Quest> {
           other.publicId == this.publicId &&
           other.name == this.name &&
           other.description == this.description &&
-          other.date == this.date &&
-          other.deadlineStart == this.deadlineStart &&
-          other.deadlineEnd == this.deadlineEnd &&
+          other.deadline == this.deadline &&
+          other.startTime == this.startTime &&
           other.data == this.data &&
           other.address == this.address &&
-          other.contactNumber == this.contactNumber &&
-          other.contactInfo == this.contactInfo &&
-          other.type == this.type &&
+          other.rewardType == this.rewardType &&
+          other.rewardValue == this.rewardValue &&
           other.inclusive == this.inclusive &&
           other.status == this.status &&
           other.creatorPublicId == this.creatorPublicId &&
@@ -1943,14 +1855,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
   final Value<String> publicId;
   final Value<String> name;
   final Value<String?> description;
-  final Value<DateTime?> date;
-  final Value<DateTime?> deadlineStart;
-  final Value<DateTime?> deadlineEnd;
+  final Value<DateTime?> deadline;
+  final Value<DateTime?> startTime;
   final Value<String?> data;
   final Value<String?> address;
-  final Value<String?> contactNumber;
-  final Value<String?> contactInfo;
-  final Value<QuestType> type;
+  final Value<RewardType> rewardType;
+  final Value<String?> rewardValue;
   final Value<bool> inclusive;
   final Value<QuestStatus> status;
   final Value<String> creatorPublicId;
@@ -1963,14 +1873,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.publicId = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
-    this.date = const Value.absent(),
-    this.deadlineStart = const Value.absent(),
-    this.deadlineEnd = const Value.absent(),
+    this.deadline = const Value.absent(),
+    this.startTime = const Value.absent(),
     this.data = const Value.absent(),
     this.address = const Value.absent(),
-    this.contactNumber = const Value.absent(),
-    this.contactInfo = const Value.absent(),
-    this.type = const Value.absent(),
+    this.rewardType = const Value.absent(),
+    this.rewardValue = const Value.absent(),
     this.inclusive = const Value.absent(),
     this.status = const Value.absent(),
     this.creatorPublicId = const Value.absent(),
@@ -1984,14 +1892,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     required String publicId,
     required String name,
     this.description = const Value.absent(),
-    this.date = const Value.absent(),
-    this.deadlineStart = const Value.absent(),
-    this.deadlineEnd = const Value.absent(),
+    this.deadline = const Value.absent(),
+    this.startTime = const Value.absent(),
     this.data = const Value.absent(),
     this.address = const Value.absent(),
-    this.contactNumber = const Value.absent(),
-    this.contactInfo = const Value.absent(),
-    this.type = const Value.absent(),
+    this.rewardType = const Value.absent(),
+    this.rewardValue = const Value.absent(),
     required bool inclusive,
     this.status = const Value.absent(),
     required String creatorPublicId,
@@ -2009,14 +1915,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Expression<String>? publicId,
     Expression<String>? name,
     Expression<String>? description,
-    Expression<DateTime>? date,
-    Expression<DateTime>? deadlineStart,
-    Expression<DateTime>? deadlineEnd,
+    Expression<DateTime>? deadline,
+    Expression<DateTime>? startTime,
     Expression<String>? data,
     Expression<String>? address,
-    Expression<String>? contactNumber,
-    Expression<String>? contactInfo,
-    Expression<String>? type,
+    Expression<String>? rewardType,
+    Expression<String>? rewardValue,
     Expression<bool>? inclusive,
     Expression<String>? status,
     Expression<String>? creatorPublicId,
@@ -2030,14 +1934,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       if (publicId != null) 'public_id': publicId,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
-      if (date != null) 'date': date,
-      if (deadlineStart != null) 'deadline_start': deadlineStart,
-      if (deadlineEnd != null) 'deadline_end': deadlineEnd,
+      if (deadline != null) 'deadline': deadline,
+      if (startTime != null) 'start_time': startTime,
       if (data != null) 'data': data,
       if (address != null) 'address': address,
-      if (contactNumber != null) 'contact_number': contactNumber,
-      if (contactInfo != null) 'contact_info': contactInfo,
-      if (type != null) 'type': type,
+      if (rewardType != null) 'reward_type': rewardType,
+      if (rewardValue != null) 'reward_value': rewardValue,
       if (inclusive != null) 'inclusive': inclusive,
       if (status != null) 'status': status,
       if (creatorPublicId != null) 'creator_public_id': creatorPublicId,
@@ -2054,14 +1956,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Value<String>? publicId,
     Value<String>? name,
     Value<String?>? description,
-    Value<DateTime?>? date,
-    Value<DateTime?>? deadlineStart,
-    Value<DateTime?>? deadlineEnd,
+    Value<DateTime?>? deadline,
+    Value<DateTime?>? startTime,
     Value<String?>? data,
     Value<String?>? address,
-    Value<String?>? contactNumber,
-    Value<String?>? contactInfo,
-    Value<QuestType>? type,
+    Value<RewardType>? rewardType,
+    Value<String?>? rewardValue,
     Value<bool>? inclusive,
     Value<QuestStatus>? status,
     Value<String>? creatorPublicId,
@@ -2075,14 +1975,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       publicId: publicId ?? this.publicId,
       name: name ?? this.name,
       description: description ?? this.description,
-      date: date ?? this.date,
-      deadlineStart: deadlineStart ?? this.deadlineStart,
-      deadlineEnd: deadlineEnd ?? this.deadlineEnd,
+      deadline: deadline ?? this.deadline,
+      startTime: startTime ?? this.startTime,
       data: data ?? this.data,
       address: address ?? this.address,
-      contactNumber: contactNumber ?? this.contactNumber,
-      contactInfo: contactInfo ?? this.contactInfo,
-      type: type ?? this.type,
+      rewardType: rewardType ?? this.rewardType,
+      rewardValue: rewardValue ?? this.rewardValue,
       inclusive: inclusive ?? this.inclusive,
       status: status ?? this.status,
       creatorPublicId: creatorPublicId ?? this.creatorPublicId,
@@ -2110,14 +2008,11 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
-    if (date.present) {
-      map['date'] = Variable<DateTime>(date.value);
+    if (deadline.present) {
+      map['deadline'] = Variable<DateTime>(deadline.value);
     }
-    if (deadlineStart.present) {
-      map['deadline_start'] = Variable<DateTime>(deadlineStart.value);
-    }
-    if (deadlineEnd.present) {
-      map['deadline_end'] = Variable<DateTime>(deadlineEnd.value);
+    if (startTime.present) {
+      map['start_time'] = Variable<DateTime>(startTime.value);
     }
     if (data.present) {
       map['data'] = Variable<String>(data.value);
@@ -2125,16 +2020,13 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     if (address.present) {
       map['address'] = Variable<String>(address.value);
     }
-    if (contactNumber.present) {
-      map['contact_number'] = Variable<String>(contactNumber.value);
-    }
-    if (contactInfo.present) {
-      map['contact_info'] = Variable<String>(contactInfo.value);
-    }
-    if (type.present) {
-      map['type'] = Variable<String>(
-        $QuestsTable.$convertertype.toSql(type.value),
+    if (rewardType.present) {
+      map['reward_type'] = Variable<String>(
+        $QuestsTable.$converterrewardType.toSql(rewardType.value),
       );
+    }
+    if (rewardValue.present) {
+      map['reward_value'] = Variable<String>(rewardValue.value);
     }
     if (inclusive.present) {
       map['inclusive'] = Variable<bool>(inclusive.value);
@@ -2167,14 +2059,12 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
           ..write('publicId: $publicId, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
-          ..write('date: $date, ')
-          ..write('deadlineStart: $deadlineStart, ')
-          ..write('deadlineEnd: $deadlineEnd, ')
+          ..write('deadline: $deadline, ')
+          ..write('startTime: $startTime, ')
           ..write('data: $data, ')
           ..write('address: $address, ')
-          ..write('contactNumber: $contactNumber, ')
-          ..write('contactInfo: $contactInfo, ')
-          ..write('type: $type, ')
+          ..write('rewardType: $rewardType, ')
+          ..write('rewardValue: $rewardValue, ')
           ..write('inclusive: $inclusive, ')
           ..write('status: $status, ')
           ..write('creatorPublicId: $creatorPublicId, ')
@@ -3522,14 +3412,12 @@ typedef $$QuestsTableCreateCompanionBuilder =
       required String publicId,
       required String name,
       Value<String?> description,
-      Value<DateTime?> date,
-      Value<DateTime?> deadlineStart,
-      Value<DateTime?> deadlineEnd,
+      Value<DateTime?> deadline,
+      Value<DateTime?> startTime,
       Value<String?> data,
       Value<String?> address,
-      Value<String?> contactNumber,
-      Value<String?> contactInfo,
-      Value<QuestType> type,
+      Value<RewardType> rewardType,
+      Value<String?> rewardValue,
       required bool inclusive,
       Value<QuestStatus> status,
       required String creatorPublicId,
@@ -3544,14 +3432,12 @@ typedef $$QuestsTableUpdateCompanionBuilder =
       Value<String> publicId,
       Value<String> name,
       Value<String?> description,
-      Value<DateTime?> date,
-      Value<DateTime?> deadlineStart,
-      Value<DateTime?> deadlineEnd,
+      Value<DateTime?> deadline,
+      Value<DateTime?> startTime,
       Value<String?> data,
       Value<String?> address,
-      Value<String?> contactNumber,
-      Value<String?> contactInfo,
-      Value<QuestType> type,
+      Value<RewardType> rewardType,
+      Value<String?> rewardValue,
       Value<bool> inclusive,
       Value<QuestStatus> status,
       Value<String> creatorPublicId,
@@ -3650,18 +3536,13 @@ class $$QuestsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get date => $composableBuilder(
-    column: $table.date,
+  ColumnFilters<DateTime> get deadline => $composableBuilder(
+    column: $table.deadline,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get deadlineStart => $composableBuilder(
-    column: $table.deadlineStart,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get deadlineEnd => $composableBuilder(
-    column: $table.deadlineEnd,
+  ColumnFilters<DateTime> get startTime => $composableBuilder(
+    column: $table.startTime,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3675,21 +3556,16 @@ class $$QuestsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get contactNumber => $composableBuilder(
-    column: $table.contactNumber,
-    builder: (column) => ColumnFilters(column),
+  ColumnWithTypeConverterFilters<RewardType, RewardType, String>
+  get rewardType => $composableBuilder(
+    column: $table.rewardType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<String> get contactInfo => $composableBuilder(
-    column: $table.contactInfo,
+  ColumnFilters<String> get rewardValue => $composableBuilder(
+    column: $table.rewardValue,
     builder: (column) => ColumnFilters(column),
   );
-
-  ColumnWithTypeConverterFilters<QuestType, QuestType, String> get type =>
-      $composableBuilder(
-        column: $table.type,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
 
   ColumnFilters<bool> get inclusive => $composableBuilder(
     column: $table.inclusive,
@@ -3811,18 +3687,13 @@ class $$QuestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get date => $composableBuilder(
-    column: $table.date,
+  ColumnOrderings<DateTime> get deadline => $composableBuilder(
+    column: $table.deadline,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get deadlineStart => $composableBuilder(
-    column: $table.deadlineStart,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get deadlineEnd => $composableBuilder(
-    column: $table.deadlineEnd,
+  ColumnOrderings<DateTime> get startTime => $composableBuilder(
+    column: $table.startTime,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3836,18 +3707,13 @@ class $$QuestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get contactNumber => $composableBuilder(
-    column: $table.contactNumber,
+  ColumnOrderings<String> get rewardType => $composableBuilder(
+    column: $table.rewardType,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get contactInfo => $composableBuilder(
-    column: $table.contactInfo,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get type => $composableBuilder(
-    column: $table.type,
+  ColumnOrderings<String> get rewardValue => $composableBuilder(
+    column: $table.rewardValue,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3964,18 +3830,11 @@ class $$QuestsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<DateTime> get date =>
-      $composableBuilder(column: $table.date, builder: (column) => column);
+  GeneratedColumn<DateTime> get deadline =>
+      $composableBuilder(column: $table.deadline, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get deadlineStart => $composableBuilder(
-    column: $table.deadlineStart,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get deadlineEnd => $composableBuilder(
-    column: $table.deadlineEnd,
-    builder: (column) => column,
-  );
+  GeneratedColumn<DateTime> get startTime =>
+      $composableBuilder(column: $table.startTime, builder: (column) => column);
 
   GeneratedColumn<String> get data =>
       $composableBuilder(column: $table.data, builder: (column) => column);
@@ -3983,18 +3842,16 @@ class $$QuestsTableAnnotationComposer
   GeneratedColumn<String> get address =>
       $composableBuilder(column: $table.address, builder: (column) => column);
 
-  GeneratedColumn<String> get contactNumber => $composableBuilder(
-    column: $table.contactNumber,
+  GeneratedColumnWithTypeConverter<RewardType, String> get rewardType =>
+      $composableBuilder(
+        column: $table.rewardType,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get rewardValue => $composableBuilder(
+    column: $table.rewardValue,
     builder: (column) => column,
   );
-
-  GeneratedColumn<String> get contactInfo => $composableBuilder(
-    column: $table.contactInfo,
-    builder: (column) => column,
-  );
-
-  GeneratedColumnWithTypeConverter<QuestType, String> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<bool> get inclusive =>
       $composableBuilder(column: $table.inclusive, builder: (column) => column);
@@ -4115,14 +3972,12 @@ class $$QuestsTableTableManager
                 Value<String> publicId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
-                Value<DateTime?> date = const Value.absent(),
-                Value<DateTime?> deadlineStart = const Value.absent(),
-                Value<DateTime?> deadlineEnd = const Value.absent(),
+                Value<DateTime?> deadline = const Value.absent(),
+                Value<DateTime?> startTime = const Value.absent(),
                 Value<String?> data = const Value.absent(),
                 Value<String?> address = const Value.absent(),
-                Value<String?> contactNumber = const Value.absent(),
-                Value<String?> contactInfo = const Value.absent(),
-                Value<QuestType> type = const Value.absent(),
+                Value<RewardType> rewardType = const Value.absent(),
+                Value<String?> rewardValue = const Value.absent(),
                 Value<bool> inclusive = const Value.absent(),
                 Value<QuestStatus> status = const Value.absent(),
                 Value<String> creatorPublicId = const Value.absent(),
@@ -4135,14 +3990,12 @@ class $$QuestsTableTableManager
                 publicId: publicId,
                 name: name,
                 description: description,
-                date: date,
-                deadlineStart: deadlineStart,
-                deadlineEnd: deadlineEnd,
+                deadline: deadline,
+                startTime: startTime,
                 data: data,
                 address: address,
-                contactNumber: contactNumber,
-                contactInfo: contactInfo,
-                type: type,
+                rewardType: rewardType,
+                rewardValue: rewardValue,
                 inclusive: inclusive,
                 status: status,
                 creatorPublicId: creatorPublicId,
@@ -4157,14 +4010,12 @@ class $$QuestsTableTableManager
                 required String publicId,
                 required String name,
                 Value<String?> description = const Value.absent(),
-                Value<DateTime?> date = const Value.absent(),
-                Value<DateTime?> deadlineStart = const Value.absent(),
-                Value<DateTime?> deadlineEnd = const Value.absent(),
+                Value<DateTime?> deadline = const Value.absent(),
+                Value<DateTime?> startTime = const Value.absent(),
                 Value<String?> data = const Value.absent(),
                 Value<String?> address = const Value.absent(),
-                Value<String?> contactNumber = const Value.absent(),
-                Value<String?> contactInfo = const Value.absent(),
-                Value<QuestType> type = const Value.absent(),
+                Value<RewardType> rewardType = const Value.absent(),
+                Value<String?> rewardValue = const Value.absent(),
                 required bool inclusive,
                 Value<QuestStatus> status = const Value.absent(),
                 required String creatorPublicId,
@@ -4177,14 +4028,12 @@ class $$QuestsTableTableManager
                 publicId: publicId,
                 name: name,
                 description: description,
-                date: date,
-                deadlineStart: deadlineStart,
-                deadlineEnd: deadlineEnd,
+                deadline: deadline,
+                startTime: startTime,
                 data: data,
                 address: address,
-                contactNumber: contactNumber,
-                contactInfo: contactInfo,
-                type: type,
+                rewardType: rewardType,
+                rewardValue: rewardValue,
                 inclusive: inclusive,
                 status: status,
                 creatorPublicId: creatorPublicId,
