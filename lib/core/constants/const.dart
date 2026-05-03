@@ -19,6 +19,7 @@ const String questCancelled = 'QUEST_CANCELLED';
 const String yourQuestTaken = 'YOUR_QUEST_TAKEN';
 const String questCompleted = 'QUEST_COMPLETED';
 const String yourQuestCompleted = 'YOUR_QUEST_COMPLETED';
+const String questRewarded = 'QUEST_REWARDED';
 
 //User events
 const String userJoinedGroup = 'USER_JOINED_GROUP';

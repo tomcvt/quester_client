@@ -7,6 +7,7 @@ import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/theme/app_theme.dart';
 import 'package:quester_client/features/groups/group_actions_notifier.dart';
 import 'package:quester_client/features/groups/quest_card_theme.dart';
+import 'package:quester_client/ui/my_icons.dart';
 
 // ─── Role metadata ────────────────────────────────────────────────────────────
 
@@ -150,8 +151,13 @@ class GroupMemberTile extends StatelessWidget {
                         // — Currency badge (diamond icon + amount) —
                         if (member.currency > 0) ...[
                           const SizedBox(width: 8),
+                          /* TODO [design] decide on currency icon and add to assets
                           Icon(
                             Icons.diamond,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),*/
+                          MyIcons.diamond2(
                             size: 14,
                             color: Theme.of(context).colorScheme.primary,
                           ),

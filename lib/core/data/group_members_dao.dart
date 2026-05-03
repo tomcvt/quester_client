@@ -11,6 +11,19 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
     with _$GroupMembersDaoMixin {
   GroupMembersDao(AppDatabase db) : super(db);
 
+  Future<GroupMember?> getById(int id) async {
+    final query = select(groupMembers)..where((m) => m.id.equals(id));
+    return query.getSingleOrNull();
+  }
+
+  Future<GroupMember?> getMember(int groupId, String userPublicId) async {
+    final query = select(groupMembers)
+      ..where(
+        (m) => m.groupId.equals(groupId) & m.userPublicId.equals(userPublicId),
+      );
+    return query.getSingleOrNull();
+  }
+
   Stream<List<GroupMember>> watchMembersForGroup(int groupId) {
     final query = select(groupMembers)..where((m) => m.groupId.equals(groupId));
     return query.watch();
@@ -117,26 +130,22 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
   }
 
   //TODO check references for conflicts
-  Future<GroupMember> insertMember(
+  Future<int> insertMember(
     int groupId,
     String userPublicId,
     String username,
     MemberRole role,
+    int currency,
   ) async {
     final member = GroupMembersCompanion(
       groupId: Value(groupId),
       userPublicId: Value(userPublicId),
       role: Value(role),
       updatedAt: Value(DateTime.now()),
+      currency: Value(currency),
     );
     final id = await into(groupMembers).insert(member);
-    return GroupMember(
-      id: id,
-      groupId: groupId,
-      userPublicId: userPublicId,
-      role: role,
-      updatedAt: DateTime.now(),
-    );
+    return id;
   }
 
   Future<void> deleteMember(int groupId, String userPublicId) async {

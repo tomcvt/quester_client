@@ -86,6 +86,7 @@ class GroupsService {
       userPublicId,
       "Offline User", //TODO - fetch actual username from shared prefs or similar
       MemberRole.owner,
+      10000000,
     );
     return createdGroup;
   }
@@ -225,6 +226,7 @@ class GroupsService {
       userPublicId,
       "Mock User",
       MemberRole.owner,
+      10000000,
     );
     return createdGroup;
   }
