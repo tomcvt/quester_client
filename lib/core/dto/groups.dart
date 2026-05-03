@@ -102,6 +102,7 @@ class GroupMemberSyncDTO {
   final MemberRole role;
   final String username;
   final DateTime updatedAt;
+  final int currency;
 
   GroupMemberSyncDTO({
     required this.groupPublicId,
@@ -109,6 +110,7 @@ class GroupMemberSyncDTO {
     required this.role,
     required this.username,
     required this.updatedAt,
+    this.currency = 0,
   });
 
   factory GroupMemberSyncDTO.fromJson(Map<String, dynamic> json) {
@@ -118,11 +120,12 @@ class GroupMemberSyncDTO {
       role: MemberRoleX.fromString(json['role'] as String),
       username: json['username'] as String,
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      currency: json['currency'] as int? ?? 0,
     );
   }
   @override
   String toString() {
-    return 'GroupMemberSyncDTO(groupPublicId: $groupPublicId, userPublicId: $userPublicId, role: $role, username: $username, updatedAt: $updatedAt)';
+    return 'GroupMemberSyncDTO(groupPublicId: $groupPublicId, userPublicId: $userPublicId, role: $role, username: $username, updatedAt: $updatedAt, currency: $currency)';
   }
 }
 

@@ -1,5 +1,7 @@
 // lib/core/providers/auth_provider.dart
 
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quester_client/core/constants/const.dart';
@@ -45,12 +47,16 @@ class AuthNotifier extends AsyncNotifier<AppAuthState> {
 
     try {
       final authService = await ref.read(authServiceProvider.future);
-      final fcmToken = await ref.read(fcmTokenProvider.future);
       final installationId = await ref.read(installationIdProvider.future);
+
+      // Use the cached FCM token from prefs (instant) — don't block auth on
+      // FirebaseMessaging.getToken() which can take up to minutes.
+      // The fresh token is fetched in the background after auth succeeds.
+      final cachedFcmToken = prefs.getString(fcmTokenKey);
 
       final session = await authService.initialize(
         installationId,
-        fcmToken: fcmToken,
+        fcmToken: cachedFcmToken,
       );
 
       if (session.sessionToken.isEmpty) {
@@ -63,10 +69,36 @@ class AuthNotifier extends AsyncNotifier<AppAuthState> {
       await prefs.setString(usernameKey, session.username ?? '');
       await prefs.setString(publicIdKey, session.publicId);
 
+      // Background: fetch fresh FCM token; update server if it changed.
+      // Fire-and-forget — does not block the splash-to-home transition.
+      unawaited(_refreshFcmTokenAsync(cachedFcmToken, installationId));
+
       return Authenticated(session);
     } catch (e) {
       logger.e('Auth init failed: $e');
       return _offlineOrCannot(prefs);
+    }
+  }
+
+  /// Fetches a fresh FCM token in the background (without blocking auth/startup).
+  /// If the token changed, updates the server via updateFcmToken.
+  Future<void> _refreshFcmTokenAsync(
+    String? cachedFcmToken,
+    String installationId,
+  ) async {
+    try {
+      final freshToken = await ref.read(fcmTokenProvider.future);
+      if (freshToken == null || freshToken.isEmpty) return;
+      if (freshToken == cachedFcmToken) {
+        logger.d('FCM token unchanged, skipping server update');
+        return;
+      }
+      logger.i('FCM token changed, updating server in background');
+      final apiClient = await ref.read(apiClientProvider.future);
+      await apiClient.updateFcmToken(installationId, freshToken);
+      logger.i('FCM token updated on server');
+    } catch (e) {
+      logger.w('Background FCM token refresh failed (non-fatal): $e');
     }
   }
 

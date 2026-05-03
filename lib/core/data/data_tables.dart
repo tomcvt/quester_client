@@ -135,6 +135,8 @@ class GroupMembers extends Table {
   TextColumn get role =>
       textEnum<MemberRole>().withDefault(Constant(MemberRole.member.value))();
   DateTimeColumn get updatedAt => dateTime()();
+  // Currency balance earned within this specific group.
+  IntColumn get currency => integer().withDefault(const Constant(0))();
 
   @override
   List<Set<Column>> get uniqueKeys => [
@@ -224,6 +226,10 @@ class Quests extends Table {
   @ReferenceName('acceptedQuests')
   TextColumn get acceptedByPublicId =>
       text().nullable().references(Users, #publicId)();
+  // Whether the reward is granted automatically on completion (true)
+  // or requires manual confirmation by the creator (false).
+  BoolColumn get automaticReward =>
+      boolean().withDefault(const Constant(true))();
 
   //indexes
   @override
@@ -253,7 +259,16 @@ extension QuestTypeX on QuestType {
 
 // OLD: enum QuestStatus { started, accepted, completed, deleted, timedOut }
 // NEW per backend contract refactor:
-enum QuestStatus { created, open, accepted, completed, cancelled, expired }
+// v3 addition: rewarded — quest completed and reward has been issued
+enum QuestStatus {
+  created,
+  open,
+  accepted,
+  completed,
+  cancelled,
+  expired,
+  rewarded,
+}
 
 extension QuestStatusX on QuestStatus {
   String get value => name;
@@ -272,6 +287,8 @@ extension QuestStatusX on QuestStatus {
         return 'Cancelled';
       case QuestStatus.expired:
         return 'Expired';
+      case QuestStatus.rewarded:
+        return 'Rewarded';
       default:
         return name;
     }
@@ -303,4 +320,43 @@ extension RewardTypeX on RewardType {
 
   static RewardType fromString(String s) =>
       RewardType.values.firstWhere((e) => e.name == s.toLowerCase());
+}
+
+// ── QuestTemplates ─────────────────────────────────────────────────────────
+// Stores saved quest configurations for suggestion/autocomplete on the
+// "Create Quest" dialog.  One row is inserted per successful quest creation.
+// Suggestions are retrieved via a prefix-LIKE on `name`, deduplicated in Dart,
+// returning the most recently saved configuration for each distinct name.
+//
+// Relative deadline / startTime are stored as:
+//   - offsetDays  : calendar days from "now" at the moment of template creation
+//   - hour/minute : wall-clock time-of-day for the calculated deadline
+// When applying a template the dialog reconstructs:
+//   deadline = DateTime.now() + Duration(days: deadlineOffsetDays)
+//               with (deadlineHour, deadlineMinute) substituted.
+@TableIndex(name: 'quest_templates_name_idx', columns: {#name})
+class QuestTemplates extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get description => text().nullable()();
+  TextColumn get address => text().nullable()();
+  TextColumn get rewardType =>
+      textEnum<RewardType>().withDefault(Constant(RewardType.none.value))();
+  TextColumn get rewardValue => text().nullable()();
+  BoolColumn get inclusive => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDelayedStart =>
+      boolean().withDefault(const Constant(false))();
+  // Relative deadline: how many days from "now" + the time-of-day component.
+  // null = no deadline preference saved.
+  IntColumn get deadlineOffsetDays => integer().nullable()();
+  IntColumn get deadlineHour => integer().nullable()(); // 0–23
+  IntColumn get deadlineMinute => integer().nullable()(); // 0–59
+  // Relative start time for delayed-start quests.
+  IntColumn get startTimeOffsetDays => integer().nullable()();
+  IntColumn get startTimeHour => integer().nullable()(); // 0–23
+  IntColumn get startTimeMinute => integer().nullable()(); // 0–59
+  // Whether to grant reward automatically on completion (mirrors the quest field).
+  BoolColumn get automaticReward =>
+      boolean().withDefault(const Constant(true))();
+  DateTimeColumn get savedAt => dateTime().withDefault(currentDateAndTime)();
 }

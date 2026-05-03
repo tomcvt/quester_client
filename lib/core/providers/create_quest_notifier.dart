@@ -44,6 +44,7 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
     required String? rewardValue,
     required bool inclusive,
     required QuestStatus status,
+    bool automaticReward = true,
   }) async {
     logger.d('createQuest called: $name');
     final questsService = await ref.read(questsServiceProvider.future);
@@ -68,6 +69,7 @@ class CreateQuestNotifier extends AsyncNotifier<Quest?> {
           rewardValue: rewardValue,
           inclusive: inclusive,
           status: status,
+          automaticReward: automaticReward,
         );
         logger.d('Quest creation completed: ${quest.toString()}');
         return quest;

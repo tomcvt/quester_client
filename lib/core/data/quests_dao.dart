@@ -80,6 +80,7 @@ class QuestsDao extends DatabaseAccessor<AppDatabase> with _$QuestsDaoMixin {
           acceptedByPublicId: Value(quest.acceptedByPublicId),
           createdAt: Value(quest.createdAt),
           updatedAt: Value(quest.updatedAt),
+          automaticReward: Value(quest.automaticReward),
         );
         batch.insert(
           // ignore: unnecessary_this

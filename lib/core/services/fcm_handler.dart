@@ -29,7 +29,13 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void initFcmHandlers() {
   // Foreground — app is open
   FirebaseMessaging.onMessage.listen((message) {
-    _handleMessage(message);
+    _handleMessage(message).catchError((e, st) {
+      logger.e(
+        'Unhandled error in FCM foreground handler',
+        error: e,
+        stackTrace: st,
+      );
+    });
   });
 
   // Background tap — app resumes from notification tap (not relevant for data-only)
@@ -285,6 +291,12 @@ Future<void> _handleMessage(RemoteMessage message) async {
       default:
         logger.w('Received FCM message with unknown type: $type');
     }
+  } catch (e, st) {
+    logger.e(
+      'Error handling FCM message (type=$type): $e',
+      error: e,
+      stackTrace: st,
+    );
   } finally {
     if (ownDb) await db.close();
   }

@@ -25,6 +25,7 @@ import 'package:flutter/foundation.dart'; // kIsWeb
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:quester_client/core/utils/core_utils.dart';
 import 'package:quester_client/features/quests/quest_actions_notifier.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -78,6 +79,16 @@ class QuestDetailsScreen extends ConsumerWidget {
     final combinedAsync = ref.watch(
       questDetailsCombinedProvider((groupId, questId)),
     );
+    ref.listen(questActionsNotifierProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          //for now nothing on success — the stream provider updates the UI reactively
+        },
+        error: (err, _) {
+          ScaffoldMessenger.of(context).showDismissibleSnackBar(err.toString());
+        },
+      );
+    });
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -443,13 +454,28 @@ class _QuestActionBar extends ConsumerWidget {
     final isAcceptedByMe =
         quest.acceptedByPublicId != null &&
         quest.acceptedByPublicId == currentUserPublicId;
+    final isCreator = quest.creatorPublicId == currentUserPublicId;
 
     // canAccept: quest must be OPEN (was: QuestStatus.started)
+    final canOpen =
+        quest.status == QuestStatus.created && !isLoading && isCreator;
     final canAccept = quest.status == QuestStatus.open && !isLoading;
     final canComplete =
         quest.status == QuestStatus.accepted && isAcceptedByMe && !isLoading;
+    // Creator can manually reward only when quest is completed and automaticReward == false.
+    final canReward =
+        quest.status == QuestStatus.completed &&
+        !isLoading &&
+        isCreator &&
+        !quest.automaticReward;
 
     final (icon, label, onPressed) = switch (true) {
+      _ when canOpen => (
+        Icons.play_circle_outline,
+        'Open Quest',
+        () =>
+            ref.read(questActionsNotifierProvider.notifier).openQuest(quest.id),
+      ),
       _ when canComplete => (
         Icons.check_circle_outline,
         'Complete Quest',
@@ -463,6 +489,13 @@ class _QuestActionBar extends ConsumerWidget {
         () => ref
             .read(questActionsNotifierProvider.notifier)
             .acceptQuest(quest.id),
+      ),
+      _ when canReward => (
+        Icons.star,
+        'Przyznaj nagrodę', // TODO: add l10n
+        () => ref
+            .read(questActionsNotifierProvider.notifier)
+            .rewardQuest(quest.id),
       ),
       _ => (Icons.info_outline, quest.status.label, null as VoidCallback?),
     };

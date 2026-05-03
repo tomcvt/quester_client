@@ -790,6 +790,18 @@ class $GroupMembersTable extends GroupMembers
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<int> currency = GeneratedColumn<int>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -797,6 +809,7 @@ class $GroupMembersTable extends GroupMembers
     userPublicId,
     role,
     updatedAt,
+    currency,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -840,6 +853,12 @@ class $GroupMembersTable extends GroupMembers
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
     return context;
   }
 
@@ -875,6 +894,10 @@ class $GroupMembersTable extends GroupMembers
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}currency'],
+      )!,
     );
   }
 
@@ -893,12 +916,14 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   final String userPublicId;
   final MemberRole role;
   final DateTime updatedAt;
+  final int currency;
   const GroupMember({
     required this.id,
     required this.groupId,
     required this.userPublicId,
     required this.role,
     required this.updatedAt,
+    required this.currency,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -912,6 +937,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       );
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['currency'] = Variable<int>(currency);
     return map;
   }
 
@@ -922,6 +948,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       userPublicId: Value(userPublicId),
       role: Value(role),
       updatedAt: Value(updatedAt),
+      currency: Value(currency),
     );
   }
 
@@ -938,6 +965,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
         serializer.fromJson<String>(json['role']),
       ),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      currency: serializer.fromJson<int>(json['currency']),
     );
   }
   @override
@@ -951,6 +979,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
         $GroupMembersTable.$converterrole.toJson(role),
       ),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'currency': serializer.toJson<int>(currency),
     };
   }
 
@@ -960,12 +989,14 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     String? userPublicId,
     MemberRole? role,
     DateTime? updatedAt,
+    int? currency,
   }) => GroupMember(
     id: id ?? this.id,
     groupId: groupId ?? this.groupId,
     userPublicId: userPublicId ?? this.userPublicId,
     role: role ?? this.role,
     updatedAt: updatedAt ?? this.updatedAt,
+    currency: currency ?? this.currency,
   );
   GroupMember copyWithCompanion(GroupMembersCompanion data) {
     return GroupMember(
@@ -976,6 +1007,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           : this.userPublicId,
       role: data.role.present ? data.role.value : this.role,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      currency: data.currency.present ? data.currency.value : this.currency,
     );
   }
 
@@ -986,13 +1018,15 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('groupId: $groupId, ')
           ..write('userPublicId: $userPublicId, ')
           ..write('role: $role, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('currency: $currency')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, groupId, userPublicId, role, updatedAt);
+  int get hashCode =>
+      Object.hash(id, groupId, userPublicId, role, updatedAt, currency);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1001,7 +1035,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.groupId == this.groupId &&
           other.userPublicId == this.userPublicId &&
           other.role == this.role &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.currency == this.currency);
 }
 
 class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
@@ -1010,12 +1045,14 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<String> userPublicId;
   final Value<MemberRole> role;
   final Value<DateTime> updatedAt;
+  final Value<int> currency;
   const GroupMembersCompanion({
     this.id = const Value.absent(),
     this.groupId = const Value.absent(),
     this.userPublicId = const Value.absent(),
     this.role = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.currency = const Value.absent(),
   });
   GroupMembersCompanion.insert({
     this.id = const Value.absent(),
@@ -1023,6 +1060,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     required String userPublicId,
     this.role = const Value.absent(),
     required DateTime updatedAt,
+    this.currency = const Value.absent(),
   }) : groupId = Value(groupId),
        userPublicId = Value(userPublicId),
        updatedAt = Value(updatedAt);
@@ -1032,6 +1070,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<String>? userPublicId,
     Expression<String>? role,
     Expression<DateTime>? updatedAt,
+    Expression<int>? currency,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1039,6 +1078,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (userPublicId != null) 'user_public_id': userPublicId,
       if (role != null) 'role': role,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (currency != null) 'currency': currency,
     });
   }
 
@@ -1048,6 +1088,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Value<String>? userPublicId,
     Value<MemberRole>? role,
     Value<DateTime>? updatedAt,
+    Value<int>? currency,
   }) {
     return GroupMembersCompanion(
       id: id ?? this.id,
@@ -1055,6 +1096,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       userPublicId: userPublicId ?? this.userPublicId,
       role: role ?? this.role,
       updatedAt: updatedAt ?? this.updatedAt,
+      currency: currency ?? this.currency,
     );
   }
 
@@ -1078,6 +1120,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (currency.present) {
+      map['currency'] = Variable<int>(currency.value);
+    }
     return map;
   }
 
@@ -1088,7 +1133,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('groupId: $groupId, ')
           ..write('userPublicId: $userPublicId, ')
           ..write('role: $role, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('currency: $currency')
           ..write(')'))
         .toString();
   }
@@ -1296,6 +1342,21 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
           'REFERENCES users (public_id)',
         ),
       );
+  static const VerificationMeta _automaticRewardMeta = const VerificationMeta(
+    'automaticReward',
+  );
+  @override
+  late final GeneratedColumn<bool> automaticReward = GeneratedColumn<bool>(
+    'automatic_reward',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("automatic_reward" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1315,6 +1376,7 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
     createdAt,
     updatedAt,
     acceptedByPublicId,
+    automaticReward,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1437,6 +1499,15 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         ),
       );
     }
+    if (data.containsKey('automatic_reward')) {
+      context.handle(
+        _automaticRewardMeta,
+        automaticReward.isAcceptableOrUnknown(
+          data['automatic_reward']!,
+          _automaticRewardMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1522,6 +1593,10 @@ class $QuestsTable extends Quests with TableInfo<$QuestsTable, Quest> {
         DriftSqlType.string,
         data['${effectivePrefix}accepted_by_public_id'],
       ),
+      automaticReward: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}automatic_reward'],
+      )!,
     );
   }
 
@@ -1554,6 +1629,7 @@ class Quest extends DataClass implements Insertable<Quest> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? acceptedByPublicId;
+  final bool automaticReward;
   const Quest({
     required this.id,
     required this.groupId,
@@ -1572,6 +1648,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     required this.createdAt,
     required this.updatedAt,
     this.acceptedByPublicId,
+    required this.automaticReward,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1615,6 +1692,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     if (!nullToAbsent || acceptedByPublicId != null) {
       map['accepted_by_public_id'] = Variable<String>(acceptedByPublicId);
     }
+    map['automatic_reward'] = Variable<bool>(automaticReward);
     return map;
   }
 
@@ -1649,6 +1727,7 @@ class Quest extends DataClass implements Insertable<Quest> {
       acceptedByPublicId: acceptedByPublicId == null && nullToAbsent
           ? const Value.absent()
           : Value(acceptedByPublicId),
+      automaticReward: Value(automaticReward),
     );
   }
 
@@ -1681,6 +1760,7 @@ class Quest extends DataClass implements Insertable<Quest> {
       acceptedByPublicId: serializer.fromJson<String?>(
         json['acceptedByPublicId'],
       ),
+      automaticReward: serializer.fromJson<bool>(json['automaticReward']),
     );
   }
   @override
@@ -1708,6 +1788,7 @@ class Quest extends DataClass implements Insertable<Quest> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'acceptedByPublicId': serializer.toJson<String?>(acceptedByPublicId),
+      'automaticReward': serializer.toJson<bool>(automaticReward),
     };
   }
 
@@ -1729,6 +1810,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<String?> acceptedByPublicId = const Value.absent(),
+    bool? automaticReward,
   }) => Quest(
     id: id ?? this.id,
     groupId: groupId ?? this.groupId,
@@ -1749,6 +1831,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     acceptedByPublicId: acceptedByPublicId.present
         ? acceptedByPublicId.value
         : this.acceptedByPublicId,
+    automaticReward: automaticReward ?? this.automaticReward,
   );
   Quest copyWithCompanion(QuestsCompanion data) {
     return Quest(
@@ -1779,6 +1862,9 @@ class Quest extends DataClass implements Insertable<Quest> {
       acceptedByPublicId: data.acceptedByPublicId.present
           ? data.acceptedByPublicId.value
           : this.acceptedByPublicId,
+      automaticReward: data.automaticReward.present
+          ? data.automaticReward.value
+          : this.automaticReward,
     );
   }
 
@@ -1801,7 +1887,8 @@ class Quest extends DataClass implements Insertable<Quest> {
           ..write('creatorPublicId: $creatorPublicId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('acceptedByPublicId: $acceptedByPublicId')
+          ..write('acceptedByPublicId: $acceptedByPublicId, ')
+          ..write('automaticReward: $automaticReward')
           ..write(')'))
         .toString();
   }
@@ -1825,6 +1912,7 @@ class Quest extends DataClass implements Insertable<Quest> {
     createdAt,
     updatedAt,
     acceptedByPublicId,
+    automaticReward,
   );
   @override
   bool operator ==(Object other) =>
@@ -1846,7 +1934,8 @@ class Quest extends DataClass implements Insertable<Quest> {
           other.creatorPublicId == this.creatorPublicId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.acceptedByPublicId == this.acceptedByPublicId);
+          other.acceptedByPublicId == this.acceptedByPublicId &&
+          other.automaticReward == this.automaticReward);
 }
 
 class QuestsCompanion extends UpdateCompanion<Quest> {
@@ -1867,6 +1956,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String?> acceptedByPublicId;
+  final Value<bool> automaticReward;
   const QuestsCompanion({
     this.id = const Value.absent(),
     this.groupId = const Value.absent(),
@@ -1885,6 +1975,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.acceptedByPublicId = const Value.absent(),
+    this.automaticReward = const Value.absent(),
   });
   QuestsCompanion.insert({
     this.id = const Value.absent(),
@@ -1904,6 +1995,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.acceptedByPublicId = const Value.absent(),
+    this.automaticReward = const Value.absent(),
   }) : groupId = Value(groupId),
        publicId = Value(publicId),
        name = Value(name),
@@ -1927,6 +2019,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? acceptedByPublicId,
+    Expression<bool>? automaticReward,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1947,6 +2040,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (acceptedByPublicId != null)
         'accepted_by_public_id': acceptedByPublicId,
+      if (automaticReward != null) 'automatic_reward': automaticReward,
     });
   }
 
@@ -1968,6 +2062,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String?>? acceptedByPublicId,
+    Value<bool>? automaticReward,
   }) {
     return QuestsCompanion(
       id: id ?? this.id,
@@ -1987,6 +2082,7 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       acceptedByPublicId: acceptedByPublicId ?? this.acceptedByPublicId,
+      automaticReward: automaticReward ?? this.automaticReward,
     );
   }
 
@@ -2048,6 +2144,9 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
     if (acceptedByPublicId.present) {
       map['accepted_by_public_id'] = Variable<String>(acceptedByPublicId.value);
     }
+    if (automaticReward.present) {
+      map['automatic_reward'] = Variable<bool>(automaticReward.value);
+    }
     return map;
   }
 
@@ -2070,7 +2169,971 @@ class QuestsCompanion extends UpdateCompanion<Quest> {
           ..write('creatorPublicId: $creatorPublicId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('acceptedByPublicId: $acceptedByPublicId')
+          ..write('acceptedByPublicId: $acceptedByPublicId, ')
+          ..write('automaticReward: $automaticReward')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $QuestTemplatesTable extends QuestTemplates
+    with TableInfo<$QuestTemplatesTable, QuestTemplate> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $QuestTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _addressMeta = const VerificationMeta(
+    'address',
+  );
+  @override
+  late final GeneratedColumn<String> address = GeneratedColumn<String>(
+    'address',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<RewardType, String> rewardType =
+      GeneratedColumn<String>(
+        'reward_type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(RewardType.none.value),
+      ).withConverter<RewardType>($QuestTemplatesTable.$converterrewardType);
+  static const VerificationMeta _rewardValueMeta = const VerificationMeta(
+    'rewardValue',
+  );
+  @override
+  late final GeneratedColumn<String> rewardValue = GeneratedColumn<String>(
+    'reward_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _inclusiveMeta = const VerificationMeta(
+    'inclusive',
+  );
+  @override
+  late final GeneratedColumn<bool> inclusive = GeneratedColumn<bool>(
+    'inclusive',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("inclusive" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isDelayedStartMeta = const VerificationMeta(
+    'isDelayedStart',
+  );
+  @override
+  late final GeneratedColumn<bool> isDelayedStart = GeneratedColumn<bool>(
+    'is_delayed_start',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_delayed_start" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deadlineOffsetDaysMeta =
+      const VerificationMeta('deadlineOffsetDays');
+  @override
+  late final GeneratedColumn<int> deadlineOffsetDays = GeneratedColumn<int>(
+    'deadline_offset_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deadlineHourMeta = const VerificationMeta(
+    'deadlineHour',
+  );
+  @override
+  late final GeneratedColumn<int> deadlineHour = GeneratedColumn<int>(
+    'deadline_hour',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deadlineMinuteMeta = const VerificationMeta(
+    'deadlineMinute',
+  );
+  @override
+  late final GeneratedColumn<int> deadlineMinute = GeneratedColumn<int>(
+    'deadline_minute',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startTimeOffsetDaysMeta =
+      const VerificationMeta('startTimeOffsetDays');
+  @override
+  late final GeneratedColumn<int> startTimeOffsetDays = GeneratedColumn<int>(
+    'start_time_offset_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startTimeHourMeta = const VerificationMeta(
+    'startTimeHour',
+  );
+  @override
+  late final GeneratedColumn<int> startTimeHour = GeneratedColumn<int>(
+    'start_time_hour',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startTimeMinuteMeta = const VerificationMeta(
+    'startTimeMinute',
+  );
+  @override
+  late final GeneratedColumn<int> startTimeMinute = GeneratedColumn<int>(
+    'start_time_minute',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _automaticRewardMeta = const VerificationMeta(
+    'automaticReward',
+  );
+  @override
+  late final GeneratedColumn<bool> automaticReward = GeneratedColumn<bool>(
+    'automatic_reward',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("automatic_reward" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _savedAtMeta = const VerificationMeta(
+    'savedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> savedAt = GeneratedColumn<DateTime>(
+    'saved_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    description,
+    address,
+    rewardType,
+    rewardValue,
+    inclusive,
+    isDelayedStart,
+    deadlineOffsetDays,
+    deadlineHour,
+    deadlineMinute,
+    startTimeOffsetDays,
+    startTimeHour,
+    startTimeMinute,
+    automaticReward,
+    savedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'quest_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<QuestTemplate> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('address')) {
+      context.handle(
+        _addressMeta,
+        address.isAcceptableOrUnknown(data['address']!, _addressMeta),
+      );
+    }
+    if (data.containsKey('reward_value')) {
+      context.handle(
+        _rewardValueMeta,
+        rewardValue.isAcceptableOrUnknown(
+          data['reward_value']!,
+          _rewardValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('inclusive')) {
+      context.handle(
+        _inclusiveMeta,
+        inclusive.isAcceptableOrUnknown(data['inclusive']!, _inclusiveMeta),
+      );
+    }
+    if (data.containsKey('is_delayed_start')) {
+      context.handle(
+        _isDelayedStartMeta,
+        isDelayedStart.isAcceptableOrUnknown(
+          data['is_delayed_start']!,
+          _isDelayedStartMeta,
+        ),
+      );
+    }
+    if (data.containsKey('deadline_offset_days')) {
+      context.handle(
+        _deadlineOffsetDaysMeta,
+        deadlineOffsetDays.isAcceptableOrUnknown(
+          data['deadline_offset_days']!,
+          _deadlineOffsetDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('deadline_hour')) {
+      context.handle(
+        _deadlineHourMeta,
+        deadlineHour.isAcceptableOrUnknown(
+          data['deadline_hour']!,
+          _deadlineHourMeta,
+        ),
+      );
+    }
+    if (data.containsKey('deadline_minute')) {
+      context.handle(
+        _deadlineMinuteMeta,
+        deadlineMinute.isAcceptableOrUnknown(
+          data['deadline_minute']!,
+          _deadlineMinuteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('start_time_offset_days')) {
+      context.handle(
+        _startTimeOffsetDaysMeta,
+        startTimeOffsetDays.isAcceptableOrUnknown(
+          data['start_time_offset_days']!,
+          _startTimeOffsetDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('start_time_hour')) {
+      context.handle(
+        _startTimeHourMeta,
+        startTimeHour.isAcceptableOrUnknown(
+          data['start_time_hour']!,
+          _startTimeHourMeta,
+        ),
+      );
+    }
+    if (data.containsKey('start_time_minute')) {
+      context.handle(
+        _startTimeMinuteMeta,
+        startTimeMinute.isAcceptableOrUnknown(
+          data['start_time_minute']!,
+          _startTimeMinuteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('automatic_reward')) {
+      context.handle(
+        _automaticRewardMeta,
+        automaticReward.isAcceptableOrUnknown(
+          data['automatic_reward']!,
+          _automaticRewardMeta,
+        ),
+      );
+    }
+    if (data.containsKey('saved_at')) {
+      context.handle(
+        _savedAtMeta,
+        savedAt.isAcceptableOrUnknown(data['saved_at']!, _savedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  QuestTemplate map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return QuestTemplate(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      address: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}address'],
+      ),
+      rewardType: $QuestTemplatesTable.$converterrewardType.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}reward_type'],
+        )!,
+      ),
+      rewardValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reward_value'],
+      ),
+      inclusive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}inclusive'],
+      )!,
+      isDelayedStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_delayed_start'],
+      )!,
+      deadlineOffsetDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deadline_offset_days'],
+      ),
+      deadlineHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deadline_hour'],
+      ),
+      deadlineMinute: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deadline_minute'],
+      ),
+      startTimeOffsetDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_time_offset_days'],
+      ),
+      startTimeHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_time_hour'],
+      ),
+      startTimeMinute: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_time_minute'],
+      ),
+      automaticReward: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}automatic_reward'],
+      )!,
+      savedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}saved_at'],
+      )!,
+    );
+  }
+
+  @override
+  $QuestTemplatesTable createAlias(String alias) {
+    return $QuestTemplatesTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<RewardType, String, String> $converterrewardType =
+      const EnumNameConverter<RewardType>(RewardType.values);
+}
+
+class QuestTemplate extends DataClass implements Insertable<QuestTemplate> {
+  final int id;
+  final String name;
+  final String? description;
+  final String? address;
+  final RewardType rewardType;
+  final String? rewardValue;
+  final bool inclusive;
+  final bool isDelayedStart;
+  final int? deadlineOffsetDays;
+  final int? deadlineHour;
+  final int? deadlineMinute;
+  final int? startTimeOffsetDays;
+  final int? startTimeHour;
+  final int? startTimeMinute;
+  final bool automaticReward;
+  final DateTime savedAt;
+  const QuestTemplate({
+    required this.id,
+    required this.name,
+    this.description,
+    this.address,
+    required this.rewardType,
+    this.rewardValue,
+    required this.inclusive,
+    required this.isDelayedStart,
+    this.deadlineOffsetDays,
+    this.deadlineHour,
+    this.deadlineMinute,
+    this.startTimeOffsetDays,
+    this.startTimeHour,
+    this.startTimeMinute,
+    required this.automaticReward,
+    required this.savedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || address != null) {
+      map['address'] = Variable<String>(address);
+    }
+    {
+      map['reward_type'] = Variable<String>(
+        $QuestTemplatesTable.$converterrewardType.toSql(rewardType),
+      );
+    }
+    if (!nullToAbsent || rewardValue != null) {
+      map['reward_value'] = Variable<String>(rewardValue);
+    }
+    map['inclusive'] = Variable<bool>(inclusive);
+    map['is_delayed_start'] = Variable<bool>(isDelayedStart);
+    if (!nullToAbsent || deadlineOffsetDays != null) {
+      map['deadline_offset_days'] = Variable<int>(deadlineOffsetDays);
+    }
+    if (!nullToAbsent || deadlineHour != null) {
+      map['deadline_hour'] = Variable<int>(deadlineHour);
+    }
+    if (!nullToAbsent || deadlineMinute != null) {
+      map['deadline_minute'] = Variable<int>(deadlineMinute);
+    }
+    if (!nullToAbsent || startTimeOffsetDays != null) {
+      map['start_time_offset_days'] = Variable<int>(startTimeOffsetDays);
+    }
+    if (!nullToAbsent || startTimeHour != null) {
+      map['start_time_hour'] = Variable<int>(startTimeHour);
+    }
+    if (!nullToAbsent || startTimeMinute != null) {
+      map['start_time_minute'] = Variable<int>(startTimeMinute);
+    }
+    map['automatic_reward'] = Variable<bool>(automaticReward);
+    map['saved_at'] = Variable<DateTime>(savedAt);
+    return map;
+  }
+
+  QuestTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return QuestTemplatesCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      address: address == null && nullToAbsent
+          ? const Value.absent()
+          : Value(address),
+      rewardType: Value(rewardType),
+      rewardValue: rewardValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rewardValue),
+      inclusive: Value(inclusive),
+      isDelayedStart: Value(isDelayedStart),
+      deadlineOffsetDays: deadlineOffsetDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadlineOffsetDays),
+      deadlineHour: deadlineHour == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadlineHour),
+      deadlineMinute: deadlineMinute == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deadlineMinute),
+      startTimeOffsetDays: startTimeOffsetDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startTimeOffsetDays),
+      startTimeHour: startTimeHour == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startTimeHour),
+      startTimeMinute: startTimeMinute == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startTimeMinute),
+      automaticReward: Value(automaticReward),
+      savedAt: Value(savedAt),
+    );
+  }
+
+  factory QuestTemplate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return QuestTemplate(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      address: serializer.fromJson<String?>(json['address']),
+      rewardType: $QuestTemplatesTable.$converterrewardType.fromJson(
+        serializer.fromJson<String>(json['rewardType']),
+      ),
+      rewardValue: serializer.fromJson<String?>(json['rewardValue']),
+      inclusive: serializer.fromJson<bool>(json['inclusive']),
+      isDelayedStart: serializer.fromJson<bool>(json['isDelayedStart']),
+      deadlineOffsetDays: serializer.fromJson<int?>(json['deadlineOffsetDays']),
+      deadlineHour: serializer.fromJson<int?>(json['deadlineHour']),
+      deadlineMinute: serializer.fromJson<int?>(json['deadlineMinute']),
+      startTimeOffsetDays: serializer.fromJson<int?>(
+        json['startTimeOffsetDays'],
+      ),
+      startTimeHour: serializer.fromJson<int?>(json['startTimeHour']),
+      startTimeMinute: serializer.fromJson<int?>(json['startTimeMinute']),
+      automaticReward: serializer.fromJson<bool>(json['automaticReward']),
+      savedAt: serializer.fromJson<DateTime>(json['savedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'address': serializer.toJson<String?>(address),
+      'rewardType': serializer.toJson<String>(
+        $QuestTemplatesTable.$converterrewardType.toJson(rewardType),
+      ),
+      'rewardValue': serializer.toJson<String?>(rewardValue),
+      'inclusive': serializer.toJson<bool>(inclusive),
+      'isDelayedStart': serializer.toJson<bool>(isDelayedStart),
+      'deadlineOffsetDays': serializer.toJson<int?>(deadlineOffsetDays),
+      'deadlineHour': serializer.toJson<int?>(deadlineHour),
+      'deadlineMinute': serializer.toJson<int?>(deadlineMinute),
+      'startTimeOffsetDays': serializer.toJson<int?>(startTimeOffsetDays),
+      'startTimeHour': serializer.toJson<int?>(startTimeHour),
+      'startTimeMinute': serializer.toJson<int?>(startTimeMinute),
+      'automaticReward': serializer.toJson<bool>(automaticReward),
+      'savedAt': serializer.toJson<DateTime>(savedAt),
+    };
+  }
+
+  QuestTemplate copyWith({
+    int? id,
+    String? name,
+    Value<String?> description = const Value.absent(),
+    Value<String?> address = const Value.absent(),
+    RewardType? rewardType,
+    Value<String?> rewardValue = const Value.absent(),
+    bool? inclusive,
+    bool? isDelayedStart,
+    Value<int?> deadlineOffsetDays = const Value.absent(),
+    Value<int?> deadlineHour = const Value.absent(),
+    Value<int?> deadlineMinute = const Value.absent(),
+    Value<int?> startTimeOffsetDays = const Value.absent(),
+    Value<int?> startTimeHour = const Value.absent(),
+    Value<int?> startTimeMinute = const Value.absent(),
+    bool? automaticReward,
+    DateTime? savedAt,
+  }) => QuestTemplate(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    description: description.present ? description.value : this.description,
+    address: address.present ? address.value : this.address,
+    rewardType: rewardType ?? this.rewardType,
+    rewardValue: rewardValue.present ? rewardValue.value : this.rewardValue,
+    inclusive: inclusive ?? this.inclusive,
+    isDelayedStart: isDelayedStart ?? this.isDelayedStart,
+    deadlineOffsetDays: deadlineOffsetDays.present
+        ? deadlineOffsetDays.value
+        : this.deadlineOffsetDays,
+    deadlineHour: deadlineHour.present ? deadlineHour.value : this.deadlineHour,
+    deadlineMinute: deadlineMinute.present
+        ? deadlineMinute.value
+        : this.deadlineMinute,
+    startTimeOffsetDays: startTimeOffsetDays.present
+        ? startTimeOffsetDays.value
+        : this.startTimeOffsetDays,
+    startTimeHour: startTimeHour.present
+        ? startTimeHour.value
+        : this.startTimeHour,
+    startTimeMinute: startTimeMinute.present
+        ? startTimeMinute.value
+        : this.startTimeMinute,
+    automaticReward: automaticReward ?? this.automaticReward,
+    savedAt: savedAt ?? this.savedAt,
+  );
+  QuestTemplate copyWithCompanion(QuestTemplatesCompanion data) {
+    return QuestTemplate(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      address: data.address.present ? data.address.value : this.address,
+      rewardType: data.rewardType.present
+          ? data.rewardType.value
+          : this.rewardType,
+      rewardValue: data.rewardValue.present
+          ? data.rewardValue.value
+          : this.rewardValue,
+      inclusive: data.inclusive.present ? data.inclusive.value : this.inclusive,
+      isDelayedStart: data.isDelayedStart.present
+          ? data.isDelayedStart.value
+          : this.isDelayedStart,
+      deadlineOffsetDays: data.deadlineOffsetDays.present
+          ? data.deadlineOffsetDays.value
+          : this.deadlineOffsetDays,
+      deadlineHour: data.deadlineHour.present
+          ? data.deadlineHour.value
+          : this.deadlineHour,
+      deadlineMinute: data.deadlineMinute.present
+          ? data.deadlineMinute.value
+          : this.deadlineMinute,
+      startTimeOffsetDays: data.startTimeOffsetDays.present
+          ? data.startTimeOffsetDays.value
+          : this.startTimeOffsetDays,
+      startTimeHour: data.startTimeHour.present
+          ? data.startTimeHour.value
+          : this.startTimeHour,
+      startTimeMinute: data.startTimeMinute.present
+          ? data.startTimeMinute.value
+          : this.startTimeMinute,
+      automaticReward: data.automaticReward.present
+          ? data.automaticReward.value
+          : this.automaticReward,
+      savedAt: data.savedAt.present ? data.savedAt.value : this.savedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuestTemplate(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('address: $address, ')
+          ..write('rewardType: $rewardType, ')
+          ..write('rewardValue: $rewardValue, ')
+          ..write('inclusive: $inclusive, ')
+          ..write('isDelayedStart: $isDelayedStart, ')
+          ..write('deadlineOffsetDays: $deadlineOffsetDays, ')
+          ..write('deadlineHour: $deadlineHour, ')
+          ..write('deadlineMinute: $deadlineMinute, ')
+          ..write('startTimeOffsetDays: $startTimeOffsetDays, ')
+          ..write('startTimeHour: $startTimeHour, ')
+          ..write('startTimeMinute: $startTimeMinute, ')
+          ..write('automaticReward: $automaticReward, ')
+          ..write('savedAt: $savedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    description,
+    address,
+    rewardType,
+    rewardValue,
+    inclusive,
+    isDelayedStart,
+    deadlineOffsetDays,
+    deadlineHour,
+    deadlineMinute,
+    startTimeOffsetDays,
+    startTimeHour,
+    startTimeMinute,
+    automaticReward,
+    savedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is QuestTemplate &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.address == this.address &&
+          other.rewardType == this.rewardType &&
+          other.rewardValue == this.rewardValue &&
+          other.inclusive == this.inclusive &&
+          other.isDelayedStart == this.isDelayedStart &&
+          other.deadlineOffsetDays == this.deadlineOffsetDays &&
+          other.deadlineHour == this.deadlineHour &&
+          other.deadlineMinute == this.deadlineMinute &&
+          other.startTimeOffsetDays == this.startTimeOffsetDays &&
+          other.startTimeHour == this.startTimeHour &&
+          other.startTimeMinute == this.startTimeMinute &&
+          other.automaticReward == this.automaticReward &&
+          other.savedAt == this.savedAt);
+}
+
+class QuestTemplatesCompanion extends UpdateCompanion<QuestTemplate> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<String?> address;
+  final Value<RewardType> rewardType;
+  final Value<String?> rewardValue;
+  final Value<bool> inclusive;
+  final Value<bool> isDelayedStart;
+  final Value<int?> deadlineOffsetDays;
+  final Value<int?> deadlineHour;
+  final Value<int?> deadlineMinute;
+  final Value<int?> startTimeOffsetDays;
+  final Value<int?> startTimeHour;
+  final Value<int?> startTimeMinute;
+  final Value<bool> automaticReward;
+  final Value<DateTime> savedAt;
+  const QuestTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.address = const Value.absent(),
+    this.rewardType = const Value.absent(),
+    this.rewardValue = const Value.absent(),
+    this.inclusive = const Value.absent(),
+    this.isDelayedStart = const Value.absent(),
+    this.deadlineOffsetDays = const Value.absent(),
+    this.deadlineHour = const Value.absent(),
+    this.deadlineMinute = const Value.absent(),
+    this.startTimeOffsetDays = const Value.absent(),
+    this.startTimeHour = const Value.absent(),
+    this.startTimeMinute = const Value.absent(),
+    this.automaticReward = const Value.absent(),
+    this.savedAt = const Value.absent(),
+  });
+  QuestTemplatesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.description = const Value.absent(),
+    this.address = const Value.absent(),
+    this.rewardType = const Value.absent(),
+    this.rewardValue = const Value.absent(),
+    this.inclusive = const Value.absent(),
+    this.isDelayedStart = const Value.absent(),
+    this.deadlineOffsetDays = const Value.absent(),
+    this.deadlineHour = const Value.absent(),
+    this.deadlineMinute = const Value.absent(),
+    this.startTimeOffsetDays = const Value.absent(),
+    this.startTimeHour = const Value.absent(),
+    this.startTimeMinute = const Value.absent(),
+    this.automaticReward = const Value.absent(),
+    this.savedAt = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<QuestTemplate> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<String>? address,
+    Expression<String>? rewardType,
+    Expression<String>? rewardValue,
+    Expression<bool>? inclusive,
+    Expression<bool>? isDelayedStart,
+    Expression<int>? deadlineOffsetDays,
+    Expression<int>? deadlineHour,
+    Expression<int>? deadlineMinute,
+    Expression<int>? startTimeOffsetDays,
+    Expression<int>? startTimeHour,
+    Expression<int>? startTimeMinute,
+    Expression<bool>? automaticReward,
+    Expression<DateTime>? savedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (address != null) 'address': address,
+      if (rewardType != null) 'reward_type': rewardType,
+      if (rewardValue != null) 'reward_value': rewardValue,
+      if (inclusive != null) 'inclusive': inclusive,
+      if (isDelayedStart != null) 'is_delayed_start': isDelayedStart,
+      if (deadlineOffsetDays != null)
+        'deadline_offset_days': deadlineOffsetDays,
+      if (deadlineHour != null) 'deadline_hour': deadlineHour,
+      if (deadlineMinute != null) 'deadline_minute': deadlineMinute,
+      if (startTimeOffsetDays != null)
+        'start_time_offset_days': startTimeOffsetDays,
+      if (startTimeHour != null) 'start_time_hour': startTimeHour,
+      if (startTimeMinute != null) 'start_time_minute': startTimeMinute,
+      if (automaticReward != null) 'automatic_reward': automaticReward,
+      if (savedAt != null) 'saved_at': savedAt,
+    });
+  }
+
+  QuestTemplatesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String?>? description,
+    Value<String?>? address,
+    Value<RewardType>? rewardType,
+    Value<String?>? rewardValue,
+    Value<bool>? inclusive,
+    Value<bool>? isDelayedStart,
+    Value<int?>? deadlineOffsetDays,
+    Value<int?>? deadlineHour,
+    Value<int?>? deadlineMinute,
+    Value<int?>? startTimeOffsetDays,
+    Value<int?>? startTimeHour,
+    Value<int?>? startTimeMinute,
+    Value<bool>? automaticReward,
+    Value<DateTime>? savedAt,
+  }) {
+    return QuestTemplatesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      address: address ?? this.address,
+      rewardType: rewardType ?? this.rewardType,
+      rewardValue: rewardValue ?? this.rewardValue,
+      inclusive: inclusive ?? this.inclusive,
+      isDelayedStart: isDelayedStart ?? this.isDelayedStart,
+      deadlineOffsetDays: deadlineOffsetDays ?? this.deadlineOffsetDays,
+      deadlineHour: deadlineHour ?? this.deadlineHour,
+      deadlineMinute: deadlineMinute ?? this.deadlineMinute,
+      startTimeOffsetDays: startTimeOffsetDays ?? this.startTimeOffsetDays,
+      startTimeHour: startTimeHour ?? this.startTimeHour,
+      startTimeMinute: startTimeMinute ?? this.startTimeMinute,
+      automaticReward: automaticReward ?? this.automaticReward,
+      savedAt: savedAt ?? this.savedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (address.present) {
+      map['address'] = Variable<String>(address.value);
+    }
+    if (rewardType.present) {
+      map['reward_type'] = Variable<String>(
+        $QuestTemplatesTable.$converterrewardType.toSql(rewardType.value),
+      );
+    }
+    if (rewardValue.present) {
+      map['reward_value'] = Variable<String>(rewardValue.value);
+    }
+    if (inclusive.present) {
+      map['inclusive'] = Variable<bool>(inclusive.value);
+    }
+    if (isDelayedStart.present) {
+      map['is_delayed_start'] = Variable<bool>(isDelayedStart.value);
+    }
+    if (deadlineOffsetDays.present) {
+      map['deadline_offset_days'] = Variable<int>(deadlineOffsetDays.value);
+    }
+    if (deadlineHour.present) {
+      map['deadline_hour'] = Variable<int>(deadlineHour.value);
+    }
+    if (deadlineMinute.present) {
+      map['deadline_minute'] = Variable<int>(deadlineMinute.value);
+    }
+    if (startTimeOffsetDays.present) {
+      map['start_time_offset_days'] = Variable<int>(startTimeOffsetDays.value);
+    }
+    if (startTimeHour.present) {
+      map['start_time_hour'] = Variable<int>(startTimeHour.value);
+    }
+    if (startTimeMinute.present) {
+      map['start_time_minute'] = Variable<int>(startTimeMinute.value);
+    }
+    if (automaticReward.present) {
+      map['automatic_reward'] = Variable<bool>(automaticReward.value);
+    }
+    if (savedAt.present) {
+      map['saved_at'] = Variable<DateTime>(savedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuestTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('address: $address, ')
+          ..write('rewardType: $rewardType, ')
+          ..write('rewardValue: $rewardValue, ')
+          ..write('inclusive: $inclusive, ')
+          ..write('isDelayedStart: $isDelayedStart, ')
+          ..write('deadlineOffsetDays: $deadlineOffsetDays, ')
+          ..write('deadlineHour: $deadlineHour, ')
+          ..write('deadlineMinute: $deadlineMinute, ')
+          ..write('startTimeOffsetDays: $startTimeOffsetDays, ')
+          ..write('startTimeHour: $startTimeHour, ')
+          ..write('startTimeMinute: $startTimeMinute, ')
+          ..write('automaticReward: $automaticReward, ')
+          ..write('savedAt: $savedAt')
           ..write(')'))
         .toString();
   }
@@ -2083,6 +3146,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UsersTable users = $UsersTable(this);
   late final $GroupMembersTable groupMembers = $GroupMembersTable(this);
   late final $QuestsTable quests = $QuestsTable(this);
+  late final $QuestTemplatesTable questTemplates = $QuestTemplatesTable(this);
   late final Index groupMembersUserPublicIdIdx = Index(
     'group_members_user_public_id_idx',
     'CREATE INDEX group_members_user_public_id_idx ON group_members (user_public_id)',
@@ -2095,12 +3159,19 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'quests_group_status_updated_idx',
     'CREATE INDEX quests_group_status_updated_idx ON quests (group_id, status, updated_at)',
   );
+  late final Index questTemplatesNameIdx = Index(
+    'quest_templates_name_idx',
+    'CREATE INDEX quest_templates_name_idx ON quest_templates (name)',
+  );
   late final GroupsDao groupsDao = GroupsDao(this as AppDatabase);
   late final GroupMembersDao groupMembersDao = GroupMembersDao(
     this as AppDatabase,
   );
   late final QuestsDao questsDao = QuestsDao(this as AppDatabase);
   late final UsersDao usersDao = UsersDao(this as AppDatabase);
+  late final QuestTemplatesDao questTemplatesDao = QuestTemplatesDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2110,9 +3181,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     users,
     groupMembers,
     quests,
+    questTemplates,
     groupMembersUserPublicIdIdx,
     groupMembersGroupIdPublicIdIdx,
     questsGroupStatusUpdatedIdx,
+    questTemplatesNameIdx,
   ];
 }
 
@@ -3011,6 +4084,7 @@ typedef $$GroupMembersTableCreateCompanionBuilder =
       required String userPublicId,
       Value<MemberRole> role,
       required DateTime updatedAt,
+      Value<int> currency,
     });
 typedef $$GroupMembersTableUpdateCompanionBuilder =
     GroupMembersCompanion Function({
@@ -3019,6 +4093,7 @@ typedef $$GroupMembersTableUpdateCompanionBuilder =
       Value<String> userPublicId,
       Value<MemberRole> role,
       Value<DateTime> updatedAt,
+      Value<int> currency,
     });
 
 final class $$GroupMembersTableReferences
@@ -3085,6 +4160,11 @@ class $$GroupMembersTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currency => $composableBuilder(
+    column: $table.currency,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3159,6 +4239,11 @@ class $$GroupMembersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$GroupsTableOrderingComposer get groupId {
     final $$GroupsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3223,6 +4308,9 @@ class $$GroupMembersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
 
   $$GroupsTableAnnotationComposer get groupId {
     final $$GroupsTableAnnotationComposer composer = $composerBuilder(
@@ -3304,12 +4392,14 @@ class $$GroupMembersTableTableManager
                 Value<String> userPublicId = const Value.absent(),
                 Value<MemberRole> role = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> currency = const Value.absent(),
               }) => GroupMembersCompanion(
                 id: id,
                 groupId: groupId,
                 userPublicId: userPublicId,
                 role: role,
                 updatedAt: updatedAt,
+                currency: currency,
               ),
           createCompanionCallback:
               ({
@@ -3318,12 +4408,14 @@ class $$GroupMembersTableTableManager
                 required String userPublicId,
                 Value<MemberRole> role = const Value.absent(),
                 required DateTime updatedAt,
+                Value<int> currency = const Value.absent(),
               }) => GroupMembersCompanion.insert(
                 id: id,
                 groupId: groupId,
                 userPublicId: userPublicId,
                 role: role,
                 updatedAt: updatedAt,
+                currency: currency,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -3424,6 +4516,7 @@ typedef $$QuestsTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String?> acceptedByPublicId,
+      Value<bool> automaticReward,
     });
 typedef $$QuestsTableUpdateCompanionBuilder =
     QuestsCompanion Function({
@@ -3444,6 +4537,7 @@ typedef $$QuestsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String?> acceptedByPublicId,
+      Value<bool> automaticReward,
     });
 
 final class $$QuestsTableReferences
@@ -3585,6 +4679,11 @@ class $$QuestsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get automaticReward => $composableBuilder(
+    column: $table.automaticReward,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3737,6 +4836,11 @@ class $$QuestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get automaticReward => $composableBuilder(
+    column: $table.automaticReward,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$GroupsTableOrderingComposer get groupId {
     final $$GroupsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3865,6 +4969,11 @@ class $$QuestsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
+  GeneratedColumn<bool> get automaticReward => $composableBuilder(
+    column: $table.automaticReward,
+    builder: (column) => column,
+  );
+
   $$GroupsTableAnnotationComposer get groupId {
     final $$GroupsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -3984,6 +5093,7 @@ class $$QuestsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> acceptedByPublicId = const Value.absent(),
+                Value<bool> automaticReward = const Value.absent(),
               }) => QuestsCompanion(
                 id: id,
                 groupId: groupId,
@@ -4002,6 +5112,7 @@ class $$QuestsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 acceptedByPublicId: acceptedByPublicId,
+                automaticReward: automaticReward,
               ),
           createCompanionCallback:
               ({
@@ -4022,6 +5133,7 @@ class $$QuestsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> acceptedByPublicId = const Value.absent(),
+                Value<bool> automaticReward = const Value.absent(),
               }) => QuestsCompanion.insert(
                 id: id,
                 groupId: groupId,
@@ -4040,6 +5152,7 @@ class $$QuestsTableTableManager
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 acceptedByPublicId: acceptedByPublicId,
+                automaticReward: automaticReward,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4141,6 +5254,435 @@ typedef $$QuestsTableProcessedTableManager =
         bool acceptedByPublicId,
       })
     >;
+typedef $$QuestTemplatesTableCreateCompanionBuilder =
+    QuestTemplatesCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<String?> description,
+      Value<String?> address,
+      Value<RewardType> rewardType,
+      Value<String?> rewardValue,
+      Value<bool> inclusive,
+      Value<bool> isDelayedStart,
+      Value<int?> deadlineOffsetDays,
+      Value<int?> deadlineHour,
+      Value<int?> deadlineMinute,
+      Value<int?> startTimeOffsetDays,
+      Value<int?> startTimeHour,
+      Value<int?> startTimeMinute,
+      Value<bool> automaticReward,
+      Value<DateTime> savedAt,
+    });
+typedef $$QuestTemplatesTableUpdateCompanionBuilder =
+    QuestTemplatesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String?> description,
+      Value<String?> address,
+      Value<RewardType> rewardType,
+      Value<String?> rewardValue,
+      Value<bool> inclusive,
+      Value<bool> isDelayedStart,
+      Value<int?> deadlineOffsetDays,
+      Value<int?> deadlineHour,
+      Value<int?> deadlineMinute,
+      Value<int?> startTimeOffsetDays,
+      Value<int?> startTimeHour,
+      Value<int?> startTimeMinute,
+      Value<bool> automaticReward,
+      Value<DateTime> savedAt,
+    });
+
+class $$QuestTemplatesTableFilterComposer
+    extends Composer<_$AppDatabase, $QuestTemplatesTable> {
+  $$QuestTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<RewardType, RewardType, String>
+  get rewardType => $composableBuilder(
+    column: $table.rewardType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get rewardValue => $composableBuilder(
+    column: $table.rewardValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get inclusive => $composableBuilder(
+    column: $table.inclusive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDelayedStart => $composableBuilder(
+    column: $table.isDelayedStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deadlineOffsetDays => $composableBuilder(
+    column: $table.deadlineOffsetDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deadlineHour => $composableBuilder(
+    column: $table.deadlineHour,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deadlineMinute => $composableBuilder(
+    column: $table.deadlineMinute,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startTimeOffsetDays => $composableBuilder(
+    column: $table.startTimeOffsetDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startTimeHour => $composableBuilder(
+    column: $table.startTimeHour,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startTimeMinute => $composableBuilder(
+    column: $table.startTimeMinute,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get automaticReward => $composableBuilder(
+    column: $table.automaticReward,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get savedAt => $composableBuilder(
+    column: $table.savedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$QuestTemplatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $QuestTemplatesTable> {
+  $$QuestTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get address => $composableBuilder(
+    column: $table.address,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rewardType => $composableBuilder(
+    column: $table.rewardType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rewardValue => $composableBuilder(
+    column: $table.rewardValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get inclusive => $composableBuilder(
+    column: $table.inclusive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDelayedStart => $composableBuilder(
+    column: $table.isDelayedStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deadlineOffsetDays => $composableBuilder(
+    column: $table.deadlineOffsetDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deadlineHour => $composableBuilder(
+    column: $table.deadlineHour,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deadlineMinute => $composableBuilder(
+    column: $table.deadlineMinute,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startTimeOffsetDays => $composableBuilder(
+    column: $table.startTimeOffsetDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startTimeHour => $composableBuilder(
+    column: $table.startTimeHour,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startTimeMinute => $composableBuilder(
+    column: $table.startTimeMinute,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get automaticReward => $composableBuilder(
+    column: $table.automaticReward,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get savedAt => $composableBuilder(
+    column: $table.savedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$QuestTemplatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $QuestTemplatesTable> {
+  $$QuestTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get address =>
+      $composableBuilder(column: $table.address, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<RewardType, String> get rewardType =>
+      $composableBuilder(
+        column: $table.rewardType,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get rewardValue => $composableBuilder(
+    column: $table.rewardValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get inclusive =>
+      $composableBuilder(column: $table.inclusive, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDelayedStart => $composableBuilder(
+    column: $table.isDelayedStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get deadlineOffsetDays => $composableBuilder(
+    column: $table.deadlineOffsetDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get deadlineHour => $composableBuilder(
+    column: $table.deadlineHour,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get deadlineMinute => $composableBuilder(
+    column: $table.deadlineMinute,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get startTimeOffsetDays => $composableBuilder(
+    column: $table.startTimeOffsetDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get startTimeHour => $composableBuilder(
+    column: $table.startTimeHour,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get startTimeMinute => $composableBuilder(
+    column: $table.startTimeMinute,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get automaticReward => $composableBuilder(
+    column: $table.automaticReward,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get savedAt =>
+      $composableBuilder(column: $table.savedAt, builder: (column) => column);
+}
+
+class $$QuestTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $QuestTemplatesTable,
+          QuestTemplate,
+          $$QuestTemplatesTableFilterComposer,
+          $$QuestTemplatesTableOrderingComposer,
+          $$QuestTemplatesTableAnnotationComposer,
+          $$QuestTemplatesTableCreateCompanionBuilder,
+          $$QuestTemplatesTableUpdateCompanionBuilder,
+          (
+            QuestTemplate,
+            BaseReferences<_$AppDatabase, $QuestTemplatesTable, QuestTemplate>,
+          ),
+          QuestTemplate,
+          PrefetchHooks Function()
+        > {
+  $$QuestTemplatesTableTableManager(
+    _$AppDatabase db,
+    $QuestTemplatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$QuestTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$QuestTemplatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$QuestTemplatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> address = const Value.absent(),
+                Value<RewardType> rewardType = const Value.absent(),
+                Value<String?> rewardValue = const Value.absent(),
+                Value<bool> inclusive = const Value.absent(),
+                Value<bool> isDelayedStart = const Value.absent(),
+                Value<int?> deadlineOffsetDays = const Value.absent(),
+                Value<int?> deadlineHour = const Value.absent(),
+                Value<int?> deadlineMinute = const Value.absent(),
+                Value<int?> startTimeOffsetDays = const Value.absent(),
+                Value<int?> startTimeHour = const Value.absent(),
+                Value<int?> startTimeMinute = const Value.absent(),
+                Value<bool> automaticReward = const Value.absent(),
+                Value<DateTime> savedAt = const Value.absent(),
+              }) => QuestTemplatesCompanion(
+                id: id,
+                name: name,
+                description: description,
+                address: address,
+                rewardType: rewardType,
+                rewardValue: rewardValue,
+                inclusive: inclusive,
+                isDelayedStart: isDelayedStart,
+                deadlineOffsetDays: deadlineOffsetDays,
+                deadlineHour: deadlineHour,
+                deadlineMinute: deadlineMinute,
+                startTimeOffsetDays: startTimeOffsetDays,
+                startTimeHour: startTimeHour,
+                startTimeMinute: startTimeMinute,
+                automaticReward: automaticReward,
+                savedAt: savedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<String?> description = const Value.absent(),
+                Value<String?> address = const Value.absent(),
+                Value<RewardType> rewardType = const Value.absent(),
+                Value<String?> rewardValue = const Value.absent(),
+                Value<bool> inclusive = const Value.absent(),
+                Value<bool> isDelayedStart = const Value.absent(),
+                Value<int?> deadlineOffsetDays = const Value.absent(),
+                Value<int?> deadlineHour = const Value.absent(),
+                Value<int?> deadlineMinute = const Value.absent(),
+                Value<int?> startTimeOffsetDays = const Value.absent(),
+                Value<int?> startTimeHour = const Value.absent(),
+                Value<int?> startTimeMinute = const Value.absent(),
+                Value<bool> automaticReward = const Value.absent(),
+                Value<DateTime> savedAt = const Value.absent(),
+              }) => QuestTemplatesCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                address: address,
+                rewardType: rewardType,
+                rewardValue: rewardValue,
+                inclusive: inclusive,
+                isDelayedStart: isDelayedStart,
+                deadlineOffsetDays: deadlineOffsetDays,
+                deadlineHour: deadlineHour,
+                deadlineMinute: deadlineMinute,
+                startTimeOffsetDays: startTimeOffsetDays,
+                startTimeHour: startTimeHour,
+                startTimeMinute: startTimeMinute,
+                automaticReward: automaticReward,
+                savedAt: savedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$QuestTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $QuestTemplatesTable,
+      QuestTemplate,
+      $$QuestTemplatesTableFilterComposer,
+      $$QuestTemplatesTableOrderingComposer,
+      $$QuestTemplatesTableAnnotationComposer,
+      $$QuestTemplatesTableCreateCompanionBuilder,
+      $$QuestTemplatesTableUpdateCompanionBuilder,
+      (
+        QuestTemplate,
+        BaseReferences<_$AppDatabase, $QuestTemplatesTable, QuestTemplate>,
+      ),
+      QuestTemplate,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4153,4 +5695,6 @@ class $AppDatabaseManager {
       $$GroupMembersTableTableManager(_db, _db.groupMembers);
   $$QuestsTableTableManager get quests =>
       $$QuestsTableTableManager(_db, _db.quests);
+  $$QuestTemplatesTableTableManager get questTemplates =>
+      $$QuestTemplatesTableTableManager(_db, _db.questTemplates);
 }

@@ -89,6 +89,7 @@ class GroupMembersDao extends DatabaseAccessor<AppDatabase>
           userPublicId: Value(member.userPublicId),
           role: Value(member.role),
           updatedAt: Value(member.updatedAt),
+          currency: Value(member.currency),
         );
         batch.insert(
           groupMembers,

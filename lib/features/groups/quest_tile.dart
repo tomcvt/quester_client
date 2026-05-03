@@ -62,6 +62,11 @@ class QuestStatusMeta {
       icon: Icons.timer_off_outlined,
       label: l10n.questStatusExpired,
     ),
+    QuestStatus.rewarded => QuestStatusMeta(
+      color: Color(0xFFD81B60),
+      icon: Icons.star,
+      label: 'Rewarded', // TODO: add l10n.questStatusRewarded
+    ),
   };
 }
 
@@ -152,13 +157,33 @@ class QuestTile extends StatelessWidget {
                                         style: QuestCardTheme.subtitleStyle,
                                       ),
                                       Icon(
-                                        Icons.schedule,
+                                        Icons.play_circle,
                                         size: 11,
                                         color: colorScheme.onSurfaceVariant,
                                       ),
                                       const SizedBox(width: 3),
                                       Text(
                                         _formatTime(quest.startTime!),
+                                        style: QuestCardTheme.deadlineStyle
+                                            .copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                    if (quest.deadline != null) ...[
+                                      Text(
+                                        '  ·  ',
+                                        style: QuestCardTheme.subtitleStyle,
+                                      ),
+                                      Icon(
+                                        Icons.schedule,
+                                        size: 11,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        _formatTime(quest.deadline!),
                                         style: QuestCardTheme.deadlineStyle
                                             .copyWith(
                                               color:

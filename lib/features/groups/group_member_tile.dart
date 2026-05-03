@@ -147,6 +147,21 @@ class GroupMemberTile extends StatelessWidget {
                             ],
                           ),
                         ),
+                        // — Currency badge (diamond icon + amount) —
+                        if (member.currency > 0) ...[
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.diamond,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${member.currency}',
+                            style: QuestCardTheme.subtitleStyle,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         // — 3-dot menu button —
                         _MemberMenuButton(
                           memberWithUser: memberWithUser,

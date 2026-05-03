@@ -115,7 +115,7 @@ class ApiClient {
   Future<bool> updateFcmToken(String installationId, String fcmToken) async {
     final response = await _dio.post(
       '/auth/update-fcm-token',
-      data: {'installationId': installationId, 'fcmToken': fcmToken},
+      data: {'installation_id': installationId, 'fcm_token': fcmToken},
     );
     if (response.statusCode != 200) {
       throw Exception('Failed to update FCM token: ${response.statusMessage}');
@@ -140,43 +140,29 @@ class ApiClient {
     required String groupPublicId,
     required String name,
     required String? description,
-    // required DateTime? date, // DROPPED
-    // required DateTime? deadlineStart, // DROPPED: replaced by deadline
-    // required DateTime? deadlineEnd, // DROPPED: replaced by deadline
     required DateTime? deadline,
     required DateTime? startTime,
     required String? address,
-    // required String? contactNumber, // DROPPED
-    // required String? contactInfo, // DROPPED
     required String? data,
-    // required QuestType type, // DROPPED
     required RewardType rewardType,
     required String? rewardValue,
     required bool inclusive,
     required QuestStatus status,
-    // required String creatorPublicId, // DROPPED: resolved server-side
-    // String? acceptedByPublicId, // DROPPED
+    bool automaticReward = true,
   }) async {
     final createQuestRequest = CreateQuestRequest(
       groupPublicId: groupPublicId,
       name: name,
       description: description,
-      // date: date, // DROPPED
-      // deadlineStart: deadlineStart, // DROPPED
-      // deadlineEnd: deadlineEnd, // DROPPED
       deadline: deadline,
       startTime: startTime,
       address: address,
-      // contactNumber: contactNumber, // DROPPED
-      // contactInfo: contactInfo, // DROPPED
       data: data,
-      // type: type, // DROPPED
       rewardType: rewardType,
       rewardValue: rewardValue,
       inclusive: inclusive,
       status: status,
-      // creatorPublicId: creatorPublicId, // DROPPED
-      // acceptedByPublicId: acceptedByPublicId, // DROPPED
+      automaticReward: automaticReward,
     );
     try {
       final response = await _dio.post(
@@ -320,6 +306,15 @@ class ApiClient {
     }
   }
 
+  Future<bool> openQuest(String publicId) async {
+    try {
+      final response = await _dio.post('/quests/$publicId/open');
+      return true;
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to open quest');
+    }
+  }
+
   Future<bool> completeQuest(String publicId) async {
     try {
       final response = await _dio.post('/quests/$publicId/complete');
@@ -335,6 +330,19 @@ class ApiClient {
       return true;
     } on DioException catch (e) {
       _throwFromDio(e, 'Failed to delete quest');
+    }
+  }
+
+  /// TODO [PENDING]: endpoint path TBD — adjust to match server implementation.
+  /// Expected: POST /quests/{publicId}/reward
+  /// Body: (none — server resolves reward from quest config)
+  /// Response: 200 OK on success
+  Future<bool> rewardQuest(String publicId) async {
+    try {
+      final response = await _dio.post('/quests/$publicId/reward');
+      return true;
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to reward quest');
     }
   }
 

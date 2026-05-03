@@ -48,6 +48,7 @@ class CreateQuestRequest {
   final String? rewardValue;
   final bool inclusive;
   final QuestStatus status;
+  final bool automaticReward;
   // final String creatorPublicId; // DROPPED: resolved server-side from auth token
   // final String? acceptedByPublicId; // DROPPED: not sent on create
 
@@ -66,6 +67,7 @@ class CreateQuestRequest {
     this.status = QuestStatus.open,
     // required this.creatorPublicId, // DROPPED
     // this.acceptedByPublicId, // DROPPED
+    this.automaticReward = true,
   });
 
   Map<String, dynamic> toJson() {
@@ -89,6 +91,7 @@ class CreateQuestRequest {
       'status': status.apiValue,
       // 'creator_public_id': creatorPublicId, // DROPPED: server resolves from auth
       // 'accepted_by_public_id': acceptedByPublicId, // DROPPED
+      'automatic_reward': automaticReward,
     };
   }
 }
@@ -116,6 +119,7 @@ class CreateQuestResponse {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? acceptedByPublicId;
+  final bool automaticReward;
 
   CreateQuestResponse({
     required this.publicId,
@@ -137,6 +141,7 @@ class CreateQuestResponse {
     required this.createdAt,
     required this.updatedAt,
     this.acceptedByPublicId,
+    this.automaticReward = true,
   });
 
   factory CreateQuestResponse.fromJson(Map<String, dynamic> json) {
@@ -169,6 +174,7 @@ class CreateQuestResponse {
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       acceptedByPublicId: json['accepted_by_public_id'],
+      automaticReward: json['automatic_reward'] as bool? ?? true,
     );
   }
 }
@@ -218,6 +224,7 @@ class QuestSyncDTO {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? acceptedByPublicId;
+  final bool automaticReward;
 
   QuestSyncDTO({
     required this.groupPublicId,
@@ -239,6 +246,7 @@ class QuestSyncDTO {
     required this.createdAt,
     required this.updatedAt,
     this.acceptedByPublicId,
+    this.automaticReward = true,
   });
 
   factory QuestSyncDTO.fromJson(Map<String, dynamic> json) {
@@ -271,6 +279,7 @@ class QuestSyncDTO {
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       acceptedByPublicId: json['accepted_by_public_id'],
+      automaticReward: json['automatic_reward'] as bool? ?? true,
     );
   }
   @override

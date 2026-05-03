@@ -9,13 +9,13 @@ class AppLocalizationsPl extends AppLocalizations {
   AppLocalizationsPl([String locale = 'pl']) : super(locale);
 
   @override
-  String get questStatusCreated => 'Utworzone';
+  String get questStatusCreated => 'Created';
 
   @override
-  String get questStatusOpen => 'Otwarte';
+  String get questStatusOpen => 'Open';
 
   @override
-  String get questStatusExpired => 'Wygasłe';
+  String get questStatusExpired => 'Expired';
 
   @override
   String get questStatusActive => 'Aktywne';
@@ -72,22 +72,22 @@ class AppLocalizationsPl extends AppLocalizations {
   String get createQuestDescriptionLabel => 'Opis';
 
   @override
-  String get createQuestDeadline => 'Termin:';
+  String get createQuestDeadline => 'Deadline:';
 
   @override
-  String get createQuestAvailability => 'Dostępność:';
+  String get createQuestAvailability => 'Availability:';
 
   @override
-  String get createQuestOpenImmediately => 'Otwarte od razu';
+  String get createQuestOpenImmediately => 'Open immediately';
 
   @override
-  String get createQuestDelayedStart => 'Opóźniony start';
+  String get createQuestDelayedStart => 'Delayed start';
 
   @override
-  String get createQuestRewardType => 'Typ nagrody:';
+  String get createQuestRewardType => 'Reward type:';
 
   @override
-  String get createQuestRewardValue => 'Wartość nagrody';
+  String get createQuestRewardValue => 'Reward amount';
 
   @override
   String get createQuestMeToo => 'Ja też';

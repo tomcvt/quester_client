@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quester_client/core/build_config.dart';
+import 'package:quester_client/core/constants/const.dart';
 import 'package:quester_client/core/http/api_client.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
@@ -82,7 +83,7 @@ final fcmTokenProvider = FutureProvider<String?>((ref) async {
     vapidKey: ref.watch(buildConfigProvider).vapidKey,
   );
   final prefsAsync = await ref.watch(sharedPreferencesProvider.future);
-  await prefsAsync.setString('fcm_token', fcmToken ?? '');
+  await prefsAsync.setString(fcmTokenKey, fcmToken ?? '');
   return fcmToken;
 });
 

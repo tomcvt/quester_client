@@ -72,6 +72,7 @@ class QuestsService {
     required bool inclusive,
     required QuestStatus status,
     bool offline = false,
+    bool automaticReward = true,
   }) async {
     if (offline) {
       return await createOfflineQuest(
@@ -86,6 +87,7 @@ class QuestsService {
         rewardValue: rewardValue,
         inclusive: inclusive,
         status: status,
+        automaticReward: automaticReward,
       );
     }
     final group = await _groupsDao.groupFromId(groupId);
@@ -126,6 +128,7 @@ class QuestsService {
       inclusive: inclusive,
       status: status,
       // creatorPublicId: AppInitializer.installationId, // DROPPED: resolved server-side
+      automaticReward: automaticReward,
     );
     //TODO - fetch actual user public id from shared prefs or similar
     logger.d('Quest created on backend: ${questResponse.toString()}');
@@ -151,6 +154,7 @@ class QuestsService {
       creatorPublicId: Value(questResponse.creatorPublicId),
       createdAt: Value(questResponse.createdAt),
       updatedAt: Value(questResponse.updatedAt),
+      automaticReward: Value(questResponse.automaticReward),
     );
 
     final id = await _questsDao.insertQuest(newQuest);
@@ -182,6 +186,7 @@ class QuestsService {
     required String? rewardValue,
     required bool inclusive,
     required QuestStatus status,
+    bool automaticReward = true,
   }) async {
     final newQuest = QuestsCompanion(
       groupId: Value(groupId),
@@ -204,10 +209,29 @@ class QuestsService {
       status: Value(status),
       creatorPublicId: Value(AppInitializer.sessionData.publicId),
       createdAt: Value(DateTime.now()),
+      automaticReward: Value(automaticReward),
     );
     final id = await _questsDao.insertQuest(newQuest);
     final createdQuest = await _questsDao.getById(id);
     return createdQuest;
+  }
+
+  Future<Quest?> openQuest(int questId, {bool offline = false}) async {
+    final quest = await _questsDao.getById(questId);
+    if (quest == null) {
+      logger.e('Quest with id $questId not found');
+      return null;
+    }
+    if (!offline) {
+      await _apiClient.openQuest(quest.publicId);
+      logger.d('Quest with id $questId opened on backend');
+    } else {
+      logger.d('Offline quest open, skipping API call');
+    }
+    final updatedQuest = quest.copyWith(status: QuestStatus.open);
+    await _questsDao.updateQuest(updatedQuest);
+    logger.d('Quest with id $questId status set to open in local DB');
+    return updatedQuest;
   }
 
   Future<Quest?> acceptQuest(int questId, {bool offline = false}) async {
@@ -284,5 +308,24 @@ class QuestsService {
     logger.d('Quest with id $questId cancelled on backend (soft delete)');
     await _questsDao.deleteQuest(questId);
     logger.d('Quest with id $questId deleted from local DB');
+  }
+
+  /// Triggers the reward for a completed quest.
+  /// Only the creator can call this; should only be available when
+  /// quest.automaticReward == false && quest.status == QuestStatus.completed.
+  /// TODO [PENDING]: server must implement POST /quests/{publicId}/reward
+  /// and transition status to REWARDED + distribute currency.
+  Future<Quest?> rewardQuest(int questId) async {
+    final quest = await _questsDao.getById(questId);
+    if (quest == null) {
+      logger.e('Quest with id $questId not found');
+      return null;
+    }
+    await _apiClient.rewardQuest(quest.publicId);
+    logger.d('Reward triggered for quest $questId on backend');
+    final updatedQuest = quest.copyWith(status: QuestStatus.rewarded);
+    await _questsDao.updateQuest(updatedQuest);
+    logger.d('Quest $questId status set to rewarded in local DB');
+    return updatedQuest;
   }
 }

@@ -12,6 +12,14 @@ class QuestActionsNotifier extends AsyncNotifier<void> {
     // Nothing to load — quest data lives in questDetailsProvider.
   }
 
+  Future<void> openQuest(int questId) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final questsService = await ref.read(questsServiceProvider.future);
+      await questsService.openQuest(questId);
+    });
+  }
+
   Future<void> acceptQuest(int questId) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
@@ -33,6 +41,16 @@ class QuestActionsNotifier extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       final questsService = await ref.read(questsServiceProvider.future);
       await questsService.deleteQuest(questId);
+    });
+  }
+
+  /// Manually triggers reward distribution for a completed quest.
+  /// Only callable by the creator when quest.automaticReward == false.
+  Future<void> rewardQuest(int questId) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final questsService = await ref.read(questsServiceProvider.future);
+      await questsService.rewardQuest(questId);
     });
   }
 }

@@ -16,6 +16,8 @@ import 'package:quester_client/core/providers/core_providers.dart';
 import 'package:quester_client/core/providers/data_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
+import 'package:quester_client/core/constants/const.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 
 void main() async {
@@ -60,6 +62,9 @@ void main() async {
 
   await AppInitializer.initSlim(buildConfig);
   logger.d('DB: ${AppInitializer.db}');
+  // Persist apiBaseUrl so FCM background handler (separate isolate) can read it
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(apiBaseUrlKey, apiBaseUrl);
   Future<NotificationSettings> requestNotificationFuture;
   try {
     requestNotificationFuture = FirebaseMessaging.instance.requestPermission();
