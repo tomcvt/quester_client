@@ -56,6 +56,13 @@ data={
                 'quest_public_id': questEvent.public_id,
                 'accepted_by_public_id': questEvent.accepted_by_public_id if questEvent.accepted_by_public_id else '',
             },
+
+data={
+                'type': 'QUEST_REWARDED',
+                'group_public_id': str(questEvent.group_public_id),
+                'quest_public_id': str(questEvent.public_id),
+                'accepted_by_public_id': str(questEvent.accepted_by_public_id) if questEvent.accepted_by_public_id else '',
+            },
 */
 
 Future<void> _handleMessage(RemoteMessage message) async {
@@ -288,6 +295,21 @@ Future<void> _handleMessage(RemoteMessage message) async {
         );
         // For simplicity, just refetch the user data for this public ID
         await syncService.syncUser(userPublicId);
+      case questRewarded:
+        //TODO make the app sync groupmember data in the background for other usersafter start, for this user we want notification
+        final newQuest = await syncService.syncNewQuests(
+          groupPublicId,
+          questPublicId,
+        );
+        if (newQuest != null) {
+          logger.i('Your quest was rewarded: ${newQuest.name}');
+        } else {
+          logger.e(
+            'Failed to sync updated quest with public id $questPublicId',
+          );
+          break;
+        }
+        await syncService.syncGroupMemberOnNotification()
       default:
         logger.w('Received FCM message with unknown type: $type');
     }
@@ -315,6 +337,16 @@ class QuestNudge {
   final String questId;
   final String groupId;
   String? takenByUsername;
+  String? get displayMessage {
+    switch (type) {
+      case questCreated:
+        return 'New quest available!';
+      case yourQuestTaken:
+        return '$takenByUsername took your quest!';
+      default:
+        return null;
+    }
+  }
   QuestNudge({
     required this.type,
     required this.questId,
