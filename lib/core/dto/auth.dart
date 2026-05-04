@@ -80,6 +80,41 @@ class AuthenticationResponse {
   }
 }
 
+class SessionResponse {
+  final String accessToken;
+  final String refreshToken;
+  final String? username;
+  final String? phoneNumber;
+  final String publicId;
+  final String? fcmToken;
+  final UserRole role;
+  final String? oauthProvider;
+
+  SessionResponse({
+    required this.accessToken,
+    required this.refreshToken,
+    this.username,
+    this.phoneNumber,
+    required this.publicId,
+    this.fcmToken,
+    required this.role,
+    this.oauthProvider,
+  });
+
+  factory SessionResponse.fromJson(Map<String, dynamic> json) {
+    return SessionResponse(
+      accessToken: json['access_token'] as String,
+      refreshToken: json['refresh_token'] as String,
+      username: json['username'] as String?,
+      phoneNumber: json['phone_number'] as String?,
+      publicId: json['public_id'] as String,
+      fcmToken: json['fcm_token'] as String?,
+      role: UserRoleX.fromString(json['role'] as String),
+      oauthProvider: json['oauth_provider'] as String?,
+    );
+  }
+}
+
 class RegistrationResponse {
   final String sessionToken;
   final String apiKey;

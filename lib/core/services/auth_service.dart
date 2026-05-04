@@ -28,6 +28,56 @@ class AuthService {
     this._prefs,
   );
 
+  Future<SessionData> initializeWithJwt(
+    String installationId, {
+    String? fcmToken,
+  }) async {
+    // try to use stored refresh token first
+    final storedRefresh = await _secureStorage.read(key: refreshTokenKey);
+
+    if (storedRefresh != null) {
+      try {
+        return await _refreshSession(storedRefresh);
+      } catch (e) {
+        logger.w('Refresh failed, falling back to new session: $e');
+        await _secureStorage.delete(key: refreshTokenKey);
+      }
+    }
+
+    // no stored refresh or it failed — get a new session
+    return await _createSession(installationId, fcmToken);
+  }
+
+  Future<SessionData> _createSession(
+    String installationId,
+    String? fcmToken,
+  ) async {
+    final response = await _apiClient.createSession(installationId, fcmToken);
+    await _storeTokens(response.accessToken, response.refreshToken);
+    return SessionData.fromSessionResponse(response);
+  }
+
+  Future<SessionData> _refreshSession(String refreshToken) async {
+    final response = await _apiClient.refreshSession(refreshToken);
+    await _storeTokens(response.accessToken, response.refreshToken);
+    return SessionData.fromSessionResponse(response);
+  }
+
+  Future<SessionData> refreshSession(String refreshToken) async {
+    try {
+      return await _refreshSession(refreshToken);
+    } catch (e) {
+      logger.w('Session refresh failed: $e');
+      return const SessionData.empty();
+    }
+  }
+
+  Future<void> _storeTokens(String accessToken, String refreshToken) async {
+    await _secureStorage.write(key: accessTokenKey, value: accessToken);
+    await _secureStorage.write(key: refreshTokenKey, value: refreshToken);
+    _apiClient.setAccessToken(accessToken);
+  }
+
   Future<SessionData> initialize(
     String installationId, {
     String? fcmToken,

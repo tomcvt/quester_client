@@ -2,7 +2,8 @@ import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/core/dto/auth.dart';
 
 class SessionData {
-  final String sessionToken;
+  //final String sessionToken;
+  final String accessToken;
   final String? username;
   final String? phoneNumber;
   final String publicId;
@@ -11,7 +12,8 @@ class SessionData {
   final String? oauthProvider;
 
   const SessionData.empty()
-    : sessionToken = '',
+    : //sessionToken = '',
+      accessToken = '',
       username = null,
       phoneNumber = null,
       publicId = '',
@@ -20,7 +22,8 @@ class SessionData {
       oauthProvider = null;
 
   const SessionData({
-    required this.sessionToken,
+    //required this.sessionToken,
+    required this.accessToken,
     this.username,
     this.phoneNumber,
     required this.publicId,
@@ -31,14 +34,14 @@ class SessionData {
   /*
   @override
   int get hashCode =>
-      Object.hash(sessionToken, username, phoneNumber, publicId, fcmToken, role, oauthProvider);
+      Object.hash(accessToken, username, phoneNumber, publicId, fcmToken, role, oauthProvider);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
     return other is SessionData &&
-        other.sessionToken == sessionToken &&
+        other.accessToken == accessToken &&
         other.username == username &&
         other.phoneNumber == phoneNumber &&
         other.publicId == publicId &&
@@ -49,12 +52,16 @@ class SessionData {
 */
   @override
   String toString() {
-    return 'SessionData(sessionToken: $sessionToken, username: $username, phoneNumber: $phoneNumber, publicId: $publicId, fcmToken: $fcmToken, role: $role, oauthProvider: $oauthProvider)';
+    return 'SessionData(accessToken: $accessToken, username: $username, phoneNumber: $phoneNumber, publicId: $publicId, fcmToken: $fcmToken, role: $role, oauthProvider: $oauthProvider)';
   }
+
+  bool get isEmpty => accessToken.isEmpty || publicId.isEmpty;
 
   static SessionData fromAuthResponse(AuthenticationResponse authResponse) {
     return SessionData(
-      sessionToken: authResponse.sessionToken,
+      //sessionToken: authResponse.sessionToken,
+      accessToken: authResponse
+          .sessionToken, // TODO [to delete if jwt works]: rename sessionToken to accessToken in authResponse and here
       username: authResponse.username,
       phoneNumber: authResponse.phoneNumber,
       publicId: authResponse.publicId,
@@ -64,8 +71,21 @@ class SessionData {
     );
   }
 
+  static SessionData fromSessionResponse(SessionResponse sessionResponse) {
+    return SessionData(
+      //sessionToken: sessionResponse.accessToken,
+      accessToken: sessionResponse.accessToken,
+      username: sessionResponse.username,
+      phoneNumber: sessionResponse.phoneNumber,
+      publicId: sessionResponse.publicId,
+      fcmToken: sessionResponse.fcmToken,
+      role: sessionResponse.role,
+      oauthProvider: sessionResponse.oauthProvider,
+    );
+  }
+
   SessionData copyWith({
-    String? sessionToken,
+    String? accessToken,
     String? username,
     String? phoneNumber,
     String? publicId,
@@ -74,7 +94,7 @@ class SessionData {
     String? oauthProvider,
   }) {
     return SessionData(
-      sessionToken: sessionToken ?? this.sessionToken,
+      accessToken: accessToken ?? this.accessToken,
       username: username ?? this.username,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       publicId: publicId ?? this.publicId,

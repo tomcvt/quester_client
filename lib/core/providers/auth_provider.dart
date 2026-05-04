@@ -40,9 +40,11 @@ class AuthNotifier extends AsyncNotifier<AppAuthState> {
       },
     );
 
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    /* ----------- TODO [to delete if jwt works]
     // ── Your existing init flow, unchanged ──────────────────────────────
     final secureStorage = ref.read(secureStorageProvider);
-    final prefs = await ref.read(sharedPreferencesProvider.future);
+    
     final apiKey = await secureStorage.read(key: apiKeyKey);
 
     try {
@@ -78,6 +80,21 @@ class AuthNotifier extends AsyncNotifier<AppAuthState> {
       logger.e('Auth init failed: $e');
       return _offlineOrCannot(prefs);
     }
+    */
+    //----------- TODO [to delete if jwt works]
+    final authService = await ref.read(authServiceProvider.future);
+    final installationId = await ref.read(installationIdProvider.future);
+    final cachedFcmToken = prefs.getString(fcmTokenKey);
+
+    final SessionData session = await authService.initialize(
+      installationId,
+      fcmToken: cachedFcmToken,
+    );
+
+    if (session.isEmpty) return _offlineOrCannot(prefs);
+
+    unawaited(_refreshFcmTokenAsync(cachedFcmToken, installationId));
+    return Authenticated(session);
   }
 
   /// Fetches a fresh FCM token in the background (without blocking auth/startup).

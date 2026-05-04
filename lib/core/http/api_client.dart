@@ -388,4 +388,32 @@ class SetRoleRequest(BaseModel):
       _throwFromDio(e, 'Failed to login with OAuth');
     }
   }
+
+  Future<SessionResponse> createSession(
+    String installationId,
+    String? fcmToken,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/auth/create-session',
+        data: {'installation_id': installationId, 'fcm_token': fcmToken ?? ''},
+      );
+      // Assuming the response contains session details. Adjust parsing as needed.
+      return SessionResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to create session');
+    }
+  }
+
+  Future<SessionResponse> refreshSession(String refreshToken) async {
+    try {
+      final response = await _dio.post(
+        '/auth/refresh-session',
+        data: {'refresh_token': refreshToken},
+      );
+      return SessionResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      _throwFromDio(e, 'Failed to refresh session');
+    }
+  }
 }

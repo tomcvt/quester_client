@@ -7,6 +7,8 @@ const String usernameKey = 'username';
 const String phoneNumberKey = 'phone_number';
 const String apiBaseUrlKey = 'api_base_url';
 const String fcmTokenKey = 'fcm_token';
+const String accessTokenKey = 'access_token';
+const String refreshTokenKey = 'refresh_token';
 
 //Event types for FCM messages
 //Quest events

@@ -691,5 +691,3 @@ class _StatusBadge extends StatelessWidget {
     );
   }
 }
-
-// ─── Status Metadata — see lib/features/quests/quest_status_meta.dart ────────
