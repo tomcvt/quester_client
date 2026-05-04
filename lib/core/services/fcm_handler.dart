@@ -295,8 +295,9 @@ Future<void> _handleMessage(RemoteMessage message) async {
         );
         // For simplicity, just refetch the user data for this public ID
         await syncService.syncUser(userPublicId);
-      case questRewarded:
+      case questRewarded: //TODO meaning you received reward, think about it
         //TODO make the app sync groupmember data in the background for other usersafter start, for this user we want notification
+        //groupPublicId, questPublicId, acceptedByPublicId
         final newQuest = await syncService.syncNewQuests(
           groupPublicId,
           questPublicId,
@@ -309,7 +310,24 @@ Future<void> _handleMessage(RemoteMessage message) async {
           );
           break;
         }
-        await syncService.syncGroupMemberOnNotification()
+        await syncService.syncGroupMemberOnNotification(
+          groupPublicId,
+          acceptedByPublicId,
+        );
+        String rewardMessage;
+        switch (newQuest.rewardType) {
+          case RewardType.none:
+            break; // no reward to show
+          case RewardType.currency:
+            int rewardInt = int.parse(newQuest.rewardValue ?? '0');
+            rewardMessage =
+                'You received ${newQuest.rewardValue} point${rewardInt == 1 ? '' : 's'}!';
+          case RewardType.prize:
+          //TODO [PENDING]: implement prizes and their notifications
+        }
+        if (!kIsWeb && newQuest.rewardType != RewardType.none) {
+          //TODO [PENDING] implement: await NotificationDisplayService.showReceivedRewardNotification(rewardMessage);
+        }
       default:
         logger.w('Received FCM message with unknown type: $type');
     }
@@ -347,6 +365,7 @@ class QuestNudge {
         return null;
     }
   }
+
   QuestNudge({
     required this.type,
     required this.questId,
