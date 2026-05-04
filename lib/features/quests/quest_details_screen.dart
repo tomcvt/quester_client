@@ -27,6 +27,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/utils/core_utils.dart';
 import 'package:quester_client/features/quests/quest_actions_notifier.dart';
+import 'package:quester_client/features/quests/quest_status_meta.dart';
+import 'package:quester_client/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quester_client/core/data/app_database.dart';
@@ -99,10 +101,16 @@ class QuestDetailsScreen extends ConsumerWidget {
       ),
       body: combinedAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => const Center(child: Text('Error loading quest')),
+        error: (err, _) => Center(
+          child: Text(AppLocalizations.of(context)!.questDetailsErrorLoading),
+        ),
         data: (data) {
           if (data == null) {
-            return const Center(child: Text('Quest not found'));
+            return Center(
+              child: Text(
+                AppLocalizations.of(context)!.questDetailsQuestNotFound,
+              ),
+            );
           }
           return _QuestDetailsBody(
             quest: data.quest,
@@ -165,7 +173,8 @@ class _QuestDetailsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final statusMeta = _StatusMeta.from(quest.status);
+    final l10n = AppLocalizations.of(context)!;
+    final statusMeta = QuestStatusMeta.from(quest.status, l10n);
 
     return CustomScrollView(
       slivers: [
@@ -217,7 +226,9 @@ class _QuestDetailsBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Start: ${_dateToHourMinute(quest.startTime!)}',
+                        l10n.questDetailsStart(
+                          _dateToHourMinute(quest.startTime!),
+                        ),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -237,7 +248,9 @@ class _QuestDetailsBody extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Deadline: ${_dateToHourMinute(quest.deadline!)}',
+                        l10n.questDetailsDeadlineTime(
+                          _dateToHourMinute(quest.deadline!),
+                        ),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
@@ -275,7 +288,7 @@ class _QuestDetailsBody extends StatelessWidget {
                   children: [
                     _CardHeader(
                       icon: Icons.location_on_outlined,
-                      label: 'Address',
+                      label: l10n.questDetailsAddress,
                     ),
                     _TappableRow(
                       icon: Icons.map_outlined,
@@ -290,7 +303,10 @@ class _QuestDetailsBody extends StatelessWidget {
               if (quest.data != null && quest.data!.isNotEmpty)
                 _InfoCard(
                   children: [
-                    _CardHeader(icon: Icons.notes_outlined, label: 'Details'),
+                    _CardHeader(
+                      icon: Icons.notes_outlined,
+                      label: l10n.questDetailsDetails,
+                    ),
                     const SizedBox(height: 8),
                     Text(quest.data!, style: theme.textTheme.bodyMedium),
                   ],
@@ -301,11 +317,11 @@ class _QuestDetailsBody extends StatelessWidget {
                   children: [
                     _CardHeader(
                       icon: Icons.person_outline,
-                      label: 'Created by',
+                      label: l10n.questDetailsCreatedBy,
                     ),
                     _TappableRow(
                       icon: Icons.person,
-                      label: creator!.username ?? 'Unknown',
+                      label: creator!.username ?? l10n.questDetailsUnknown,
                       onTap: () => context.go(
                         '/users/${creator!.publicId}',
                       ), //TODO implement
@@ -324,11 +340,11 @@ class _QuestDetailsBody extends StatelessWidget {
                   children: [
                     _CardHeader(
                       icon: Icons.person_outline,
-                      label: 'Accepted by',
+                      label: l10n.questDetailsAcceptedBy,
                     ),
                     _TappableRow(
                       icon: Icons.person,
-                      label: acceptedBy!.username ?? 'Unknown',
+                      label: acceptedBy!.username ?? l10n.questDetailsUnknown,
                       onTap: () => context.go(
                         '/users/${acceptedBy!.publicId}',
                       ), //TODO implement
@@ -356,7 +372,7 @@ class _QuestDetailsBody extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Creator is also participating in this quest',
+                            l10n.questDetailsCreatorParticipating,
                             style: theme.textTheme.bodyMedium,
                           ),
                         ),
@@ -448,6 +464,7 @@ class _QuestActionBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final isLoading = ref.watch(questActionsNotifierProvider).isLoading;
     final currentUserPublicId = ref.watch(currentUserPublicIdProvider);
 
@@ -472,32 +489,36 @@ class _QuestActionBar extends ConsumerWidget {
     final (icon, label, onPressed) = switch (true) {
       _ when canOpen => (
         Icons.play_circle_outline,
-        'Open Quest',
+        l10n.questActionOpen,
         () =>
             ref.read(questActionsNotifierProvider.notifier).openQuest(quest.id),
       ),
       _ when canComplete => (
         Icons.check_circle_outline,
-        'Complete Quest',
+        l10n.questActionComplete,
         () => ref
             .read(questActionsNotifierProvider.notifier)
             .completeQuest(quest.id),
       ),
       _ when canAccept => (
         Icons.person_add_outlined,
-        'Accept Quest',
+        l10n.questActionAccept,
         () => ref
             .read(questActionsNotifierProvider.notifier)
             .acceptQuest(quest.id),
       ),
       _ when canReward => (
         Icons.star,
-        'Przyznaj nagrodę', // TODO: add l10n
+        l10n.questActionReward,
         () => ref
             .read(questActionsNotifierProvider.notifier)
             .rewardQuest(quest.id),
       ),
-      _ => (Icons.info_outline, quest.status.label, null as VoidCallback?),
+      _ => (
+        Icons.info_outline,
+        QuestStatusMeta.from(quest.status, l10n).label,
+        null as VoidCallback?,
+      ),
     };
 
     return SafeArea(
@@ -640,7 +661,7 @@ class _TappableRow extends StatelessWidget {
 
 // Status badge — colored pill with icon and label.
 class _StatusBadge extends StatelessWidget {
-  final _StatusMeta meta;
+  final QuestStatusMeta meta;
   const _StatusBadge({required this.meta});
 
   @override
@@ -671,60 +692,4 @@ class _StatusBadge extends StatelessWidget {
   }
 }
 
-// ─── Status Metadata ──────────────────────────────────────────────────────────
-//
-// Centralizes the mapping from QuestStatus → visual representation.
-// Adding a new status means adding one entry here — nothing else changes.
-//
-// This is equivalent to a sealed class + when() exhaustive match in Kotlin,
-// but since Dart doesn't have sealed + exhaustive switch on arbitrary values
-// we use a plain class with a factory constructor.
-//
-class _StatusMeta {
-  final Color color;
-  final IconData icon;
-  final String label;
-
-  const _StatusMeta({
-    required this.color,
-    required this.icon,
-    required this.label,
-  });
-
-  factory _StatusMeta.from(QuestStatus status) => switch (status) {
-    // QuestStatus.started => ... // DROPPED: replaced by open
-    // QuestStatus.deleted => ... // DROPPED: replaced by cancelled
-    // QuestStatus.timedOut => ... // DROPPED: replaced by expired
-    QuestStatus.created => _StatusMeta(
-      // Lighter orange - quest not yet open (waiting for start_time)
-      color: Color(0xFFFFCC02),
-      icon: Icons.schedule_outlined,
-      label: 'Created',
-    ),
-    QuestStatus.open => _StatusMeta(
-      color: Colors.orange,
-      icon: Icons.play_circle_outline,
-      label: 'Open',
-    ),
-    QuestStatus.accepted => _StatusMeta(
-      color: Colors.blue,
-      icon: Icons.person_outlined,
-      label: 'Accepted',
-    ),
-    QuestStatus.completed => _StatusMeta(
-      color: Colors.green,
-      icon: Icons.check_circle_outline,
-      label: 'Done',
-    ),
-    QuestStatus.cancelled => _StatusMeta(
-      color: Colors.red,
-      icon: Icons.cancel_outlined,
-      label: 'Cancelled',
-    ),
-    QuestStatus.expired => _StatusMeta(
-      color: Colors.grey,
-      icon: Icons.timer_off_outlined,
-      label: 'Expired',
-    ),
-  };
-}
+// ─── Status Metadata — see lib/features/quests/quest_status_meta.dart ────────

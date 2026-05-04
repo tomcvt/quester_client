@@ -6,69 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:quester_client/core/data/app_database.dart';
 import 'package:quester_client/core/data/data_tables.dart';
 import 'package:quester_client/features/quests/quest_actions_notifier.dart';
+import 'package:quester_client/features/quests/quest_status_meta.dart';
 import 'package:quester_client/l10n/app_localizations.dart';
 
 import 'quest_card_theme.dart';
 // your Quest model and QuestStatus imports here
-
-// ─── Status metadata ──────────────────────────────────────────────────────────
-
-class QuestStatusMeta {
-  final Color color;
-  final IconData icon;
-  final String label;
-
-  const QuestStatusMeta({
-    required this.color,
-    required this.icon,
-    required this.label,
-  });
-
-  static QuestStatusMeta from(
-    QuestStatus status,
-    AppLocalizations l10n,
-  ) => switch (status) {
-    // QuestStatus.started => ... // DROPPED: replaced by open
-    // QuestStatus.deleted => ... // DROPPED: replaced by cancelled
-    // QuestStatus.timedOut => ... // DROPPED: replaced by expired
-    QuestStatus.created => QuestStatusMeta(
-      // Lighter orange — quest exists but not yet open (waiting for start_time)
-      color: Color(0xFFFFCC02),
-      icon: Icons.schedule_outlined,
-      label: l10n.questStatusCreated,
-    ),
-    QuestStatus.open => QuestStatusMeta(
-      color: Color(0xFFFF9800),
-      icon: Icons.play_circle_outline,
-      label: l10n.questStatusOpen,
-    ),
-    QuestStatus.accepted => QuestStatusMeta(
-      color: Color(0xFF2196F3),
-      icon: Icons.person_outline,
-      label: l10n.questStatusAccepted,
-    ),
-    QuestStatus.completed => QuestStatusMeta(
-      color: Color(0xFF4CAF50),
-      icon: Icons.check_circle_outline,
-      label: l10n.questStatusCompleted,
-    ),
-    QuestStatus.cancelled => QuestStatusMeta(
-      color: Color(0xFFF44336),
-      icon: Icons.cancel_outlined,
-      label: l10n.questStatusCancelled,
-    ),
-    QuestStatus.expired => QuestStatusMeta(
-      color: Color(0xFF9E9E9E),
-      icon: Icons.timer_off_outlined,
-      label: l10n.questStatusExpired,
-    ),
-    QuestStatus.rewarded => QuestStatusMeta(
-      color: Color(0xFFD81B60),
-      icon: Icons.star,
-      label: 'Rewarded', // TODO: add l10n.questStatusRewarded
-    ),
-  };
-}
 
 // ─── Context menu actions ─────────────────────────────────────────────────────
 

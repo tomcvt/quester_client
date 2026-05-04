@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Timed Out'**
   String get questStatusTimedOut;
 
+  /// No description provided for @questStatusRewarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewarded'**
+  String get questStatusRewarded;
+
   /// No description provided for @questMenuDelete.
   ///
   /// In en, this message translates to:
@@ -283,6 +289,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to open'**
   String get tapToOpen;
+
+  /// No description provided for @questDetailsErrorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading quest'**
+  String get questDetailsErrorLoading;
+
+  /// No description provided for @questDetailsQuestNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Quest not found'**
+  String get questDetailsQuestNotFound;
+
+  /// No description provided for @questDetailsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start: {time}'**
+  String questDetailsStart(String time);
+
+  /// No description provided for @questDetailsDeadlineTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline: {time}'**
+  String questDetailsDeadlineTime(String time);
+
+  /// No description provided for @questDetailsAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get questDetailsAddress;
+
+  /// No description provided for @questDetailsDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get questDetailsDetails;
+
+  /// No description provided for @questDetailsCreatedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by'**
+  String get questDetailsCreatedBy;
+
+  /// No description provided for @questDetailsAcceptedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted by'**
+  String get questDetailsAcceptedBy;
+
+  /// No description provided for @questDetailsUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get questDetailsUnknown;
+
+  /// No description provided for @questDetailsCreatorParticipating.
+  ///
+  /// In en, this message translates to:
+  /// **'Creator is also participating in this quest'**
+  String get questDetailsCreatorParticipating;
+
+  /// No description provided for @questActionOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Quest'**
+  String get questActionOpen;
+
+  /// No description provided for @questActionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Quest'**
+  String get questActionComplete;
+
+  /// No description provided for @questActionAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept Quest'**
+  String get questActionAccept;
+
+  /// No description provided for @questActionReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Reward'**
+  String get questActionReward;
+
+  /// No description provided for @createQuestRewardMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward:'**
+  String get createQuestRewardMode;
+
+  /// No description provided for @createQuestRewardAutomatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get createQuestRewardAutomatic;
+
+  /// No description provided for @createQuestRewardOnConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'On confirmation'**
+  String get createQuestRewardOnConfirmation;
+
+  /// No description provided for @createQuestSavedTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved templates'**
+  String get createQuestSavedTemplates;
+
+  /// No description provided for @createQuestDismissSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get createQuestDismissSuggestions;
+
+  /// No description provided for @createQuestSuggestionToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get createQuestSuggestionToday;
+
+  /// No description provided for @createQuestValidationNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Quest name cannot be empty'**
+  String get createQuestValidationNameEmpty;
+
+  /// No description provided for @createQuestValidationStartTimeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a start time for delayed quests'**
+  String get createQuestValidationStartTimeRequired;
+
+  /// No description provided for @createQuestValidationStartTimeInPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Start time must be in the future'**
+  String get createQuestValidationStartTimeInPast;
 }
 
 class _AppLocalizationsDelegate

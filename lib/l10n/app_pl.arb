@@ -6,6 +6,10 @@
   "questStatusCompleted": "Gotowe",
   "questStatusCancelled": "Anulowane",
   "questStatusTimedOut": "Przedawnione",
+  "questStatusCreated": "Oczekujące",
+  "questStatusOpen": "Otwarte",
+  "questStatusExpired": "Wygasłe",
+  "questStatusRewarded": "Nagrodzone",
   "questMenuDelete": "Usuń",
   "questMenuHide": "Ukryj"
   ,
@@ -24,5 +28,40 @@
   "cancel": "Anuluj",
   "create": "Utwórz",
 
-    "tapToOpen": "Dotknij, aby otworzyć"
+    "tapToOpen": "Dotknij, aby otworzyć",
+
+  "questDetailsErrorLoading": "Błąd ładowania zadania",
+  "questDetailsQuestNotFound": "Zadanie nie znalezione",
+  "questDetailsStart": "Start: {time}",
+  "@questDetailsStart": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "questDetailsDeadlineTime": "Termin: {time}",
+  "@questDetailsDeadlineTime": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "questDetailsAddress": "Adres",
+  "questDetailsDetails": "Szczegóły",
+  "questDetailsCreatedBy": "Utworzone przez",
+  "questDetailsAcceptedBy": "Przyjęte przez",
+  "questDetailsUnknown": "Nieznany",
+  "questDetailsCreatorParticipating": "Twórca również uczestniczy w tym zadaniu",
+  "questActionOpen": "Otwórz zadanie",
+  "questActionComplete": "Zakończ zadanie",
+  "questActionAccept": "Przyjmij zadanie",
+  "questActionReward": "Przyznaj nagrodę",
+  "createQuestRewardMode": "Nagroda:",
+  "createQuestRewardAutomatic": "Automatyczne",
+  "createQuestRewardOnConfirmation": "Po potwierdzeniu",
+  "createQuestSavedTemplates": "Zapisane szablony",
+  "createQuestDismissSuggestions": "Odrzuć",
+  "createQuestSuggestionToday": "Dziś",
+  "createQuestValidationNameEmpty": "Nazwa zadania nie może być pusta",
+  "createQuestValidationStartTimeRequired": "Ustaw godzinę rozpoczęcia dla opóźnionych zadań",
+  "createQuestValidationStartTimeInPast": "Czas rozpoczęcia musi być w przyszłości"
+
 }

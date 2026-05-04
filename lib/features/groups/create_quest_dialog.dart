@@ -545,7 +545,7 @@ class _CreateQuestDialogState extends ConsumerState<CreateQuestDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Nagroda:', // TODO: move to l10n
+                      l10n.createQuestRewardMode,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 4),
@@ -554,13 +554,13 @@ class _CreateQuestDialogState extends ConsumerState<CreateQuestDialog> {
                       runSpacing: 4,
                       children: [
                         ChoiceChip(
-                          label: const Text('Automatyczne'),
+                          label: Text(l10n.createQuestRewardAutomatic),
                           selected: _automaticReward,
                           onSelected: (_) =>
                               setState(() => _automaticReward = true),
                         ),
                         ChoiceChip(
-                          label: const Text('Po potwierdzeniu'),
+                          label: Text(l10n.createQuestRewardOnConfirmation),
                           selected: !_automaticReward,
                           onSelected: (_) =>
                               setState(() => _automaticReward = false),
@@ -635,18 +635,19 @@ class _CreateQuestDialogState extends ConsumerState<CreateQuestDialog> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showDebugSnackBar('Quest name cannot be empty');
+      ).showDebugSnackBar(l10n.createQuestValidationNameEmpty);
       return;
     }
     // Validation: delayed start requires a start time in the future
     if (_isDelayedStart && _startTime == null) {
       ScaffoldMessenger.of(
         context,
-      ).showDebugSnackBar('Set a start time for delayed quests');
+      ).showDebugSnackBar(l10n.createQuestValidationStartTimeRequired);
       return;
     }
     if (_isDelayedStart &&
@@ -654,7 +655,7 @@ class _CreateQuestDialogState extends ConsumerState<CreateQuestDialog> {
         _startTime!.isBefore(DateTime.now())) {
       ScaffoldMessenger.of(
         context,
-      ).showDebugSnackBar('Start time must be in the future');
+      ).showDebugSnackBar(l10n.createQuestValidationStartTimeInPast);
       return;
     }
     // Status logic: CREATED if delayed start, OPEN otherwise
@@ -716,6 +717,7 @@ class _SuggestionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: EdgeInsets.zero,
       elevation: 4,
@@ -733,7 +735,7 @@ class _SuggestionPanel extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  'Saved templates',
+                  l10n.createQuestSavedTemplates,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -745,7 +747,7 @@ class _SuggestionPanel extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   onPressed: onDismiss,
-                  tooltip: 'Dismiss suggestions',
+                  tooltip: l10n.createQuestDismissSuggestions,
                 ),
               ],
             ),
@@ -780,6 +782,7 @@ class _SuggestionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // Build a compact subtitle from the saved fields so the user can
     // distinguish between templates with the same name.
@@ -792,7 +795,7 @@ class _SuggestionTile extends StatelessWidget {
           : null;
       parts.add(
         d == 0
-            ? 'Today${h != null ? ' $h' : ''}'
+            ? '${l10n.createQuestSuggestionToday}${h != null ? ' $h' : ''}'
             : '+${d}d${h != null ? ' $h' : ''}',
       );
     }

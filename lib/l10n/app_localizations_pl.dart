@@ -9,13 +9,13 @@ class AppLocalizationsPl extends AppLocalizations {
   AppLocalizationsPl([String locale = 'pl']) : super(locale);
 
   @override
-  String get questStatusCreated => 'Created';
+  String get questStatusCreated => 'Oczekujące';
 
   @override
-  String get questStatusOpen => 'Open';
+  String get questStatusOpen => 'Otwarte';
 
   @override
-  String get questStatusExpired => 'Expired';
+  String get questStatusExpired => 'Wygasłe';
 
   @override
   String get questStatusActive => 'Aktywne';
@@ -31,6 +31,9 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get questStatusTimedOut => 'Przedawnione';
+
+  @override
+  String get questStatusRewarded => 'Nagrodzone';
 
   @override
   String get questMenuDelete => 'Usuń';
@@ -100,4 +103,81 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get tapToOpen => 'Dotknij, aby otworzyć';
+
+  @override
+  String get questDetailsErrorLoading => 'Błąd ładowania zadania';
+
+  @override
+  String get questDetailsQuestNotFound => 'Zadanie nie znalezione';
+
+  @override
+  String questDetailsStart(String time) {
+    return 'Start: $time';
+  }
+
+  @override
+  String questDetailsDeadlineTime(String time) {
+    return 'Termin: $time';
+  }
+
+  @override
+  String get questDetailsAddress => 'Adres';
+
+  @override
+  String get questDetailsDetails => 'Szczegóły';
+
+  @override
+  String get questDetailsCreatedBy => 'Utworzone przez';
+
+  @override
+  String get questDetailsAcceptedBy => 'Przyjęte przez';
+
+  @override
+  String get questDetailsUnknown => 'Nieznany';
+
+  @override
+  String get questDetailsCreatorParticipating =>
+      'Twórca również uczestniczy w tym zadaniu';
+
+  @override
+  String get questActionOpen => 'Otwórz zadanie';
+
+  @override
+  String get questActionComplete => 'Zakończ zadanie';
+
+  @override
+  String get questActionAccept => 'Przyjmij zadanie';
+
+  @override
+  String get questActionReward => 'Przyznaj nagrodę';
+
+  @override
+  String get createQuestRewardMode => 'Nagroda:';
+
+  @override
+  String get createQuestRewardAutomatic => 'Automatyczne';
+
+  @override
+  String get createQuestRewardOnConfirmation => 'Po potwierdzeniu';
+
+  @override
+  String get createQuestSavedTemplates => 'Zapisane szablony';
+
+  @override
+  String get createQuestDismissSuggestions => 'Odrzuć';
+
+  @override
+  String get createQuestSuggestionToday => 'Dziś';
+
+  @override
+  String get createQuestValidationNameEmpty =>
+      'Nazwa zadania nie może być pusta';
+
+  @override
+  String get createQuestValidationStartTimeRequired =>
+      'Ustaw godzinę rozpoczęcia dla opóźnionych zadań';
+
+  @override
+  String get createQuestValidationStartTimeInPast =>
+      'Czas rozpoczęcia musi być w przyszłości';
 }

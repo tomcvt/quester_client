@@ -9,6 +9,7 @@
   "questStatusCompleted": "Completed",
   "questStatusCancelled": "Cancelled",
   "questStatusTimedOut": "Timed Out",
+  "questStatusRewarded": "Rewarded",
   "questMenuDelete": "Delete",
   "questMenuHide": "Hide"
   ,
@@ -33,6 +34,40 @@
   "cancel": "Cancel",
   "create": "Create",
 
-    "tapToOpen": "Tap to open"
+    "tapToOpen": "Tap to open",
+
+  "questDetailsErrorLoading": "Error loading quest",
+  "questDetailsQuestNotFound": "Quest not found",
+  "questDetailsStart": "Start: {time}",
+  "@questDetailsStart": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "questDetailsDeadlineTime": "Deadline: {time}",
+  "@questDetailsDeadlineTime": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "questDetailsAddress": "Address",
+  "questDetailsDetails": "Details",
+  "questDetailsCreatedBy": "Created by",
+  "questDetailsAcceptedBy": "Accepted by",
+  "questDetailsUnknown": "Unknown",
+  "questDetailsCreatorParticipating": "Creator is also participating in this quest",
+  "questActionOpen": "Open Quest",
+  "questActionComplete": "Complete Quest",
+  "questActionAccept": "Accept Quest",
+  "questActionReward": "Grant Reward",
+  "createQuestRewardMode": "Reward:",
+  "createQuestRewardAutomatic": "Automatic",
+  "createQuestRewardOnConfirmation": "On confirmation",
+  "createQuestSavedTemplates": "Saved templates",
+  "createQuestDismissSuggestions": "Dismiss",
+  "createQuestSuggestionToday": "Today",
+  "createQuestValidationNameEmpty": "Quest name cannot be empty",
+  "createQuestValidationStartTimeRequired": "Set a start time for delayed quests",
+  "createQuestValidationStartTimeInPast": "Start time must be in the future"
 
 }
