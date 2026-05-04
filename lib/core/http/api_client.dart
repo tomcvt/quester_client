@@ -41,6 +41,7 @@ Never _throwFromDio(DioException e, String fallback) {
 class ApiClient {
   final Dio _dio;
   String _sessionToken = '';
+  String _accessToken = '';
 
   ApiClient(String baseUrl, String installationId, {String? sessionToken})
     : _dio = Dio(BaseOptions(baseUrl: baseUrl)) {
@@ -63,9 +64,18 @@ class ApiClient {
         },
       ),
     );
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          options.headers['Authorization'] = 'Bearer $_accessToken';
+          handler.next(options);
+        },
+      ),
+    );
   }
 
   void setSessionToken(String token) => _sessionToken = token;
+  void setAccessToken(String token) => _accessToken = token;
 
   Future<AuthenticationResponse> authenticate(
     String installationId,
