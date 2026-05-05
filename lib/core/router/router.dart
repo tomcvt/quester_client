@@ -9,9 +9,8 @@ import 'package:quester_client/core/models/auth.dart';
 import 'package:quester_client/core/providers/profile_providers.dart';
 import 'package:quester_client/core/services/app_initializer.dart';
 import 'package:quester_client/core/services/fcm_handler.dart';
-import 'package:quester_client/core/services/sync_service.dart';
 import 'package:quester_client/core/utils/logger_util.dart';
-import 'package:quester_client/dev/dev_data_seeder.dart';
+import 'package:quester_client/dev/debug_speed_dial.dart';
 import 'package:quester_client/features/auth/setup_profile_screen.dart';
 import 'package:quester_client/features/groups/group_home_screen.dart';
 import 'package:quester_client/features/profile/profile_screen.dart';
@@ -167,7 +166,7 @@ class _ShellScaffold extends ConsumerWidget {
         children: [
           child,
           if (kDebugMode)
-            Positioned(bottom: 24, left: 16, child: const _DebugSpeedDial()),
+            Positioned(bottom: 24, left: 16, child: const DebugSpeedDial()),
         ],
       ),
     );
@@ -224,123 +223,5 @@ class _QuestNudgeDialog extends StatelessWidget {
         TextButton(onPressed: nActionOnTap, child: Text(nActionLabel)),
       ],
     );
-  }
-}
-
-class _DebugSpeedDial extends ConsumerStatefulWidget {
-  const _DebugSpeedDial();
-
-  @override
-  _DebugSpeedDialState createState() => _DebugSpeedDialState();
-}
-
-class _DebugSpeedDialState extends ConsumerState<_DebugSpeedDial> {
-  bool _open = false;
-
-  void _toggle() => setState(() => _open = !_open);
-
-  @override
-  Widget build(BuildContext context) {
-    final syncServiceFuture = ref.read(syncServiceProvider.future);
-    final actions = <({String label, IconData icon, VoidCallback onTap})>[
-      /*
-    (
-      label: 'Seed data',
-      icon: Icons.storage,
-      onTap: () => DevDataSeeder.seed(),
-    ),
-    (
-      label: 'Clear DB',
-      icon: Icons.delete_sweep,
-      onTap: () => DevDataSeeder.clear(),
-    ),
-    (
-      label: 'Fake nudge',
-      icon: Icons.notifications,
-      onTap: () => DevDataSeeder.simulateFcm(),
-    ),*/
-      (
-        label: 'Reset quests',
-        icon: Icons.refresh,
-        onTap: () => DevDataSeeder.clearQuests(AppInitializer.db),
-      ),
-      (
-        label: 'Sync quests data',
-        icon: Icons.sync,
-        onTap: () async {
-          final syncService = await syncServiceFuture;
-          await syncService.syncAllQuests();
-          if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Sync complete')));
-          }
-        },
-      ),
-    ];
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (_open) _DebugMenu(actions: actions, onActionTap: (_) => _toggle()),
-        const SizedBox(height: 8),
-        FloatingActionButton(
-          heroTag: 'debug_fab',
-          onPressed: _toggle,
-          child: Icon(_open ? Icons.close : Icons.bug_report),
-        ),
-      ],
-    );
-  }
-}
-
-class _DebugMenu extends StatelessWidget {
-  final List<({String label, IconData icon, VoidCallback onTap})> actions;
-  final ValueChanged<int> onActionTap;
-
-  const _DebugMenu({required this.actions, required this.onActionTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      elevation: 4,
-      borderRadius: BorderRadius.circular(12),
-      child: IntrinsicWidth(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final (i, action) in actions.indexed)
-              InkWell(
-                onTap: () {
-                  action.onTap();
-                  onActionTap(i);
-                },
-                borderRadius: _borderRadius(i, actions.length),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(action.icon, size: 18),
-                      const SizedBox(width: 12),
-                      Text(action.label),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BorderRadius _borderRadius(int index, int total) {
-    const r = Radius.circular(12);
-    if (total == 1) return BorderRadius.all(r);
-    if (index == 0) return BorderRadius.vertical(top: r);
-    if (index == total - 1) return BorderRadius.vertical(bottom: r);
-    return BorderRadius.zero;
   }
 }

@@ -84,12 +84,13 @@ final apiClientProvider = FutureProvider<ApiClient>((ref) async {
 
   return client;
 });
-
+/*
 final syncServiceProvider = FutureProvider<SyncService>((ref) async {
-  final db = ref.watch(databaseProvider).requireValue;
+  final db = ref.watch(appDatabaseProvider);
   final apiClient = await ref.watch(apiClientProvider.future);
   return SyncService(db, apiClient);
 });
+*/
 
 final buildConfigProvider = Provider<BuildConfig>((ref) {
   throw UnimplementedError('buildConfigProvider must be overridden in main()');
