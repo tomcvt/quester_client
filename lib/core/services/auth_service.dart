@@ -14,6 +14,7 @@ class AuthService {
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secureStorage;
   String lastFcmToken = ''; //TODO fast solution, refactor later
+
   /*
   static const String _apiKey = 'x-api-key';
   static const String _sessionTokenKey = 'session_token';
@@ -85,8 +86,8 @@ class AuthService {
     _prefs.setString(fcmTokenKey, fcmToken ?? '');
     try {
       final sessionData = await authenticate(installationId, fcmToken);
-      if (sessionData.sessionToken.isEmpty) {
-        logger.w('No session token received during authentication');
+      if (sessionData.accessToken.isEmpty) {
+        logger.w('No access token received during authentication');
         return const SessionData.empty();
       }
       logger.i('Authentication successful, token stored securely');
@@ -146,9 +147,9 @@ class AuthService {
       'Authentication complete, session token: ${authResponse.sessionToken}',
     );
 
-    _apiClient.setSessionToken(authResponse.sessionToken);
+    _apiClient.setAccessToken(authResponse.sessionToken);
     await _secureStorage.write(
-      key: sessionTokenKey,
+      key: accessTokenKey,
       value: authResponse.sessionToken,
     );
     await _secureStorage.write(key: publicIdKey, value: authResponse.publicId);
@@ -157,7 +158,7 @@ class AuthService {
     await _prefs.setString(publicIdKey, authResponse.publicId);
 
     return SessionData(
-      sessionToken: authResponse.sessionToken,
+      accessToken: authResponse.sessionToken,
       username: authResponse.username,
       phoneNumber: authResponse.phoneNumber,
       publicId: authResponse.publicId,

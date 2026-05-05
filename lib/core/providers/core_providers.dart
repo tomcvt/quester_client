@@ -57,7 +57,13 @@ final apiClientProvider = FutureProvider<ApiClient>((ref) async {
       .catchError((e) {
         throw Exception('Failed to get installation ID: $e');
       });
-  return ApiClient(buildConfig.apiBaseUrl, installationId);
+  final client = ApiClient(buildConfig.apiBaseUrl, installationId);
+
+  client.setTokenRefreshCallback(() async {
+    final authService = await ref.read(authServiceProvider.future);
+    final newSession = await authService.refreshSession();
+    return newSession.accessToken;
+  });
 });
 
 final syncServiceProvider = FutureProvider<SyncService>((ref) async {

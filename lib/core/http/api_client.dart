@@ -43,6 +43,17 @@ class ApiClient {
   String _sessionToken = '';
   String _accessToken = '';
 
+  Future<String> Function()? _onTokenExpired;
+  Future<void> Function()? _onRefreshTokenExpired;
+
+  void setTokenRefreshCallback(Future<String> Function() callback) {
+    _onTokenExpired = callback;
+  }
+
+  void setRefreshTokenExpiredCallback(Future<void> Function() callback) {
+    _onRefreshTokenExpired = callback;
+  }
+
   ApiClient(String baseUrl, String installationId, {String? sessionToken})
     : _dio = Dio(BaseOptions(baseUrl: baseUrl)) {
     if (sessionToken != null) {
