@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:quester_client/core/auth/auth_event_bus.dart';
 import 'package:quester_client/core/constants/const.dart';
 import 'package:quester_client/core/models/app_auth_state.dart';
 import 'package:quester_client/core/models/auth.dart';
@@ -15,7 +16,25 @@ import 'core_providers.dart';
 class AuthNotifier extends AsyncNotifier<AppAuthState> {
   @override
   Future<AppAuthState> build() async {
-    // Wire Google auth stream for the lifetime of this notifier.
+    // ── AuthEventBus listener — intercepts token refresh/expiry from the HTTP layer
+    final bus = ref.read(authEventBusProvider);
+    final authSub = bus.events.listen((event) {
+      switch (event) {
+        case SessionExpired():
+          // Refresh token rejected or missing — force user to log in again.
+          // TODO [PENDING]: add RequiresLogin to AppAuthState to distinguish
+          //                 "session expired" from "never authenticated",
+          //                 so the router can show a "session expired" banner.
+          state = const AsyncData(CannotAuthenticate());
+        case AccessTokenRefreshed(:final session):
+          // Silent token refresh succeeded — update state so the UI
+          // and any provider watching authProvider stays current.
+          state = AsyncData(Authenticated(session));
+      }
+    });
+    ref.onDispose(authSub.cancel);
+
+    // ── Wire Google auth stream for the lifetime of this notifier.
     // Riverpod cancels this automatically when the notifier is disposed —
     // same as collecting a Flow in viewModelScope, no manual cleanup needed.
     //
@@ -86,7 +105,7 @@ class AuthNotifier extends AsyncNotifier<AppAuthState> {
     final installationId = await ref.read(installationIdProvider.future);
     final cachedFcmToken = prefs.getString(fcmTokenKey);
 
-    final SessionData session = await authService.initialize(
+    final SessionData session = await authService.initializeWithJwt(
       installationId,
       fcmToken: cachedFcmToken,
     );

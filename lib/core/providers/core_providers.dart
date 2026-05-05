@@ -3,6 +3,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quester_client/core/auth/auth_event_bus.dart';
+import 'package:quester_client/core/auth/auth_interceptor.dart';
 import 'package:quester_client/core/build_config.dart';
 import 'package:quester_client/core/constants/const.dart';
 import 'package:quester_client/core/http/api_client.dart';
@@ -52,18 +54,35 @@ final installationIdProvider = FutureProvider<String>((ref) async {
 
 final apiClientProvider = FutureProvider<ApiClient>((ref) async {
   final buildConfig = ref.read(buildConfigProvider);
+  final storage = ref.read(secureStorageProvider);
+  final eventBus = ref.read(authEventBusProvider);
   final installationId = await ref
       .read(installationIdProvider.future)
       .catchError((e) {
         throw Exception('Failed to get installation ID: $e');
       });
+
   final client = ApiClient(buildConfig.apiBaseUrl, installationId);
 
-  client.setTokenRefreshCallback(() async {
-    final authService = await ref.read(authServiceProvider.future);
-    final newSession = await authService.refreshSession();
-    return newSession.accessToken;
-  });
+  // Wire AuthInterceptor — handles 401 / silent token refresh / retry.
+  // Emits AccessTokenRefreshed or SessionExpired to authEventBusProvider.
+  client.dio.interceptors.add(
+    AuthInterceptor(
+      storage: storage,
+      eventBus: eventBus,
+      dio: client.dio,
+      onNewAccessToken: client.setAccessToken,
+    ),
+  );
+
+  // TODO [remove]: old callback-based refresh wiring — replaced by AuthInterceptor
+  // client.setTokenRefreshCallback(() async {
+  //   final authService = await ref.read(authServiceProvider.future);
+  //   final newSession = await authService.refreshSession(); // BUG: missing refreshToken arg
+  //   return newSession.accessToken;
+  // });
+
+  return client;
 });
 
 final syncServiceProvider = FutureProvider<SyncService>((ref) async {

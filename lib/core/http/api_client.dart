@@ -43,16 +43,9 @@ class ApiClient {
   String _sessionToken = '';
   String _accessToken = '';
 
-  Future<String> Function()? _onTokenExpired;
-  Future<void> Function()? _onRefreshTokenExpired;
-
-  void setTokenRefreshCallback(Future<String> Function() callback) {
-    _onTokenExpired = callback;
-  }
-
-  void setRefreshTokenExpiredCallback(Future<void> Function() callback) {
-    _onRefreshTokenExpired = callback;
-  }
+  /// Exposes the underlying [Dio] instance so [AuthInterceptor] can be
+  /// attached from the provider layer after construction.
+  Dio get dio => _dio;
 
   ApiClient(String baseUrl, String installationId, {String? sessionToken})
     : _dio = Dio(BaseOptions(baseUrl: baseUrl)) {
@@ -416,7 +409,7 @@ class SetRoleRequest(BaseModel):
   ) async {
     try {
       final response = await _dio.post(
-        '/auth/create-session',
+        '/auth/session',
         data: {'installation_id': installationId, 'fcm_token': fcmToken ?? ''},
       );
       // Assuming the response contains session details. Adjust parsing as needed.
@@ -429,7 +422,7 @@ class SetRoleRequest(BaseModel):
   Future<SessionResponse> refreshSession(String refreshToken) async {
     try {
       final response = await _dio.post(
-        '/auth/refresh-session',
+        '/auth/refresh',
         data: {'refresh_token': refreshToken},
       );
       return SessionResponse.fromJson(response.data);

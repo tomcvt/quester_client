@@ -204,7 +204,7 @@ class SyncService {
     return newUsersPublicIds.toList();
   }
 
-  Future<void> syncUser(userPublicId) async {
+  Future<void> syncUser(String userPublicId) async {
     final userResponse = await _apiClient.fetchUsersByPublicIds(
       List.of([userPublicId]),
     );
@@ -212,6 +212,30 @@ class SyncService {
       await _db.usersDao.insertUsersFromSync(userResponse.users);
     }
     logger.d('Synced user with public id $userPublicId from backend');
+  }
+
+  Future<void> syncGroupMemberOnNotificationByPublicId(
+    String groupPublicId,
+    String userPublicId,
+  ) async {
+    final group = await _db.groupsDao.groupFromPublicId(groupPublicId);
+    if (group == null) {
+      logger.e('Group with public id $groupPublicId not found');
+      return;
+    }
+    await syncGroupMemberOnNotification(group, userPublicId);
+  }
+
+  Future<void> syncGroupMemberOnNotification(
+    Group group,
+    String memberPublicId,
+  ) async {
+    //TODO consider singular for single group member data
+    final membersResponse = await _apiClient.getGroupMembers(group.publicId);
+    await _db.groupMembersDao.insertMembersFromSync(
+      group.id,
+      membersResponse.members,
+    );
   }
 }
 
