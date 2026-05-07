@@ -1,0 +1,10 @@
+{
+  "pl": [
+    "createQuestDeadline",
+    "createQuestAvailability",
+    "createQuestOpenImmediately",
+    "createQuestDelayedStart",
+    "createQuestRewardType",
+    "createQuestRewardValue"
+  ]
+}

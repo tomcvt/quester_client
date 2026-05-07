@@ -92,7 +92,7 @@ void main() async {
     ProviderScope(
       overrides: [
         buildConfigProvider.overrideWithValue(buildConfig),
-        databaseProvider.overrideWithValue(AsyncValue.data(AppInitializer.db)),
+        appDatabaseProvider.overrideWithValue(AppInitializer.db),
         firebaseFutureProvider.overrideWithValue(firebaseAppFuture),
       ],
       child: MyApp(),
